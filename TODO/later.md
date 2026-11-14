@@ -2431,7 +2431,7 @@ State (2026-11-14, later): runner-image run 43628702784 (`aeac0a3`) is green. Th
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -2450,3 +2450,7 @@ The incus tier of podvm takes `exec` (the limits page of podvm, PodUtils/podvm@T
 `crates/podrunner-incus/tests/egress.rs` in `runner-image.yml`: a command of `enter` runs in the instance and sees `lo` only.
 
 State (2026-11-14): `IncusUnit::enter` is in; `egress.rs` keeps the payload up after its checks and enters it. Next: its green run.
+
+## Done
+
+2026-11-14, `7530b2c`: runner-image run 43632726810 is green: `crates/podrunner-incus/tests/egress.rs` enters the running instance with `IncusUnit::enter`, and the command gives `in-unit-42 lo`: it runs in the instance, which has no NIC.
