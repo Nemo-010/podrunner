@@ -14,7 +14,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #6 | DR-6: githome and cfb accept the restated G-02, G-03 and G-09 | closed (`docs/decisions.md`, 2026-11-11) | T-006 |
 | #7 | DR-7: a throwaway GitHub organization and App for live tests | closed (DR-7 yes, `6348aa0`) | T-007 |
 | #8 | Defaulted decisions DR-3 and DR-8 to DR-17: confirm in one reply | closed (`docs/decisions.md`, 2026-11-11) | T-008 |
-| #9 | Unknowns U1 to U25: register, owners and what settles each | open (U15, U16 and the live rows are open; the live rows wait for #74 and #75) | T-009 |
+| #9 | Unknowns U1 to U25: register, owners and what settles each | open (U16 and the live rows are open; the live rows wait for #74 and #75) | T-009 |
 | #10 | v1 non-goals: deferred items and the trigger of each | closed (`docs/non-goals.md`) | T-010 |
 | #11 | Bootstrap: Cargo workspace, pinned toolchain, static musl build | closed (`9d2e4dd`, gate run 42934750114) | T-011 |
 | #12 | Bootstrap: CI gate (format, lint, tests, static probe, deny, file size) | closed (`9d2e4dd`, gate run 42934750114) | T-012 |

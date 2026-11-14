@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**160 entries: 0 open, 4 partial, 6 blocked, 150 done.**
+**161 entries: 1 open, 4 partial, 6 blocked, 150 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 2 | 0 | 32 | 34 |
 | P2 | 0 | 2 | 3 | 68 | 73 |
-| P3 | 0 | 0 | 3 | 50 | 53 |
-| **All** | 0 | 4 | 6 | 150 | 160 |
+| P3 | 1 | 0 | 3 | 50 | 54 |
+| **All** | 1 | 4 | 6 | 150 | 161 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -208,3 +208,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-158](later.md) | P3 | S | later | defect | blocked | Local mode: a static image as a container of a podvm unit |
 | [T-159](later.md) | P2 | S | later | defect | partial | An intermittent unknown count of processes at the destroy of a podvm unit |
 | [T-160](later.md) | P3 | S | later | feature | done | Local mode: a shell in a paused job of the incus kind |
+| [T-161](later.md) | P3 | M | later | research | open | An alternate payload: a runner other than the official one |

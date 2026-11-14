@@ -2454,3 +2454,30 @@ State (2026-11-14): `IncusUnit::enter` is in; `egress.rs` keeps the payload up a
 ## Done
 
 2026-11-14, `7530b2c`: runner-image run 43632726810 is green: `crates/podrunner-incus/tests/egress.rs` enters the running instance with `IncusUnit::enter`, and the command gives `in-unit-42 lo`: it runs in the instance, which has no NIC.
+
+# T-161: An alternate payload: a runner other than the official one
+
+**Source:** The owner's ruling on U15 (2026-11-14): "Alternate payload allowed"
+**Category:** research
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+podrunner runs only the official `actions/runner` (.NET) in a unit. It serves no target that the official runner does not serve (riscv64, i686, loongarch64, ppc64le, a static musl host with no .NET), and each unit image carries the advisories of its .NET packages (T-082). The owner allowed an alternate payload that reports a third-party runner version string to github.com (U15); the plan lists "alternate payloads and a native runner" with that trigger.
+
+## Premise
+
+Read `TODO/plan.md` (the table of non-goals) and `docs/unknowns.md` (U15) on 2026-11-14. podcrates has the native crates of the workflow model (`pod-actions-expr`, `pod-actions-workflow`, `pod-actions-store`, `pod-actions-results`); the local mode uses them to plan a run, not to run its steps. Not measured: which messages of the broker and of the run service an alternate payload must speak, and how github.com treats its version string.
+
+## Approach
+
+1. Write the census: each call of the official runner to the broker, the run service and the results service of a job (from the fake broker of the local mode, which serves them all), with its fields.
+2. Decide the payload: a native runner from the `pod-actions-*` crates (a request to podcrates), or another existing runner. Record the call in `docs/decisions.md`.
+3. Measure it against the fake broker of the local mode first, then in a live gate.
+
+## Prove
+
+A new page of `docs/` has the census and the call; one canned job of the fake broker passes with the alternate payload in a unit.

@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 160 entries: 0 open, 4 partial, 6 blocked, 150 done.
+`TODO/INDEX.md` holds 161 entries: 1 open, 4 partial, 6 blocked, 150 done.
 
 ## State
 
@@ -36,14 +36,15 @@ The queue, most valuable first:
 
 The local mode against act and runner.server (`docs/local-mode.md`), the features that most workflows need first:
 
-2. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
+2. T-161 (M, open): an alternate payload (U15, allowed on 2026-11-14): the census of the calls of the runner, then the choice.
+3. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 
-Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040; U15 for the owner).
+Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040).
 
 Blocked: T-158 (podvm: a detached run of a static image, GitHub #100), T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
 
 ## Questions for the owner
 
-Q6 (T-148, 2026-11-14): Azure Pipelines YAML in the local mode? runner.server runs it on the Azure Pipelines agent, not on the GitHub runner: podrunner would need a second payload, a second fake broker, a store of tasks and a template expansion of about 4,000 lines (`docs/azure-pipelines.md`). Recommendation: no, not now; if yes, the first step is a measure of the agent in a podvm unit with one canned message. No work waits on the answer.
+None is open. The owner answered Q6 and U15 on 2026-11-14 (`docs/decisions.md`).
 
 The owner answered Q1 to Q3 (DR-4, DR-5, DR-6) on 2026-11-11, and Q4, Q5 and DR-7 on 2026-11-13 (`docs/decisions.md`).

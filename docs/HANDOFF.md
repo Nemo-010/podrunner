@@ -15,11 +15,11 @@ is done.
   beta.14, T-112); podnet `v0.4.0-beta.8` (`images/podnet.toml`); the
   official runner v2.338.2 (`images/runner/runner.toml`). Last beta of
   podrunner: `v0.1.0-beta.4` (release run 43506335609, `d796a94`).
-- The record: 156 entries (`cargo todo check` gives the counts). The last green `runner-image.yml` run is
-  43541714659 (`9f15901`): the podvm suites, the held tests, the tar
-  forms, the microvm kind on real guests (with an engine), and the incus
-  suite on real instances. The last green `level2.yml` run is
-  43541714726 (`9f15901`).
+- The record: `cargo todo check` gives the counts. The last green
+  `runner-image.yml` run is 43632726810 (`7530b2c`): the podvm suites,
+  the held tests, the local suite on each kind, the parity suite in
+  guests with an engine, the microvm kind on real guests, and the incus
+  suite on real instances.
 - M-A, M-B and L2 hold (T-039 is done). The work packages of M-C and M-D
   are done. The open gates are T-032, T-033 and T-040 (the live gates:
   GitHub #74 and #75).
@@ -93,8 +93,9 @@ is done.
   `(to podvm)`. podssh is on break.
 - T-159 (partial): the destroy of a podvm unit gave an unknown count of
   processes once; `destroy` now logs the cause. Read it at the next failure.
-- Q6 (T-148): Azure Pipelines YAML; the recommendation is no
-  (`docs/azure-pipelines.md`). No work waits on it.
+- T-161 (open): an alternate payload; the owner allowed it (U15,
+  2026-11-14). The plan names its trigger: a target that no official
+  runner serves.
 - T-101 (partial): the `program` source kind is in; its pair with GitHub
   runs on the host of LIVE-2 when githome gives its program (GitHub #66).
 - The live gates: two agents on two constrained hosts, GitHub #74

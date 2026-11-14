@@ -47,6 +47,10 @@ at the tag `v0.41.0`.
 | 2026-11-13 | beta.2 | Release `v0.1.0-beta.2` when the gate and `runner-image.yml` of `main` are green. Its notes say that no job of real github.com ran yet. |
 | 2026-11-13 | G-09 and DR-8 (githome, #36 ruling 4) | G-09 keeps `services:`, `docker build` and Docker-in-Docker (the owner, through githome on GitHub #66 and #77). G-09 is the ask that DR-8 names as its condition to bring an engine back. The engine runs inside the unit (a guest of podvm's machine tier, or a system container of incus), never as a socket of the host. T-103 writes the census of the verbs (DR-17) and the design. The hooks stay the route of `container:` jobs and Docker actions. |
 | 2026-11-13 | Q5 (T-102) | "Yes, with limits". The operator may add `workflow_run`, `issue_comment`, `release` and `repository_dispatch` to the events of a trusted job (`[trust] extra_events`). Each needs the facts of a trusted job (a configured owner, no fork, an actor `member`). `pull_request_target`, `other` and `unknown` are never trusted. The default adds none. |
+| 2026-11-14 | Q6 (T-148) | "No, not now": the local mode runs GitHub Actions workflows only, not Azure Pipelines YAML. A user ask reopens it (`docs/azure-pipelines.md`). |
+| 2026-11-14 | U15 (C10, DR-16) | "Alternate payload allowed": a payload other than the official runner can report a third-party runner version string to github.com. T-161 plans it. It supersedes C10. |
+| 2026-11-14 | beta.5 | Release `v0.1.0-beta.5` and point LIVE-1 (#74) and LIVE-2 (#75) at it. Amend each stale comment of the open issues; add no history. |
+| 2026-11-14 | githome replies | githome answers a COORD issue of podrunner by a comment on it. |
 
 ## Calls made without a ruling
 
@@ -65,7 +69,6 @@ C13 to C16 are rulings since 2026-11-11 ("Confirm, keep swappable").
 | 2026-11-11 | C7 (DR-13) | A `docker` unit kind is built only when the owner names a Docker or Podman host with no KVM. |
 | 2026-11-11 | C8 (DR-14) | A host with root or a namespace builds the runner images. An H0 host imports an image that a build host made (T-030). |
 | 2026-11-11 | C9 (DR-15) | `pod doctor` owns the qualification of a host (A-X-25). `podrunner doctor` is a thin reader (T-022). |
-| 2026-11-11 | C10 (DR-16) | The owner reads the GitHub terms for a third-party runner version string before any alternate payload ships (U15). No alternate payload ships before that. |
 | 2026-11-11 | C11 (DR-17) | `pod-dockerapi` and any new crate name are reserved only after a census of the verbs. podrunner asks podcrates for no crate name before that. |
 | 2026-11-11 | C12 (GitHub #8, R-C18) | The flag `--deny-self-hosted-runners` of the release proofs of podvm, podnet and podssh stays. podrunner builds no release of another project. |
 | 2026-11-11 | C13 (T-021) | podrunner gives a credential to a unit as files only. A kind whose record has no `files` in `secret_delivery` is no candidate; when no kind is left at that step, the code is `boundary-not-available`. A `trusted` set needs `confined` or more unless the configuration sets `redirect` (DR-4). |
@@ -85,7 +88,7 @@ C13 to C16 are rulings since 2026-11-11 ("Confirm, keep swappable").
 ## Questions for the owner
 
 `TODO/PROGRESS.md`, "Questions for the owner", has each open question
-with its recommendation. Open: Q6 (Azure Pipelines YAML, T-148).
+with its recommendation. None is open.
 
 ## Superseded
 
