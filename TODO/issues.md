@@ -95,7 +95,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #93 | COORD-033: podrunner takes podcrates v0.41.0 at 9f15901 (the answer to PodUtils/podcrates#143) (to podcrates) | closed (podcrates recorded the take on PodUtils/podcrates#143) | T-094 |
 | #94 | COORD-034: pod-actions-store: the resolve of action references, a lock file and a store of tarballs (to podcrates) | closed (podrunner uses `pod-actions-store` of `v0.45.0`) | T-118 |
 | #95 | COORD-035: pod-actions-results: the ArtifactService of the results API and its blob routes (to podcrates) | closed (podrunner uses `pod-actions-results` of `v0.45.0`) | T-119 |
-| #96 | COORD-036: podrunner takes podcrates v0.42.0 at 05ceaec (the answer to PodUtils/podcrates#145) (to podcrates) | open (until podcrates records the take) | T-103 |
+| #96 | COORD-036: podrunner takes podcrates v0.42.0 at 05ceaec (the answer to PodUtils/podcrates#145) (to podcrates) | closed | T-103 |
 | #97 | COORD-037: pod-actions-workflow: the filters of on: (types, branches, tags, paths and their -ignore forms) (to podcrates) | closed (taken in `v0.44.0`; T-125 is done) | T-125 |
 | #98 | COORD-038: pod-actions-workflow: the expansion of a reusable workflow (jobs.ID.uses) into jobs of the run (to podcrates) | closed (taken in `v0.44.0`; T-131 is done) | T-131 |
 | #99 | COORD-039: podrunner takes podcrates v0.43.0 at 51f9e6b, and the additions for pod-actions-store and pod-actions-results (the answer to PodUtils/podcrates#149) (to podcrates) | closed (podcrates recorded the take on PodUtils/podcrates#149; PodUtils/podcrates@T-587 and PodUtils/podcrates@T-588 import the additions) | T-118 |
