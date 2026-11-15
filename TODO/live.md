@@ -854,7 +854,7 @@ A test of the configuration: a source with `token_file` is accepted, and one wit
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -873,3 +873,6 @@ T-166 on 2026-11-15: with the fake scale set (`tools/fake-scaleset`, which gives
 ## Prove
 
 A conformance test: a unit whose runner gets the message of another job runs no step of it (the hook ends the job), and the report is `job-mismatch`. The fake scale set with two assigned jobs and a reversed order: no step of the foreign job runs. A live check on the next beta.
+
+State (2026-11-15): step 2 is in. Measured on the official runner v2.338.2 with the fake broker: the job-started hook sees `GITHUB_REPOSITORY` and `GITHUB_RUN_ID`, a hook that exits 1 fails the job, and no step runs; a relative path of the hook is not found (the job fails). So the runner image carries the hook (`images/runner/podrunner-job-started.sh` in `/home/runner/hooks/`, `ENV ACTIONS_RUNNER_HOOK_JOB_STARTED`), and slots stages `.podrunner-job` (`OWNER/REPO RUN_ID`) with the credential files (`job_file` of `crates/podrunner-slots/src/run.rs`); the image links it into `/home/runner`, as `.runner`. `a_job_started_hook_ends_a_foreign_job_before_its_first_step` (`crates/podrunner-broker-fake/tests/runner.rs`) runs the shipped script: the own job (another case of the letters) runs; another repository or another run fails with no step; with no file the job runs. Next: a runner-image run that builds the image and runs a foreign job in a podvm unit; then step 1 and step 3 on the test organization.
+

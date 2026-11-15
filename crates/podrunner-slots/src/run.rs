@@ -119,6 +119,12 @@ impl Slots {
                 return self.give_up(key, code, now);
             }
         };
+        // T-175: the job that this unit is for, for the job-started hook of
+        // the runner image.
+        let mut credential = credential;
+        if let Some(f) = self.jobs[key].offer.as_ref().and_then(job_file) {
+            credential.files.push(f);
+        }
         self.audit(audit::Kind::Mint, key.0, &key.1, None, None);
         self.set(key, State::Minted, now);
         self.jobs.get_mut(key).expect("a minted job").minted_ms = Some(now);
@@ -441,4 +447,19 @@ impl Slots {
         }
         crate::forget::keep(&mut self.reports, r);
     }
+}
+
+/// The name of the file of the placed job in the runner root (T-175).
+pub const JOB_FILE: &str = ".podrunner-job";
+
+/// `OWNER/REPO RUN_ID` of the offer, for the job-started hook of the runner
+/// image (`images/runner/podrunner-job-started.sh`). An offer with no run
+/// gives none: the hook then compares nothing.
+pub(crate) fn job_file(offer: &podrunner_schema::JobOffer) -> Option<podrunner_schema::CredentialFile> {
+    let t = &offer.trust_inputs;
+    if t.run_id == 0 || t.owner.is_empty() || t.repo.is_empty() {
+        return None;
+    }
+    let text = format!("{}/{} {}\n", t.owner, t.repo, t.run_id);
+    Some(podrunner_schema::CredentialFile { name: JOB_FILE.into(), content: podrunner_schema::Secret::new(&text) })
 }

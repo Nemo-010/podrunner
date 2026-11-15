@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**175 entries: 9 open, 5 partial, 6 blocked, 155 done.**
+**175 entries: 8 open, 6 partial, 6 blocked, 155 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 2 | 0 | 36 | 40 |
+| P1 | 1 | 3 | 0 | 36 | 40 |
 | P2 | 4 | 2 | 3 | 68 | 77 |
 | P3 | 3 | 1 | 3 | 51 | 58 |
-| **All** | 9 | 5 | 6 | 155 | 175 |
+| **All** | 8 | 6 | 6 | 155 | 175 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -222,4 +222,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-172](live.md) | P3 | S | M-C | defect | open | The audit of `sign` lives only in memory |
 | [T-173](live.md) | P3 | S | M-C | defect | open | `podrunner --version` does not name the beta |
 | [T-174](live.md) | P3 | S | later | defect | open | A trusted source cannot use a fine-grained organization PAT |
-| [T-175](live.md) | P1 | M | M-C | defect | open | A runner of the scale set is not bound to its job: a foreign job is found only at `started` |
+| [T-175](live.md) | P1 | M | M-C | defect | partial | A runner of the scale set is not bound to its job: a foreign job is found only at `started` |

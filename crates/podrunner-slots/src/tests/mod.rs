@@ -7,6 +7,7 @@ mod egress;
 mod guards;
 mod guest;
 mod hooks;
+mod jobfile;
 mod journal;
 mod level1;
 mod spool;

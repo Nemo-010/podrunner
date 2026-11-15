@@ -40,6 +40,11 @@ COPY --chmod=0755 crates/podrunner-hook/relay/podrunner-hook.sh /home/runner/hoo
 # /podrunner/.runner (mode 0600); the runner reads them from its own
 # directory. Relative links: on the supervise rung of podvm an absolute
 # link resolves on the host, out of the rootfs.
-RUN for f in .runner .credentials .credentials_rsaparams; do ln -s "../../podrunner/.runner/$f" "/home/runner/$f"; done
+RUN for f in .runner .credentials .credentials_rsaparams .podrunner-job; do ln -s "../../podrunner/.runner/$f" "/home/runner/$f"; done
+# T-175: GitHub binds no runner of a scale set to one job. The hook ends a
+# job other than the one that podrunner placed in the unit
+# (.podrunner-job) before its first step.
+COPY --chmod=0755 images/runner/podrunner-job-started.sh /home/runner/hooks/podrunner-job-started.sh
+ENV ACTIONS_RUNNER_HOOK_JOB_STARTED=/home/runner/hooks/podrunner-job-started.sh
 
 USER runner
