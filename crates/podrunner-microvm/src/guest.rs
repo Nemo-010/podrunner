@@ -37,7 +37,7 @@ pub const MOUNT_CHECK: &str = r#"$3 == "9p" || $3 == "virtiofs" { if (($2 == "/m
 /// mode 0600, gives them to the user of the image (`runner`, when it
 /// exists: the official runner refuses root), and runs the payload in the
 /// work directory.
-const SCRIPT: &str = r#"set -eu
+pub(crate) const SCRIPT: &str = r#"set -eu
 root=$1; shift
 # Each host mount of the guest is in the table of the unit (T-036).
 if ! awk 'MOUNT_CHECK' /proc/mounts; then
@@ -83,6 +83,9 @@ done
 cd /podrunner-work
 if id runner >/dev/null 2>&1; then
   chown -R runner: "$root"
+  # setpriv keeps the environment of root: the home of the user (T-178).
+  home=$(getent passwd runner | cut -d: -f6)
+  export HOME="${home:-/home/runner}" USER=runner LOGNAME=runner
   exec setpriv --reuid=runner --regid=runner --init-groups -- "$@"
 fi
 exec "$@"

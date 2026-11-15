@@ -933,7 +933,7 @@ In `prepare` of the podvm driver (`start_container`), pull an image that the sto
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -950,6 +950,8 @@ Set `HOME` (and `USER`) of the runner to the home of its user in the guest scrip
 ## Prove
 
 A test of each guest script: the payload runs with `HOME=/home/runner`. The parity suite with a checkout step on both kinds in `runner-image.yml`.
+
+State (2026-11-15): the guest scripts of the incus and microvm kinds export `HOME` (from the passwd entry of `runner`, else `/home/runner`), `USER` and `LOGNAME` before `setpriv`. `tests::the_payload_has_the_home_of_the_runner` of each crate runs the tail of the script with stubs and fails on the script of before. Next: a checkout step on both kinds in `runner-image.yml`.
 
 # T-179: On an H0 host the runner times out on the broker under the seccomp hold and the egress module
 

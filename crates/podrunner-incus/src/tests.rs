@@ -209,3 +209,34 @@ fn the_instance_has_no_nic_and_one_channel_to_the_egress_socket() {
     assert_eq!((c.net.as_str(), c.egress_hold), ("none", EgressHold::Enforced));
     let _ = fs::remove_dir_all(&d);
 }
+
+/// T-178: the payload runs as `runner` with the home of `runner`, not the
+/// `HOME` of root. The tail of the script runs with stubs of `id`, `chown`,
+/// `getent` and `setpriv` on `PATH`.
+#[test]
+fn the_payload_has_the_home_of_the_runner() {
+    use std::os::unix::fs::PermissionsExt;
+    let script = super::guest::SCRIPT;
+    let tail = &script[script.rfind("if id runner").expect("the part of the user")..];
+    let d = std::env::temp_dir().join(format!("podrunner-home-{}-{}", env!("CARGO_PKG_NAME"), std::process::id()));
+    std::fs::create_dir_all(d.join("bin")).unwrap();
+    for (name, body) in [
+        ("id", "exit 0"),
+        ("chown", "exit 0"),
+        ("getent", "echo 'runner:x:1001:1001::/home/runner:/bin/sh'"),
+        ("setpriv", "while [ \"$1\" != -- ]; do shift; done; shift; exec \"$@\""),
+    ] {
+        let f = d.join("bin").join(name);
+        std::fs::write(&f, format!("#!/bin/sh\n{body}\n")).unwrap();
+        std::fs::set_permissions(&f, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let body = format!("root={}\n{tail}", d.display());
+    let out = std::process::Command::new("sh")
+        .args(["-c", &body, "sh", "sh", "-c", "echo \"$HOME $USER $LOGNAME\""])
+        .env("PATH", format!("{}:/usr/bin:/bin", d.join("bin").display()))
+        .env("HOME", "/root")
+        .output()
+        .unwrap();
+    let _ = std::fs::remove_dir_all(&d);
+    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "/home/runner runner runner", "{out:?}");
+}

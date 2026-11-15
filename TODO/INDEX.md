@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**189 entries: 22 open, 6 partial, 6 blocked, 155 done.**
+**189 entries: 21 open, 7 partial, 6 blocked, 155 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 5 | 3 | 0 | 36 | 44 |
+| P1 | 4 | 4 | 0 | 36 | 44 |
 | P2 | 10 | 2 | 3 | 68 | 83 |
 | P3 | 7 | 1 | 3 | 51 | 62 |
-| **All** | 22 | 6 | 6 | 155 | 189 |
+| **All** | 21 | 7 | 6 | 155 | 189 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -225,7 +225,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-175](live.md) | P1 | M | M-C | defect | partial | A runner of the scale set is not bound to its job: a foreign job is found only at `started` |
 | [T-176](live.md) | P1 | M | M-C | defect | open | The JIT configuration is minted before the unit starts: a failed start spends it and leaves the job assigned |
 | [T-177](live.md) | P1 | S | M-C | defect | open | `serve` does not pull an image that a digest pins: a `container:` job fails with no cause in the log |
-| [T-178](live.md) | P1 | S | M-C | defect | open | A job on the incus and microvm kinds has `HOME=/root` for a runner that is not root: `actions/checkout` fails |
+| [T-178](live.md) | P1 | S | M-C | defect | partial | A job on the incus and microvm kinds has `HOME=/root` for a runner that is not root: `actions/checkout` fails |
 | [T-179](live.md) | P1 | M | M-C | defect | open | On an H0 host the runner times out on the broker under the seccomp hold and the egress module |
 | [T-180](live.md) | P2 | S | M-C | defect | open | As PID 1 of a container, `serve` reaps no orphan: the zombies stop the supervisor |
 | [T-181](live.md) | P2 | M | M-C | defect | open | `--podvm-confine` stops name resolution in a podvm unit: the runner cannot reach the broker |

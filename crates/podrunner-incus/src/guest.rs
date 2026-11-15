@@ -37,6 +37,9 @@ done
 cd /podrunner-work
 if id runner >/dev/null 2>&1; then
   chown -R runner: "$root"
+  # setpriv keeps the environment of root: the home of the user (T-178).
+  home=$(getent passwd runner | cut -d: -f6)
+  export HOME="${home:-/home/runner}" USER=runner LOGNAME=runner
   exec setpriv --reuid=runner --regid=runner --init-groups -- "$@" </dev/null
 fi
 exec "$@" </dev/null
