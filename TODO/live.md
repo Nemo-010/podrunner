@@ -1250,7 +1250,7 @@ State (2026-11-15): the microvm kind runs podvm on the store of the operator, an
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -1267,6 +1267,8 @@ Let `podrunner run --podvm` take the netns hold where `podnet pod doctor` gives 
 ## Prove
 
 `cargo test -p podrunner --test local -- --ignored` on a host with user namespaces: the unit runs under the netns hold.
+
+State (2026-11-15): read `in_podvm` of `crates/podrunner/src/run_local/routes.rs`: the fake broker listens on the loopback of the host, which the netns hold cuts off (T-095). The path: give the unit the broker through its egress socket (no `NO_PROXY` for the loopback, and a policy that allows the one `127.0.0.1:PORT` of the broker), which needs `pod-broker` to dial that one loopback target that its default denies. Next: measure it with `podnet pod --backend netns` in `runner-image.yml`, then ask podcrates by a COORD issue for a loopback grant of one port if `pod-broker` has none.
 
 # T-188: The tier intake names each parse failure of an offer `event-not-allowed`, and the offer schema of the design differs from the parser
 

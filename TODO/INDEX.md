@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**196 entries: 2 open, 12 partial, 8 blocked, 174 done.**
+**196 entries: 1 open, 13 partial, 8 blocked, 174 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 4 | 1 | 40 | 45 |
 | P2 | 0 | 6 | 4 | 74 | 84 |
-| P3 | 2 | 2 | 3 | 60 | 67 |
-| **All** | 2 | 12 | 8 | 174 | 196 |
+| P3 | 1 | 3 | 3 | 60 | 67 |
+| **All** | 1 | 13 | 8 | 174 | 196 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -234,7 +234,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-184](live.md) | P2 | S | M-C | defect | done | `status` answers `busy` while the supervisor waits on a call of a source |
 | [T-185](live.md) | P3 | S | M-C | defect | done | `check`, `doctor` and `status` give a capacity that `serve` does not have |
 | [T-186](live.md) | P3 | S | M-C | defect | partial | The store of podvm keeps `machine/run-PID-*` after each guest of the microvm kind |
-| [T-187](live.md) | P3 | S | later | defect | open | The local mode refuses the netns hold |
+| [T-187](live.md) | P3 | S | later | defect | partial | The local mode refuses the netns hold |
 | [T-188](live.md) | P3 | S | M-C | defect | done | The tier intake names each parse failure of an offer `event-not-allowed`, and the offer schema of the design differs from the parser |
 | [T-189](live.md) | P2 | S | M-C | defect | done | A program source re-offers a refused job at the head of each `next` |
 | [T-190](live.md) | P3 | S | later | defect | done | `source-conformance` needs two offers on the first `next` of each test, and its claims stay |
