@@ -2541,6 +2541,8 @@ State (2026-11-15, the measure): `the_runner_runs_under_the_limits_of_the_unit` 
 
 State (2026-11-15, the measure ran): runner-image run 43690754546 (`ba24d0e`): under `[unit.podvm] mem` 16 GiB the runner did not start (the broker saw no request). Measured here with the runner v2.338.2 and `prlimit --as=16G`: CoreCLR fails ("GC heap initialization failed with error 0x8007000E") with `DOTNET_GCHeapHardLimit` alone, and starts with `DOTNET_GCRegionRange` at the same value: the GC reserves its regions (256 GiB by default) at start. `ulimit_args` now sets both. The test prints the log of the unit. Next: the measure again.
 
+State (2026-11-15, green): runner-image run 43704601731 (`88cc4d7`) passed `the_runner_runs_under_the_limits_of_the_unit`. The pinned podvm `0.2.0-beta.21` has the incus keys (`LOWEST_INCUS_LIMITS` is `0.2.0-beta.20`). Next: a payload past `pids` and one past `mem` on the podvm and incus kinds (the Prove); `cpus` on the podvm kind waits for the cgroup half of podvm (PodUtils/podvm@T-1747, COORD-050).
+
 # T-163: Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units
 
 **Source:** podvm's answer to COORD-044 (PodUtils/podvm#375)

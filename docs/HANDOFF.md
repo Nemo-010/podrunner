@@ -93,21 +93,19 @@ is done.
 - The LIVE-2 report (GitHub #75, 2026-11-15) ran W1, W3 (20 of 20) and
   W4 on the podvm kind with a fixed sidecar, and W6 held. Its defects are
   T-176 to T-189; T-176 to T-179 are P1.
-- **First:** the LIVE-1 report (GitHub #74, 2026-11-15): with the
-  release binaries of `v0.1.0-beta.5`, the mint served no job. The
-  defects are T-164 to T-174; T-164 to T-167 are done; T-169 and T-175 (a runner is not bound to its job) block the live
-  gates. LIVE-1 ran the gates with a local build of the sidecar that fixed
-  defects 1 to 4; LIVE-2 (#75) reports the gates next. Fix the P1 entries,
-  then release a beta and point #74 and #75 at it.
-- The last green `runner-image.yml` is 43686746902 (`9a7fb3c`, podvm
-  `0.2.0-beta.21`): the static image (T-158), and the job-started hook
-  of T-175 in a podvm unit.
-- T-162 (open, G-12): podvm answered on PodUtils/podvm#382. `--ulimit
-  nproc=N` and `--ulimit as=BYTES` hold on `run -d` now: add
-  `[unit.podvm] mem` and `pids` with them, and the conformance tests of
-  its Prove. The incus keys (`--memory`, `--cpus`, `--pids-limit`) come
-  with the next podvm release (PodUtils/podvm@T-1897). COORD-050 (#110)
-  stays open until then.
+- The LIVE-1 report (GitHub #74) found T-164 to T-175; the fixes are in
+  `v0.1.0-beta.6`, except T-169 (the cancel of a refused run), which is on
+  `main` after the tag, with T-198 (the limits of an offer). The next beta
+  carries both; then point #74, #75 and githome (#151) at it.
+- The last green `runner-image.yml` is 43704601731 (`88cc4d7`, the tag
+  `v0.1.0-beta.6`): the static image, the job-started hook of T-175, and
+  the runner under `[unit.podvm] mem` (T-162).
+- T-162 (partial, G-12): `[unit.podvm] mem` and `pids` are rlimits;
+  `[unit.incus] mem`, `cpus` and `pids` are the keys of the instance
+  (podvm `0.2.0-beta.20` or later, pinned `0.2.0-beta.21`). Next: a
+  payload past `pids` and one past `mem` on the podvm and incus kinds.
+  `cpus` on the podvm kind waits for the cgroup half
+  (PodUtils/podvm@T-1747); COORD-050 (#110) stays open for it.
 - T-161 (partial): `docs/alternate-payload.md` has the census of the
   calls of the runner and the call: measure an existing third-party
   runner against the fake broker first.

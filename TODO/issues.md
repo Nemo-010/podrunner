@@ -109,7 +109,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #107 | COORD-047: the release of `githome source` for the G-01 pair on the LIVE-2 host (to githome) | closed (githome answered: the pair ran on the LIVE-2 host; conformance 12 of 12) | T-101, T-190, T-191 |
 | #108 | COORD-048: podrunner takes podcrates v0.48.0 at c3b5744 (the answer to PodUtils/podcrates#162) (to podcrates) | closed | T-118 |
 | #109 | COORD-049: podrunner takes podcrates v0.49.0 at c695295 (the answer to PodUtils/podcrates#163) (to podcrates) | closed | T-118 |
-| #110 | COORD-050: limits of memory, CPU and processes for a detached run and an incus instance (to podvm) | open (podvm answered on PodUtils/podvm#382; the incus keys wait for its next release) | T-162 |
+| #110 | COORD-050: limits of memory, CPU and processes for a detached run and an incus instance (to podvm) | open (podvm answered on PodUtils/podvm#382; the rlimits and the incus keys hold with podvm `0.2.0-beta.21`; the cgroup half waits for PodUtils/podvm@T-1747) | T-162 |
 | #111 | COORD-051: a read-only bind (`-v SRC:DST:ro`) on the detached run of a static image where chroot is denied (to podvm) | closed (runner-image run 43686746902 gives `ok static` with podvm `0.2.0-beta.21`) | T-158 |
 | #112 | [gh action] requested | closed (gate 43683347311 and secrets 43683349837 green on `ed54ccb`; runner-image 43683637902 on `6ac1c42` red only at the static image, T-158) | T-164, T-165, T-166, T-167, T-158 |
 | #113 | COORD-052: podrunner takes podcrates v0.50.0 at cbb5372 (the answer to PodUtils/podcrates#164) (to podcrates) | closed (podcrates closed PodUtils/podcrates#164) | T-118 |
@@ -120,13 +120,13 @@ numbers. `TODO/RULES.md` gives the rules.
 | #118 | Live run 2026-11-15: the scale-set sidecar prints "no answer" for each error that is not an HTTP status | closed (T-168 is done) | T-168 |
 | #119 | Live run 2026-11-15: the scale-set sidecar does not read JobAssignedMessages, so no job of github.com is offered | closed (T-166 is done) | T-166 |
 | #120 | Live run 2026-11-15: the trust lookup reads repository.visibility of a run, which is null | closed (T-167 is done) | T-167 |
-| #121 | Live run 2026-11-15: a job that the tier rule refuses keeps the capacity of the scale set: one fork PR stops a trusted set | open (T-169 is blocked) | T-169 |
+| #121 | Live run 2026-11-15: a job that the tier rule refuses keeps the capacity of the scale set: one fork PR stops a trusted set | open (T-169 is partial: the cancel is on `main`, for the next beta) | T-169 |
 | #122 | Live run 2026-11-15: a withdrawal of the tier rule in the mint leaves no audit line and no log line | closed (T-170 is done) | T-170 |
 | #123 | Live run 2026-11-15: the sidecar never closes its message session, so the next sidecar gets 409 | closed (T-168 is done) | T-168 |
 | #124 | Live run 2026-11-15: podrunner check refuses each key of a mint file | closed (T-171 is done) | T-171 |
 | #125 | Live run 2026-11-15: check says a configuration is usable when no unit kind serves its source | closed (T-185 is done) | T-185 |
-| #126 | Live run 2026-11-15: doctor says egress_hold unknown for the podvm kind while serve says enforced or advisory | open (T-181 is open) | T-181 |
-| #127 | Live run 2026-11-15: the tree-kill self-test of a held podvm unit fails, and its units stay after a stop | open (T-183 is open) | T-183 |
+| #126 | Live run 2026-11-15: doctor says egress_hold unknown for the podvm kind while serve says enforced or advisory | open (T-181 is partial) | T-181 |
+| #127 | Live run 2026-11-15: the tree-kill self-test of a held podvm unit fails, and its units stay after a stop | open (T-183 is partial) | T-183 |
 | #128 | Live run 2026-11-15: status and stop --wait answer busy while the supervisor waits on a source | closed (T-184 is done) | T-184 |
 | #129 | Live run 2026-11-15: the unit host calls next of a remote mint about 10 times each second | closed (T-164 is done) | T-164 |
 | #130 | Live run 2026-11-15: the audit of sign is kept in memory only | closed (T-172 is done) | T-172 |
@@ -135,15 +135,15 @@ numbers. `TODO/RULES.md` gives the rules.
 | #133 | Live run 2026-11-15: issue #75 names the expiry of the runner image a day early, and not runner-full-x86_64 | closed (T-195 is done) | T-195 |
 | #134 | Live run 2026-11-15: the design copy of job-offer.v1 differs from the parser, and a parse failure reads as event-not-allowed | closed (T-188 is done) | T-188 |
 | #135 | Live run 2026-11-15: serve does not pull a digest-pinned container image, and the hook hides the cause | closed (T-177 is done) | T-177 |
-| #136 | Live run 2026-11-15: a redirect host can serve one repository only, so the G-01 pair cannot run on it | open (T-193 is open) | T-193 |
+| #136 | Live run 2026-11-15: a redirect host can serve one repository only, so the G-01 pair cannot run on it | closed (T-193 is done) | T-193 |
 | #137 | Live run 2026-11-15: a podvm host runs one unit at a time while status says slots 2 | closed (T-185 is done) | T-185 |
-| #138 | Live run 2026-11-15: local mode refuses the netns hold of podnet | open (T-187 is open) | T-187 |
+| #138 | Live run 2026-11-15: local mode refuses the netns hold of podnet | open (T-187 is partial) | T-187 |
 | #139 | Live run 2026-11-15: the tier rule trusts an organization owner only | closed (T-191 is done) | T-191 |
 | #140 | Live run 2026-11-15: the JIT configuration is minted before the unit starts, and a failed start leaves the job assigned | open (T-176 is done; the job that stays assigned is T-169, Q7) | T-176, T-169 |
 | #141 | Live run 2026-11-15: on incus and microvm units the runner is not root and HOME is /root | closed (T-178 is done) | T-178 |
-| #142 | Live run 2026-11-15: on H0 the runner times out reaching github.com under the seccomp hold | open (T-179 is open) | T-179 |
+| #142 | Live run 2026-11-15: on H0 the runner times out reaching github.com under the seccomp hold | open (T-179 is partial) | T-179 |
 | #143 | Live run 2026-11-15: podrunner as PID 1 does not reap the processes of a unit, and its supervisor stops | open (T-180 is partial) | T-180 |
-| #144 | Live run 2026-11-15: serve stops after a unit ends unit-failed | open (T-192 is open) | T-192 |
+| #144 | Live run 2026-11-15: serve stops after a unit ends unit-failed | open (T-192 is partial) | T-192 |
 | #145 | Live run 2026-11-15: a refused offer of a program source is not withdrawn to the source | closed (T-189 is done) | T-189 |
 | #146 | Live run 2026-11-15: an aarch64 host under QEMU user mode serves no tier | closed (T-194 is done) | T-194 |
 | #147 | Live run 2026-11-15: a podvm unit has the host name of the host | open (T-182 is blocked) | T-182 |
