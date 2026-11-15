@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -41,9 +43,11 @@ type sidecar struct {
 	ctx     context.Context
 	client  *scaleset.Client
 	session *scaleset.MessageSessionClient
-	poll    *poller
-	trust   *trust
-	jobs    map[string]*job
+	// closer ends the message session (the session; a stub in a test).
+	closer interface{ Close(context.Context) error }
+	poll   *poller
+	trust  *trust
+	jobs   map[string]*job
 	// The offers that wait for capacity, in order.
 	queue []queued
 	// The job id of the wire for each jobId of GitHub (a GUID): the
@@ -83,7 +87,7 @@ func newSidecar(ctx context.Context, o options, signer *signer) (*sidecar, error
 	}
 	p := newPoller(session)
 	go p.run(ctx)
-	return &sidecar{o: o, ctx: ctx, client: client, session: session, poll: p, trust: t, jobs: map[string]*job{}, byJobID: map[string]string{}}, nil
+	return &sidecar{o: o, ctx: ctx, client: client, session: session, closer: session, poll: p, trust: t, jobs: map[string]*job{}, byJobID: map[string]string{}}, nil
 }
 
 var statusPattern = regexp.MustCompile(`status="(\d{3})`)
@@ -97,6 +101,34 @@ func statusOf(err error) string {
 	}
 	if m := statusPattern.FindStringSubmatch(err.Error()); m != nil {
 		return "HTTP " + m[1]
+	}
+	return classOf(err)
+}
+
+// classOf names an error with no HTTP status by its class, with no URL and
+// no body (T-168): each class names a cause that the operator can act on.
+func classOf(err error) string {
+	text := err.Error()
+	var dns *net.DNSError
+	var op *net.OpError
+	switch {
+	case strings.Contains(text, "sign refused: "):
+		// The word of sign: rate, shape or key.
+		w := text[strings.Index(text, "sign refused: ")+len("sign refused: "):]
+		if i := strings.IndexAny(w, " :;,\n"); i >= 0 {
+			w = w[:i]
+		}
+		return "sign refused: " + w
+	case strings.Contains(text, "the sign channel"):
+		return "the sign channel"
+	case errors.Is(err, context.DeadlineExceeded) || strings.Contains(text, "Client.Timeout") || strings.Contains(text, "i/o timeout"):
+		return "timeout"
+	case errors.As(err, &dns):
+		return "dns"
+	case strings.Contains(text, "x509:") || strings.Contains(text, "tls:"):
+		return "tls"
+	case errors.As(err, &op) || strings.Contains(text, "connection refused") || strings.Contains(text, "connection reset"):
+		return "connect"
 	}
 	return "no answer"
 }
@@ -398,5 +430,18 @@ func (s *sidecar) offer(id string, a *scaleset.JobMessageBase) map[string]any {
 			"repo_visibility": t.visibility, "owner": a.OwnerName, "repo": a.RepositoryName,
 			"run_id": a.WorkflowRunID, "ref": "", "workflow_ref": a.JobWorkflowRef,
 		},
+	}
+}
+
+// closeSession ends the message session of the scale set, so that the next
+// sidecar gets no 409 "already has an active session" (T-168).
+func (s *sidecar) closeSession() {
+	if s.closer == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := s.closer.Close(ctx); err != nil {
+		fmt.Fprintln(os.Stderr, "podrunner-source-github-scaleset: close the message session:", statusOf(err))
 	}
 }

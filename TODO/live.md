@@ -679,7 +679,7 @@ A Go test with the JSON of a minimal repository (`private: true`, `visibility: n
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -696,6 +696,10 @@ Give a class of each non-HTTP error (`sign refused: rate`, `tls`, `dns`, `connec
 ## Prove
 
 Go tests: each class gives its word, and a canary token in the error text appears in no reply. A stub session gets `Close` at the end of stdin and at SIGTERM. Each fails on the code before the fix.
+
+## Done
+
+2026-11-15: `statusOf` of the sidecar names the class of an error with no HTTP status (`sign refused: WORD`, `the sign channel`, `timeout`, `dns`, `tls`, `connect`), with no URL, body or token; a 409 is `HTTP 409`. The sidecar ends its message session at the end of stdin (`runSidecar`) and at SIGTERM or SIGINT (exit 143). `classes_test.go`: `TestAnErrorWithNoStatusNamesItsClass` (a canary in each error reaches no answer) and `TestTheSessionEndsAtTheEndOfStdin`. The suites on the fake scale set pass.
 
 # T-169: A withdrawn job holds the capacity of the scale set
 

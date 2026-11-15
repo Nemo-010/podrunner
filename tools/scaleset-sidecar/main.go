@@ -19,7 +19,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 )
 
 // The longest line of the wire (docs/contracts/source-driver.md).
@@ -60,7 +62,23 @@ func main() {
 		}
 		os.Exit(69)
 	}
-	os.Exit(serve(s.handle, os.Stdin, os.Stdout))
+	// The message session ends at a signal and at the end of stdin.
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		<-sig
+		s.closeSession()
+		os.Exit(143)
+	}()
+	os.Exit(runSidecar(s, os.Stdin, os.Stdout))
+}
+
+// runSidecar serves the wire until stdin ends, then ends the message
+// session (T-168).
+func runSidecar(s *sidecar, in io.Reader, out io.Writer) int {
+	code := serve(s.handle, in, out)
+	s.closeSession()
+	return code
 }
 
 // serve answers each request line of `in` with one reply line on `out`.
