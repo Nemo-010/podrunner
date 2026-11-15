@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**162 entries: 2 open, 4 partial, 6 blocked, 150 done.**
+**163 entries: 2 open, 4 partial, 7 blocked, 150 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 2 | 0 | 32 | 34 |
 | P2 | 1 | 2 | 3 | 68 | 74 |
-| P3 | 1 | 0 | 3 | 50 | 54 |
-| **All** | 2 | 4 | 6 | 150 | 162 |
+| P3 | 1 | 0 | 4 | 50 | 55 |
+| **All** | 2 | 4 | 7 | 150 | 163 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -210,3 +210,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-160](later.md) | P3 | S | later | feature | done | Local mode: a shell in a paused job of the incus kind |
 | [T-161](later.md) | P3 | M | later | research | open | An alternate payload: a runner other than the official one |
 | [T-162](later.md) | P2 | M | later | feature | open | G-12: limits of CPU, memory and processes on the podvm and incus kinds |
+| [T-163](later.md) | P3 | S | later | chore | blocked | Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units |

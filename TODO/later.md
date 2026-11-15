@@ -2511,3 +2511,32 @@ Read `docs/configuration.md` and the drivers on 2026-11-15. The `incus` tier of 
 ## Prove
 
 A unit conformance test on each kind: a payload that forks past `pids`, and one that allocates past `mem`, end with the code `limit`; `runner-image.yml` runs it on the podvm and incus kinds.
+
+# T-163: Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units
+
+**Source:** podvm's answer to COORD-044 (PodUtils/podvm#375)
+**Category:** chore
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+The mirror of a guest engine (T-157) pulls each image again into a private store, because `podvm save` of an index digest refused: "names 2 images in this store". podvm found the cause: a pull by tag and a pull by the index digest gave two records of one manifest, and the lookup counted them as two images. The pull again costs time and the network on each run.
+
+## Premise
+
+PodUtils/podvm#375 (2026-11-15): podvm T-1895 keeps one record for each manifest and platform; `podvm save --platform` is on `main` since T-1841. Both go into podvm `0.2.0-beta.19`.
+
+## Approach
+
+Pin podvm `0.2.0-beta.19` in `images/podvm.toml`. Save each image of the mirror from the store of the units (`podvm save --platform`), with no private store and no second pull.
+
+## Prove
+
+`runner-image.yml`: the step "The images of a guest engine from the store" passes with the save from the store of the units.
+
+## Blocker
+
+podvm: the release `0.2.0-beta.19` with T-1895 (PodUtils/podvm#375).

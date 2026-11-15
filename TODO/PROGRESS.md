@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 162 entries: 2 open, 4 partial, 6 blocked, 150 done.
+`TODO/INDEX.md` holds 163 entries: 2 open, 4 partial, 7 blocked, 150 done.
 
 ## State
 
@@ -42,7 +42,7 @@ The local mode against act and runner.server (`docs/local-mode.md`) has no open 
 
 Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040).
 
-Blocked: T-158 (podvm: a detached run of a static image, GitHub #100), T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
+Blocked: T-158 (podvm: a detached run of a static image, GitHub #100), T-163 (podvm `0.2.0-beta.19`, PodUtils/podvm#375), T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
 
 ## Questions for the owner
 
