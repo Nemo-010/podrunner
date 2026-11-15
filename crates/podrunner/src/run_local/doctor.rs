@@ -46,17 +46,17 @@ fn free_disk(dir: &Path) -> Result<String, String> {
         return Err(format!("{}: statvfs failed", dir.display()));
     }
     let free = s.f_bavail as u64 * s.f_frsize as u64;
-    let gib = free >> 30;
-    if gib < 2 {
+    // Below 1 GiB, in MiB: "0 GiB" reads as no space at all (T-218).
+    let size = if free >> 30 == 0 { format!("{} MiB", free >> 20) } else { format!("{} GiB", free >> 30) };
+    if free >> 30 < 2 {
         return Err(format!(
-            "{}: {gib} GiB free; a run needs about 2 GiB; fix: free the disk or set TMPDIR",
+            "{}: {size} free; a run needs about 2 GiB; fix: free the disk or set TMPDIR",
             dir.display()
         ));
     }
-    Ok(format!("{}: {gib} GiB free", dir.display()))
+    Ok(format!("{}: {size} free", dir.display()))
 }
 
-/// The checks of a run with the options `a`.
 /// The runner reads each directory above its root, up to `/` (T-213).
 fn parents_readable(dir: &Path) -> Result<String, String> {
     let dir = std::path::absolute(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
@@ -72,6 +72,7 @@ fn parents_readable(dir: &Path) -> Result<String, String> {
     Ok(format!("each directory above {} can be read", dir.display()))
 }
 
+/// The checks of a run with the options `a`.
 pub(super) fn checks(a: &Args) -> Vec<Check> {
     let mut out =
         vec![check("file-size-limit", file_size_limit()), check("scratch-disk", free_disk(&std::env::temp_dir()))];

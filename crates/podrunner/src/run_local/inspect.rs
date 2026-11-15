@@ -93,10 +93,17 @@ pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
 }
 
 /// The executor of a dry run: each job message is built, and no unit runs.
-pub(super) struct DryRun;
+/// On a runner directory only, a job with containers fails as its run
+/// would (T-218).
+pub(super) struct DryRun {
+    pub host: bool,
+}
 
 impl Executor for DryRun {
-    fn run(&mut self, _job: &JobId, _message: Job, _limit: Duration) -> Result<End, String> {
+    fn run(&mut self, _job: &JobId, message: Job, _limit: Duration) -> Result<End, String> {
+        if self.host && podrunner_local::exec::needs_containers(&message) {
+            return Err("the job needs containers: run it in a unit (--podvm, or --microvm with --engine), not on a runner directory".into());
+        }
         Ok(End { result: JobResult::Success, outputs: vec![] })
     }
 }

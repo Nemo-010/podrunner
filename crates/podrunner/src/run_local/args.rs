@@ -242,6 +242,17 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     if (a.checkout_head || a.with_git) && a.checkout.is_none() {
         return Err("--checkout-head and --with-git need --checkout".into());
     }
+    // Each prints its own view: one at a time, as the usage gives (T-218).
+    if [a.list, a.graph, a.validate, a.dry_run].iter().filter(|x| **x).count() > 1 {
+        return Err("--list, --graph, --validate and --dry-run exclude each other".into());
+    }
+    for (flag, pairs) in [("--var", &a.vars), ("--input", &a.inputs)] {
+        if let Some((n, _)) =
+            pairs.iter().enumerate().find_map(|(i, (n, _))| pairs[..i].iter().any(|(m, _)| m == n).then_some((n, ())))
+        {
+            return Err(format!("{flag} {n}: given two times"));
+        }
+    }
     if a.offline && a.frozen {
         return Err("--offline and --frozen exclude each other".into());
     }

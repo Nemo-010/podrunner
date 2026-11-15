@@ -127,3 +127,28 @@ fn a_local_repository_opens_no_relay() {
     assert_ne!(run(&args(&base)).code, 0);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-218: the views exclude each other, a name of `--input` or `--var` comes
+/// once, and a dry run on a runner directory fails a job with containers.
+#[test]
+fn the_nits_of_the_user_run() {
+    for (bad, why) in [
+        (vec!["w.yml", "--list", "--graph"], "exclude each other"),
+        (vec!["w.yml", "--runner-dir", "/r", "--input", "a=1", "--input", "a=2"], "--input a: given two times"),
+        (vec!["w.yml", "--runner-dir", "/r", "--var", "A=1", "--var", "A=2"], "--var A: given two times"),
+    ] {
+        let e = parse(&args(&bad)).unwrap_err();
+        assert!(e.contains(why), "{bad:?}: {e}");
+    }
+    let pin = format!("redis@sha256:{}", "a".repeat(64));
+    let (dir, w) = workflow(
+        "svc",
+        &format!(
+            "on: push\njobs:\n  db:\n    runs-on: x\n    services:\n      r:\n        image: {pin}\n    steps: [{{run: a}}]\n"
+        ),
+    );
+    let out = run(&args(&[&w, "--runner-dir", "/nonexistent", "--dry-run", "--no-cache"]));
+    assert_eq!(out.code, 1, "{}{}", out.stdout, out.stderr);
+    assert!(out.stdout.contains("failure db:") && out.stdout.contains("needs containers"), "{}", out.stdout);
+    let _ = std::fs::remove_dir_all(&dir);
+}

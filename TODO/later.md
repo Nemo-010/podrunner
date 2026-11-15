@@ -3115,3 +3115,85 @@ Upload the archive that the import step builds: the files of the layout only, wi
 ## Done
 
 2026-11-15: the change of T-202 (`runner-image.yml`): the import step writes `runner-ARCH.tar` (files only, with the ref name), loads it, and that file is the artifact. It holds from the first run of `runner-image.yml` on the merge; the archives of run 43704601731 keep the defect. Whether podvm should take the directory entries of a layout belongs to podvm; podrunner needs no change of podvm.
+
+# T-218: The nits of the local-mode user run
+
+**Source:** the report of GitHub #153 (step 10, "Nitpicks measured and deliberately not filed", 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The user agent of #153 measured nits that it did not file: `--list --graph` printed both views; `doctor` said `0 GiB free` for 661 MiB; a second `--input` of one name took the last value with no word; the `run` line of `docs/cli.md` did not name `--keep-failed`; a dry run on `--runner-dir` planned a job with `services:` or `container:`, which its run refuses.
+
+## Premise
+
+The comments of GitHub #153, read on 2026-11-15.
+
+## Approach
+
+Refuse two views at once and a name of `--input` or `--var` given two times; give the free disk in MiB below 1 GiB; name `--keep-failed`; the dry run on a runner directory fails a job with containers as the run does.
+
+## Prove
+
+`cargo test -p podrunner --lib the_nits_of_the_user_run`.
+
+## Done
+
+2026-11-15: `args.rs` (the views, the names), `doctor.rs` (`free_disk`), `inspect::DryRun { host }` and `slots.rs`, `docs/cli.md`. `flags_tests::the_nits_of_the_user_run`. Two nits of podvm (no `--store` flag of `load` and `images`, and no attestation of its release) go to podvm by a COORD issue.
+
+# T-219: An unknown `--event` gets the text of the `on:` filter, and `--event-path` is read after the filter
+
+**Source:** the report of GitHub #153 (step 6, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`run --event notanevent` is refused with the text of the `on:` filter, not as an event that GitHub does not have. A missing `--event-path` file shows only after the filter takes the event.
+
+## Premise
+
+The comment of step 6 of GitHub #153, read on 2026-11-15. Not measured here.
+
+## Approach
+
+Read `--event-path` before the filter. Refuse an event name that is not an event of GitHub (the list of `pod-actions-workflow`, if it has one; else ask podcrates for it by a COORD issue) with the list.
+
+## Prove
+
+A test of `run`: an unknown event and a missing payload file each fail with their own text before the filter.
+
+# T-220: The local mode cannot run on a host that refuses each AF_INET bind
+
+**Source:** GitHub #167 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** feature
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+On a host whose sandbox refuses `bind(2)` for AF_INET and AF_INET6 (loopback too), and allows AF_UNIX and connect, `run` ends before the first unit: the fake broker is `TcpListener::bind("127.0.0.1:0")` (`crates/podrunner-broker-fake/src/lib.rs`). podvm units run on such a host (the userland rung), and podnet's vnet shim gives a dynamic payload a listener with no kernel bind. podrunner is static, so the shim cannot reach it.
+
+## Premise
+
+The report of GitHub #167, read on 2026-11-15: `podnet net doctor` and a control script on the host of the user agent; podvm `0.2.0-beta.21` runs a unit there. Not measured here. Since T-213, `doctor --run` names the refused bind with a fix.
+
+## Approach
+
+1. The fake broker also serves a unix socket in the scratch directory of the job (no bind of AF_INET on the host).
+2. The guest kinds (`microvm`, `incus`): the front of the egress socket connects to that unix socket for `broker.podrunner.test`, not to a TCP port of the host (`crates/podrunner-local/src/front.rs`).
+3. The podvm kind: a unit shares the network of the host, so the runner in it needs a TCP address. Ask podnet by a COORD issue whether its vnet shim can map a TCP port of the payload to a unix socket of the host, for a payload that `podvm run -d` starts; then start the runner of a unit under that shim.
+4. `doctor --run` says which executor works on a host that refuses the bind.
+
+## Prove
+
+A test of the guest kinds with the broker on a unix socket only. On a host that refuses AF_INET bind (a seccomp filter in the test), `run --podvm` with the shim of podnet runs a canned job.

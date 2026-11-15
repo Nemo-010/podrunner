@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**217 entries: 2 open, 16 partial, 7 blocked, 192 done.**
+**220 entries: 4 open, 16 partial, 7 blocked, 193 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 6 | 0 | 42 | 48 |
-| P2 | 1 | 7 | 5 | 80 | 93 |
-| P3 | 1 | 3 | 2 | 70 | 76 |
-| **All** | 2 | 16 | 7 | 192 | 217 |
+| P2 | 2 | 7 | 5 | 80 | 94 |
+| P3 | 2 | 3 | 2 | 71 | 78 |
+| **All** | 4 | 16 | 7 | 193 | 220 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -265,3 +265,6 @@ acceptance, later The crate dependencies later than v1.
 | [T-215](later.md) | P3 | S | later | defect | done | `stop --wait` says stopped for a state directory that does not exist |
 | [T-216](later.md) | P3 | S | later | defect | done | `mint-serve` gives a TOML type error for a file of `serve` |
 | [T-217](later.md) | P1 | S | later | defect | done | The artifact `runner-ARCH.tar` cannot be loaded by the pinned podvm and has no ref name |
+| [T-218](later.md) | P3 | S | later | defect | done | The nits of the local-mode user run |
+| [T-219](later.md) | P3 | S | later | defect | open | An unknown `--event` gets the text of the `on:` filter, and `--event-path` is read after the filter |
+| [T-220](later.md) | P2 | M | later | feature | open | The local mode cannot run on a host that refuses each AF_INET bind |

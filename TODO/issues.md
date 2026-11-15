@@ -152,7 +152,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #150 | [gh action] requested | closed (gate 43704598372, level2 43704604467, runner-image 43704601731 green on `88cc4d7`; release 43708786078 of `v0.1.0-beta.6`) | T-162, T-169, T-198 |
 | #151 | COORD-054: githome and podrunner after the live run: the beta.6 changes and the next pair run (to githome) | open (githome runs the pair on beta.6) | T-162, T-178, T-189, T-190, T-191, T-193, T-198, T-200, T-201 |
 | #152 | COORD-055: podrunner takes podcrates v0.51.0 at 800f6d4 (the answer to PodUtils/podcrates#172) (to podcrates) | open | T-118 |
-| #153 | LIVE-3: a user agent of the local mode: run real workflows with `podrunner run` and report (T-199) | open (waits for the report of a user agent) | T-199 |
+| #153 | LIVE-3: a user agent of the local mode: run real workflows with `podrunner run` and report (T-199) | open (the report of 2026-11-15: no job ran on its host; 12 issues #155 to #166 and nits, T-206 to T-219) | T-199, T-218, T-219 |
 | #154 | [gh action] requested | open (the gate, runner-image and level2 on `2f56267`, then the release of `v0.1.0-beta.7`) | T-162, T-169, T-198, T-200, T-201 |
 | #155 | Local mode 2026-11-15: --platform turns off every later flag check, so nine refusals run and two executors can be given at once | open (fixed on `main`; closes with the next beta) | T-206 |
 | #156 | Local mode 2026-11-15: doctor answers a missing --podvm or --incus binary with a podvm version bump, which cannot fix a wrong path | open (fixed on `main`; closes with the next beta) | T-212 |
@@ -166,6 +166,8 @@ numbers. `TODO/RULES.md` gives the rules.
 | #164 | Local mode 2026-11-15: stop --wait prints stopped and exits 0 for a state directory that does not exist, while stop exits 69 | open (fixed on `main`; closes with the next beta) | T-215 |
 | #165 | Local mode 2026-11-15: mint-serve reports a TOML type error at host for a run configuration, and check calls the same file usable | open (fixed on `main`; closes with the next beta) | T-216 |
 | #166 | Live run 2026-11-15: the published runner-x86_64 artifact cannot be imported by the pinned podvm, and it carries no ref name | open (fixed on `main`; holds from the next runner-image run and beta) | T-217 |
+| #167 | Local mode 2026-11-15: a host that denies AF_INET bind cannot serve the fake broker, and the static binary keeps podnet's shim out | open (T-220 is open) | T-220 |
+| #168 | COORD-056: a store flag of `load` and `images`, and an attestation of each release (to podvm) | open | T-218 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

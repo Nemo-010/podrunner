@@ -33,7 +33,10 @@ pub(super) fn build(
     for i in 0..n {
         let dir = if n == 1 { state.to_path_buf() } else { state.join(format!("slot-{i}")) };
         let mut exec = match a.dry_run {
-            true => Box::new(inspect::DryRun) as Box<dyn Executor>,
+            true => {
+                let host = a.podvm.is_none() && a.guest.is_none() && a.platforms.is_empty() && a.runner_dir.is_some();
+                Box::new(inspect::DryRun { host }) as Box<dyn Executor>
+            }
             false => routes::build(a, common, &dir)?,
         };
         if let Some(l) = &live {
