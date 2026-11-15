@@ -53,6 +53,17 @@ within 15 s after the long poll of `next` (`REPLY_LIMIT`,
 and starts again after the backoff (GitHub #57): on a lock-step wire, a
 late reply would be read as the answer to the next request.
 
+The scale-set sidecar gives two kinds of job id. A job of a
+`JobAvailable` message has the id of its runner request (`41`); its
+`claim` calls `AcquireJobs`. A job that GitHub assigns to the scale set
+with no `JobAvailable` has runner request 0 and the id `a-JOBID`, with
+the `jobId` of GitHub; it is acquired already, so its `claim` calls
+nothing (T-166). Each later message of a job (`JobAssigned`,
+`JobStarted`, `JobCompleted`) maps to the id of its offer through its
+`jobId`. GitHub binds no runner of the scale set to one job: the
+`started` check above is the only proof that a runner took its own job
+(T-175).
+
 ## Events
 
 | Event | Fields | Meaning |

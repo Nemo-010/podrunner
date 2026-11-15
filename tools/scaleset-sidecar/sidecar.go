@@ -28,7 +28,10 @@ const (
 
 type job struct {
 	request int64
-	state   jobState
+	// A job that GitHub assigned to the scale set: it is acquired already,
+	// and it has no runner request (T-166).
+	assigned bool
+	state    jobState
 	// The runner of the JIT configuration: a release removes it.
 	runner int64
 }
@@ -42,7 +45,11 @@ type sidecar struct {
 	trust   *trust
 	jobs    map[string]*job
 	// The offers that wait for capacity, in order.
-	queue []map[string]any
+	queue []queued
+	// The job id of the wire for each jobId of GitHub (a GUID): the
+	// messages of one job name it by its runner request, or only by its
+	// jobId (T-166).
+	byJobID map[string]string
 	// The counts of status.
 	TrustLookupFailed int
 }
@@ -76,7 +83,7 @@ func newSidecar(ctx context.Context, o options, signer *signer) (*sidecar, error
 	}
 	p := newPoller(session)
 	go p.run(ctx)
-	return &sidecar{o: o, ctx: ctx, client: client, session: session, poll: p, trust: t, jobs: map[string]*job{}}, nil
+	return &sidecar{o: o, ctx: ctx, client: client, session: session, poll: p, trust: t, jobs: map[string]*job{}, byJobID: map[string]string{}}, nil
 }
 
 var statusPattern = regexp.MustCompile(`status="(\d{3})`)
@@ -175,7 +182,7 @@ func (s *sidecar) handle(line []byte) map[string]any {
 		if j != nil && j.state == claimed {
 			return errorReply("already-claimed", "release a claimed job")
 		}
-		delete(s.jobs, jobID)
+		s.forget(jobID)
 		return map[string]any{"reply": "done"}
 	case "release":
 		j := s.jobs[jobID]
@@ -187,7 +194,7 @@ func (s *sidecar) handle(line []byte) map[string]any {
 		if j.runner != 0 {
 			_ = s.client.RemoveRunner(s.ctx, j.runner)
 		}
-		delete(s.jobs, jobID)
+		s.forget(jobID)
 		return map[string]any{"reply": "done"}
 	default: // report, audit: the scale set has no place for them.
 		return map[string]any{"reply": "done"}
@@ -212,6 +219,10 @@ func (s *sidecar) claim(id string) map[string]any {
 		return errorReply("unknown-job", "no offer of this job")
 	case j.state == claimed:
 		return errorReply("already-claimed", "the job is claimed")
+	case j.assigned:
+		// GitHub acquired it for the scale set already.
+		j.state = claimed
+		return map[string]any{"reply": "done"}
 	}
 	got, err := s.session.AcquireJobs(s.ctx, []int64{j.request})
 	if err != nil {
@@ -285,17 +296,17 @@ func (s *sidecar) next(capacity int, wait time.Duration) map[string]any {
 	}
 	for _, msg := range msgs {
 		for _, a := range msg.JobAvailableMessages {
-			id := strconv.FormatInt(a.RunnerRequestID, 10)
-			if s.jobs[id] != nil {
-				continue // a redelivery
-			}
-			s.queue = append(s.queue, s.offer(id, a))
+			s.enqueue(&a.JobMessageBase, false)
+		}
+		for _, a := range msg.JobAssignedMessages {
+			s.enqueue(&a.JobMessageBase, true)
 		}
 		for _, st := range msg.JobStartedMessages {
-			events = append(events, map[string]any{"event": "started", "job_id": strconv.FormatInt(st.RunnerRequestID, 10), "runner_name": st.RunnerName})
+			events = append(events, map[string]any{"event": "started", "job_id": s.idOf(&st.JobMessageBase), "runner_name": st.RunnerName})
 		}
 		for _, c := range msg.JobCompletedMessages {
-			id := strconv.FormatInt(c.RunnerRequestID, 10)
+			id := s.idOf(&c.JobMessageBase)
+			delete(s.byJobID, c.JobID)
 			if c.Result == "canceled" || c.Result == "cancelled" {
 				events = append(events, map[string]any{"event": "cancel", "job_id": id})
 			} else {
@@ -304,20 +315,73 @@ func (s *sidecar) next(capacity int, wait time.Duration) map[string]any {
 		}
 	}
 	for capacity > 0 && len(s.queue) > 0 {
-		o := s.queue[0]
+		q := s.queue[0]
 		s.queue = s.queue[1:]
-		id := o["job_id"].(string)
-		req, _ := strconv.ParseInt(id, 10, 64)
-		s.jobs[id] = &job{request: req, state: offered}
-		events = append(events, map[string]any{"event": "offer", "offer": o})
+		s.jobs[q.id] = q.job
+		events = append(events, map[string]any{"event": "offer", "offer": q.offer})
 		capacity--
 	}
 	return map[string]any{"reply": "events", "events": events}
 }
 
-// offer builds job-offer.v1 from a JobAvailable message and the trust
+// forget removes the job `id` and its jobId.
+func (s *sidecar) forget(id string) {
+	delete(s.jobs, id)
+	for g, v := range s.byJobID {
+		if v == id {
+			delete(s.byJobID, g)
+		}
+	}
+}
+
+// queued is an offer that waits for capacity.
+type queued struct {
+	id    string
+	job   *job
+	offer map[string]any
+}
+
+// idOf gives the job id of the wire of a message: the id of its offer
+// when its jobId is known, else its runner request, else `a-JOBID`.
+func (s *sidecar) idOf(b *scaleset.JobMessageBase) string {
+	if id, ok := s.byJobID[b.JobID]; ok && b.JobID != "" {
+		return id
+	}
+	if b.RunnerRequestID != 0 {
+		return strconv.FormatInt(b.RunnerRequestID, 10)
+	}
+	return "a-" + b.JobID
+}
+
+// enqueue queues the offer of a JobAvailable or a JobAssigned message.
+// A job that is known by its jobId (a redelivery, or the JobAssigned of
+// a job that this sidecar acquired) is not offered again.
+func (s *sidecar) enqueue(b *scaleset.JobMessageBase, assigned bool) {
+	if b.JobID != "" && s.byJobID[b.JobID] != "" {
+		return
+	}
+	id := s.idOf(b)
+	if assigned && b.RunnerRequestID == 0 && (b.JobID == "" || !jobIDPattern.MatchString(id)) {
+		return // no id that the wire can carry
+	}
+	if s.jobs[id] != nil {
+		return
+	}
+	for _, q := range s.queue {
+		if q.id == id {
+			return
+		}
+	}
+	if b.JobID != "" {
+		s.byJobID[b.JobID] = id
+	}
+	j := &job{request: b.RunnerRequestID, assigned: assigned && b.RunnerRequestID == 0, state: offered}
+	s.queue = append(s.queue, queued{id: id, job: j, offer: s.offer(id, b)})
+}
+
+// offer builds job-offer.v1 from the message of a job and the trust
 // lookup. It has no tier and no payload.
-func (s *sidecar) offer(id string, a *scaleset.JobAvailable) map[string]any {
+func (s *sidecar) offer(id string, a *scaleset.JobMessageBase) map[string]any {
 	t, ok := s.trust.lookup(a.OwnerName, a.RepositoryName, a.WorkflowRunID, a.EventName)
 	if !ok {
 		s.TrustLookupFailed++

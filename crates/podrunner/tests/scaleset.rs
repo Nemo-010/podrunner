@@ -1,6 +1,7 @@
 //! slots, mint, sign and the scale-set sidecar on the fake scale-set
 //! service: a fork pull request on the trusted set is withdrawn with
-//! `tier-mismatch` and never acquired; a member job runs to its report.
+//! `tier-mismatch` and never acquired; a member job runs to its report. A
+//! member job that GitHub assigns with no JobAvailable runs too (T-166).
 //! Design source test 3 for the sidecar: the credential (the fake service
 //! plants a canary in the JIT configuration) reaches the unit, and is in no
 //! stderr of the sidecar, no file of the state and no report.
@@ -21,7 +22,7 @@ use podrunner_mint::sign::{Signer, key_from_pem};
 use podrunner_mint::{Mint, SidecarSource};
 use podrunner_schema::{
     Boundary, Capability, ContainerRoute, CredentialStore, EgressHold, ExitReason, Fact, LimitMode, Principal,
-    RefusalCode, SecretDelivery, TreeKill,
+    RefusalCode, RunReport, SecretDelivery, TreeKill,
 };
 use podrunner_slots::config::{Config, SourceConfig, UnitConfig};
 use podrunner_slots::{Slots, Source, UnitKind};
@@ -34,18 +35,46 @@ const PIN: &str = "runner@sha256:11111111111111111111111111111111111111111111111
 const SCRIPT: &str = r#"{"scaleSetName":"podrunner","jobs":[
  {"requestId":11,"jobId":"a","owner":"example-org","repo":"app","workflowRunId":101,"event":"push","actor":"alice","actorIsMember":true,"visibility":"private","labels":["podrunner"]},
  {"requestId":12,"jobId":"b","owner":"example-org","repo":"app","workflowRunId":102,"event":"pull_request","actor":"mallory","headIsFork":true,"visibility":"public","labels":["podrunner"]}]}"#;
+/// A job that GitHub assigns to the scale set with no JobAvailable, and
+/// with runnerRequestId 0 (T-166). It runs alone: GitHub gives an assigned
+/// job to any runner of the set, so beside another job it can take the
+/// runner of that job (T-175).
+const ASSIGNED: &str = r#"{"scaleSetName":"podrunner","jobs":[
+ {"requestId":13,"jobId":"c","owner":"example-org","repo":"app","workflowRunId":103,"event":"push","actor":"alice","actorIsMember":true,"visibility":"private","labels":["podrunner"],"assignedOnly":true}]}"#;
 
 fn env(name: &str) -> String {
     std::env::var(name).unwrap_or_else(|_| panic!("{name} is not set"))
 }
 
-#[test]
-#[ignore]
-fn a_fork_is_withdrawn_and_a_member_job_runs() {
-    let dir = std::env::temp_dir().join(format!("podrunner-e2e-{}", std::process::id()));
+/// One run of slots, mint, sign and the sidecar on the fake with `script`,
+/// until `want` reports.
+struct Run {
+    dir: std::path::PathBuf,
+    reports: Vec<RunReport>,
+    record: std::path::PathBuf,
+    stderr: std::path::PathBuf,
+    signer: Arc<Mutex<Signer>>,
+}
+
+impl Run {
+    fn by_job(&self, id: &str) -> &RunReport {
+        self.reports
+            .iter()
+            .find(|r| r.job_id.as_str() == id)
+            .unwrap_or_else(|| panic!("no report of {id}: {:?}", self.reports))
+    }
+
+    fn acquires(&self) -> Vec<String> {
+        let text = std::fs::read_to_string(&self.record).unwrap();
+        text.lines().filter(|l| l.contains("acquirejobs")).map(String::from).collect()
+    }
+}
+
+fn run(tag: &str, script: &str, want: usize) -> Run {
+    let dir = std::env::temp_dir().join(format!("podrunner-e2e-{tag}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
-    std::fs::write(dir.join("script.json"), SCRIPT).unwrap();
+    std::fs::write(dir.join("script.json"), script).unwrap();
     let record = dir.join("record.jsonl");
     let mut fake = Command::new(env("PODRUNNER_FAKE_SCALESET"))
         .args(["-listen", "127.0.0.1:0", "-script"])
@@ -145,38 +174,45 @@ fn a_fork_is_withdrawn_and_a_member_job_runs() {
         slots.tick();
         clock.advance(Duration::from_secs(1));
         std::thread::sleep(Duration::from_millis(20));
-        if slots.reports.len() == 2 {
+        if slots.reports.len() == want {
             break;
         }
     }
     let _ = fake.kill();
     let _ = fake.wait();
-    let by_job = |id: &str| {
-        slots
-            .reports
-            .iter()
-            .find(|r| r.job_id.as_str() == id)
-            .unwrap_or_else(|| panic!("no report of {id}: {:?}", slots.reports))
-    };
-    assert_eq!(by_job("12").refusal_code, Some(RefusalCode::TierMismatch));
-    let member = by_job("11");
+    Run { dir, reports: slots.reports.iter().cloned().collect(), record, stderr, signer }
+}
+
+#[test]
+#[ignore]
+fn a_fork_is_withdrawn_and_a_member_job_runs() {
+    let r = run("fork", SCRIPT, 2);
+    assert_eq!(r.by_job("12").refusal_code, Some(RefusalCode::TierMismatch));
+    let member = r.by_job("11");
     assert_eq!(member.exit_reason, ExitReason::Success, "{member:?}");
-    let acquired: Vec<String> = std::fs::read_to_string(&record)
-        .unwrap()
-        .lines()
-        .filter(|l| l.contains("acquirejobs"))
-        .map(String::from)
-        .collect();
+    let acquired = r.acquires();
     assert_eq!(acquired.len(), 1, "one acquire: {acquired:?}");
-    assert!(signer.lock().unwrap().audit.iter().all(|a| a.outcome == "signed"));
+    assert!(r.signer.lock().unwrap().audit.iter().all(|a| a.outcome == "signed"));
     // The member job succeeded, so its unit saw the canary: the positive
     // control. The stderr file exists, so the scan reads it.
-    let err = std::fs::read_to_string(&stderr).expect("the stderr of the sidecar");
+    let err = std::fs::read_to_string(&r.stderr).expect("the stderr of the sidecar");
     assert!(!err.contains(CANARY), "the stderr of the sidecar holds the credential");
-    assert!(!serde_json::to_string(&slots.reports).unwrap().contains(CANARY), "a report holds the credential");
+    assert!(!serde_json::to_string(&r.reports).unwrap().contains(CANARY), "a report holds the credential");
     for f in ["state/journal.jsonl", "state/audit.jsonl"] {
-        let text = std::fs::read_to_string(dir.join(f)).unwrap();
+        let text = std::fs::read_to_string(r.dir.join(f)).unwrap();
         assert!(!text.is_empty() && !text.contains(CANARY), "{f} holds the credential");
     }
-    let _ = std::fs::remove_dir_all(&dir);
+    let _ = std::fs::remove_dir_all(&r.dir);
+}
+
+/// T-166: github.com assigns the job with no JobAvailable. It is offered as
+/// `a-JOBID`, claimed with no acquire, minted, and runs to its report.
+#[test]
+#[ignore]
+fn an_assigned_job_runs_with_no_acquire() {
+    let r = run("assigned", ASSIGNED, 1);
+    let job = r.by_job("a-c");
+    assert_eq!(job.exit_reason, ExitReason::Success, "{job:?}");
+    assert!(r.acquires().is_empty(), "{:?}", r.acquires());
+    let _ = std::fs::remove_dir_all(&r.dir);
 }

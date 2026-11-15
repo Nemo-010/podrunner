@@ -109,6 +109,14 @@ func (p *poller) take(capacity int, wait time.Duration) ([]*scaleset.RunnerScale
 		p.cancel()
 	}
 	empty := len(p.pending) == 0 && p.err == nil
+	if empty {
+		// A signal of a message that an earlier take gave: drop it under
+		// the lock, so the wait below ends only for a new message.
+		select {
+		case <-p.ready:
+		default:
+		}
+	}
 	p.mu.Unlock()
 	if empty && wait > 0 {
 		t := time.NewTimer(wait)

@@ -613,7 +613,7 @@ A Rust test: a sidecar that is restarted inside `MIN_GAP_MS` gets a JWT. A test 
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -627,9 +627,17 @@ The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. T
 
 Offer each assigned job with the id `a-JOBID`, with its trust inputs. Make `claim` of such a job a no-op that answers success, and mint its JIT configuration as for an acquired job. Write the model in `docs/contracts/` and keep the source conformance suite green with both kinds of message.
 
+## Decision
+
+An id `a-JOBID` keeps the two kinds of job apart on the wire, and a map from the `jobId` of GitHub to the id of the offer joins the later messages of a job (a `JobAssigned` after an acquire, `JobStarted`, `JobCompleted`). A job with no `jobId` and no runner request is not offered: the wire cannot name it. The map loses a job at `completed`, `withdraw` and `release`. The binding of a runner to its job is T-175.
+
 ## Prove
 
 A Go test: a stub session that gives one `JobAssigned` gives one offer `a-JOBID`; its `claim` calls no `AcquireJobs`, and `mint` gives a JIT configuration. The source conformance suite passes on the sidecar with the stub. The live gates (GitHub #74, #75) run a job with the release binaries.
+
+## Done
+
+2026-11-15: `assigned_test.go` (3 tests): an assigned job is offered as `a-JOBID` and claimed with no `AcquireJobs`, and its `started` and `completed` carry the same id; the `JobAssigned` of an available job is no second offer; a withdrawn assigned job is forgotten. The first test found a defect of T-164: `take` ended its wait at a stale signal; fixed in `poll.go`. The fake scale set has `assignedOnly` jobs; `an_assigned_job_runs_with_no_acquire` (`crates/podrunner/tests/scaleset.rs`) passes three times in a row, and fails on the sidecar of before (no report of `a-c`). The contract names both kinds of job id (`docs/contracts/source-driver.md`).
 
 # T-167: The trust lookup reads `visibility`, which a run gives as null
 
@@ -838,3 +846,30 @@ Add a `token_file` form to the source of the mint, read at start with mode 0600,
 ## Prove
 
 A test of the configuration: a source with `token_file` is accepted, and one with both forms is refused. The source conformance suite passes with a PAT stub.
+
+# T-175: A runner of the scale set is not bound to its job: a foreign job is found only at `started`
+
+**Source:** T-166 (the fake scale set with an assigned job beside another job, 2026-11-15)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+GitHub binds no runner of a scale set to one job: a JIT runner takes a job that GitHub assigned to the set, not the job that the mint vetted for it. A runner minted for job A can get job B: an assigned job that came first, or the fork job of T-169 that the tier rule withdrew and that stays assigned. slots finds it only at the `started` event (`job-mismatch`, `on_started` of `crates/podrunner-slots/src/run.rs`) and kills the unit. Until then the runner holds the job message of B (its token and its secrets) and can run steps of B at the boundary that the tier of A chose. Job A then waits for another runner.
+
+## Premise
+
+T-166 on 2026-11-15: with the fake scale set (`tools/fake-scaleset`, which gives each new runner to the first assigned job, as GitHub does), an assigned job beside a job of the classic flow took the runner of that job, and the report of job 11 was `job-mismatch` (exit 137). The LIVE-1 report (GitHub #74) says that github.com sent only `JobAssigned` messages.
+
+## Approach
+
+1. Measure on the test organization (GitHub #74, #75) which assigned job a new runner of the set takes: the order, and whether the runner name or the labels steer it.
+2. Stop a foreign job before its first step: a job-started hook of the runner (`ACTIONS_RUNNER_HOOK_JOB_STARTED`) in the unit compares `GITHUB_REPOSITORY`, `GITHUB_RUN_ID` and the job with the offer of the unit (a file of the unit, mode 0600), and ends the job on a mismatch, before a step runs.
+3. Give a withdrawn job back or end it (T-169), so that no withdrawn job waits for the next runner of the set.
+
+## Prove
+
+A conformance test: a unit whose runner gets the message of another job runs no step of it (the hook ends the job), and the report is `job-mismatch`. The fake scale set with two assigned jobs and a reversed order: no step of the foreign job runs. A live check on the next beta.

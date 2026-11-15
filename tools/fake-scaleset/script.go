@@ -27,6 +27,10 @@ type Job struct {
 	// Requeue: how many times an assigned job that no runner takes is
 	// offered again (at most three).
 	Requeue int `json:"requeue"`
+	// AssignedOnly: GitHub assigns the job to the scale set with no
+	// JobAvailable, and each message of it has runnerRequestId 0, as
+	// github.com did in the live gate (podrunner T-166).
+	AssignedOnly bool `json:"assignedOnly"`
 }
 
 // Script is the whole script.

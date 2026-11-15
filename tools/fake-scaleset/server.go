@@ -222,8 +222,12 @@ func (s *server) stats() map[string]int {
 }
 
 func (s *server) msgBase(j *jobState, kind string) map[string]any {
+	request := j.RequestID
+	if j.AssignedOnly {
+		request = 0
+	}
 	return map[string]any{
-		"messageType": kind, "runnerRequestId": j.RequestID, "repositoryName": j.Repo, "ownerName": j.Owner,
+		"messageType": kind, "runnerRequestId": request, "repositoryName": j.Repo, "ownerName": j.Owner,
 		"jobId": j.JobID, "jobWorkflowRef": j.WorkflowRef, "jobDisplayName": j.JobID, "workflowRunId": j.WorkflowRunID,
 		"eventName": j.Event, "requestLabels": j.Labels, "queueTime": time.Now().UTC(),
 	}
@@ -238,6 +242,9 @@ func (s *server) nextMessage() map[string]any {
 	for _, j := range s.jobs {
 		switch {
 		case j.completed:
+		case !j.offered && j.AssignedOnly:
+			j.offered, j.acquired, j.assigned = true, true, true
+			body = append(body, s.msgBase(j, "JobAssigned"))
 		case !j.offered:
 			j.offered = true
 			m := s.msgBase(j, "JobAvailable")

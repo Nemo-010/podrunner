@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**174 entries: 9 open, 5 partial, 6 blocked, 154 done.**
+**175 entries: 9 open, 5 partial, 6 blocked, 155 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 2 | 0 | 35 | 39 |
+| P1 | 2 | 2 | 0 | 36 | 40 |
 | P2 | 4 | 2 | 3 | 68 | 77 |
 | P3 | 3 | 1 | 3 | 51 | 58 |
-| **All** | 9 | 5 | 6 | 154 | 174 |
+| **All** | 9 | 5 | 6 | 155 | 175 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -213,7 +213,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-163](later.md) | P3 | S | later | chore | done | Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units |
 | [T-164](live.md) | P1 | S | M-C | defect | done | The scale-set sidecar ignores `wait_s` of `next`, and the unit host polls without a wait |
 | [T-165](live.md) | P1 | S | M-C | defect | done | `sign` refuses each restarted sidecar for 60 s, and the backoff of the sidecar never grows |
-| [T-166](live.md) | P1 | M | M-C | defect | open | The scale-set sidecar reads no `JobAssigned` message |
+| [T-166](live.md) | P1 | M | M-C | defect | done | The scale-set sidecar reads no `JobAssigned` message |
 | [T-167](live.md) | P1 | S | M-C | defect | done | The trust lookup reads `visibility`, which a run gives as null |
 | [T-168](live.md) | P2 | S | M-C | defect | open | The sidecar names each non-HTTP error "no answer", and never closes its message session |
 | [T-169](live.md) | P1 | M | M-C | defect | open | A withdrawn job holds the capacity of the scale set |
@@ -222,3 +222,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-172](live.md) | P3 | S | M-C | defect | open | The audit of `sign` lives only in memory |
 | [T-173](live.md) | P3 | S | M-C | defect | open | `podrunner --version` does not name the beta |
 | [T-174](live.md) | P3 | S | later | defect | open | A trusted source cannot use a fine-grained organization PAT |
+| [T-175](live.md) | P1 | M | M-C | defect | open | A runner of the scale set is not bound to its job: a foreign job is found only at `started` |
