@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**256 entries: 21 open, 18 partial, 11 blocked, 206 done.**
+**257 entries: 21 open, 18 partial, 11 blocked, 207 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 8 | 2 | 47 | 59 |
+| P1 | 2 | 8 | 2 | 48 | 60 |
 | P2 | 14 | 7 | 6 | 86 | 113 |
 | P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 21 | 18 | 11 | 206 | 256 |
+| **All** | 21 | 18 | 11 | 207 | 257 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -303,4 +303,5 @@ acceptance, later The crate dependencies later than v1.
 | [T-253](later.md) | P1 | S | later | defect | done | The faults of the first run of the user-path gate |
 | [T-254](later.md) | P1 | S | later | defect | done | The made-up `github.token` fails each action that calls the API of a real forge |
 | [T-255](later.md) | P2 | S | later | defect | open | On `--runner-dir`, the tests of express miss headers and hang |
+| [T-256](later.md) | P1 | S | later | defect | done | The checks of a session do not run the suites that need the official runner |
 | [T-260](later.md) | P2 | S | later | defect | open | An expression in the image of a service or a job container fails the job |

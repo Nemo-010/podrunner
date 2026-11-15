@@ -38,5 +38,16 @@ if [ "${1:-}" != notest ]; then
     timeout 1800 cargo test --workspace --all-features > "$log/test.log" 2>&1; t=$?
     # Not "failed": each summary line has "0 failed" and would hide the cause.
     echo "test $t"; [ "$t" -eq 0 ] || { rc=1; grep -E "FAILED|panicked|^error|^failures:|^---- " "$log/test.log" | head -30; }
+    # The suites of level2.yml that need the official runner (T-256): with
+    # PODRUNNER_RUNNER_DIR (an unpacked release of actions/runner), else a
+    # line that says that they did not run.
+    if [ -n "${PODRUNNER_RUNNER_DIR:-}" ]; then
+        { timeout 1200 cargo test -q -p podrunner-broker-fake --test runner --test container -- --ignored --test-threads 1 &&
+            timeout 1200 cargo test -q -p podrunner-local --test runner --test actions -- --ignored --test-threads 1 &&
+            timeout 1800 cargo test -q -p podrunner --test local -- --ignored --test-threads 1; } > "$log/runner.log" 2>&1; r=$?
+        echo "runner $r"; [ "$r" -eq 0 ] || { rc=1; grep -E "FAILED|panicked|^error|^---- " "$log/runner.log" | head -30; }
+    else
+        echo "runner skipped: set PODRUNNER_RUNNER_DIR to an unpacked actions/runner (level2.yml runs these suites)"
+    fi
 fi
 exit "$rc"

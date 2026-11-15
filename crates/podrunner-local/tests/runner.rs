@@ -113,7 +113,7 @@ jobs:
           T: ${{ github.token }}
         run: |
           test "$K" = made-up-secret-value-42
-          test "$T" = podrunner-local-made-up-token
+          test -z "$T"
           echo "the secret is $K"
       - run: test "${{ secrets.GITHUB_TOKEN }}" = "${{ github.token }}"
       - run: test -z "${{ secrets.NOT_SET }}"

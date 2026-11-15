@@ -203,7 +203,9 @@ cargo test --workspace --all-features
 cargo todo check
 ```
 
-`sh scripts/agent/check.sh` runs these and more. `docs/development.md`
+`sh scripts/agent/check.sh` runs these and more; with `PODRUNNER_RUNNER_DIR`
+(an unpacked actions/runner) it also runs the suites of level2 that need
+the runner, so set it (T-256). `docs/development.md`
 gives the rules of the code and the tests. CI runs the same and more
 (`.github/workflows/gate.yml`).
 

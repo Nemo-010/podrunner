@@ -4179,3 +4179,32 @@ Run the job on a runner directory here; compare the environment of the job on `-
 ## Prove
 
 The row `express-node22` on `runner-dir` of the gate passes.
+
+# T-256: The checks of a session do not run the suites that need the official runner
+
+**Source:** level2 43750372759 on `92a7394` (2026-11-15): T-254 changed the default token, and `a_step_reads_a_secret_and_the_token_and_the_log_masks_the_secret` (`crates/podrunner-local/tests/runner.rs`) still expected the made-up token
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`scripts/agent/check.sh` ran `cargo test --workspace`, which skips each test marked `#[ignore]`. The suites of `level2.yml` that need the official runner are such tests, so a change passed each check of the session and failed level2, the third time this day that a local check and CI disagreed (T-251).
+
+## Premise
+
+The log of the job `runner` of level2 43750372759, read on 2026-11-15.
+
+## Approach
+
+`check.sh` runs the suites of `level2.yml` that need the runner when `PODRUNNER_RUNNER_DIR` names an unpacked release of actions/runner, and says by name that they did not run when it does not. The test expects an empty token (T-254).
+
+## Prove
+
+`PODRUNNER_RUNNER_DIR=DIR sh scripts/agent/check.sh`: a line `runner 0`; with no variable, the line `runner skipped`.
+
+## Done
+
+2026-11-15: `scripts/agent/check.sh` (the step `runner`); `crates/podrunner-local/tests/runner.rs` (`test -z "$T"`). The three suites pass here with the runner v2.338.2.
