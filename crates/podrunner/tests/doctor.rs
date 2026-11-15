@@ -42,3 +42,28 @@ fn doctor_run_checks_the_inputs_of_a_local_run() {
     assert!(out.stdout.contains("FAIL runner-dir") && out.stdout.contains("fix:"), "{}", out.stdout);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-202: `doctor --run` reads the file of the user `run.toml` as `run`
+/// does, so the installer can check the run that it configured.
+#[test]
+fn doctor_run_reads_the_run_toml_of_the_user() {
+    let dir = std::env::temp_dir().join(format!("podrunner-doctor-toml-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("runner/bin")).unwrap();
+    std::fs::create_dir_all(dir.join("config/podrunner")).unwrap();
+    std::fs::write(dir.join("runner/run.sh"), "").unwrap();
+    std::fs::write(dir.join("runner/bin/Runner.Listener"), "").unwrap();
+    std::fs::write(dir.join("w.yml"), "on: push\njobs:\n  a:\n    runs-on: x\n    steps: [{run: a}]\n").unwrap();
+    std::fs::write(dir.join("config/podrunner/run.toml"), "runner-dir = \"../../runner\"\n").unwrap();
+    let out = Command::new(env!("CARGO_BIN_EXE_podrunner"))
+        .args(["doctor", "--run", "w.yml"])
+        .current_dir(&dir)
+        .env("XDG_CONFIG_HOME", dir.join("config"))
+        .env("HOME", &dir)
+        .output()
+        .unwrap();
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert_eq!(out.status.code(), Some(0), "{text}{}", String::from_utf8_lossy(&out.stderr));
+    assert!(text.contains("ok   runner-dir"), "{text}");
+    let _ = std::fs::remove_dir_all(&dir);
+}

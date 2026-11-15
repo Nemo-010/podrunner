@@ -34,6 +34,9 @@ RUN arch=x64; [ "$TARGETARCH" = arm64 ] && arch=arm64; \
  && tar -xzf runner.tgz && rm runner.tgz \
  && chown -R runner:runner /home/runner
 
+# The tarball has no licence file; the image carries the MIT licence of
+# the official runner (THIRD_PARTY.md).
+COPY images/runner/LICENSE.actions-runner /home/runner/LICENSE.actions-runner
 # The relay of the container hooks (GitHub #35).
 COPY --chmod=0755 crates/podrunner-hook/relay/podrunner-hook.sh /home/runner/hooks/podrunner-hook.sh
 # The podvm driver writes the credential files of the runner into

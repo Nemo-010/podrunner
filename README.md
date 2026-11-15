@@ -12,6 +12,23 @@ live gates (GitHub #74 and #75, T-033) wait for their reports. The plan and its 
 `TODO/` (`TODO/PROGRESS.md`). `docs/cli.md` gives the commands and
 `docs/configuration.md` the configuration file.
 
+## Quick start: the local mode
+
+Run the workflows of a project on this host, each job in a fresh unit, with
+no root and no daemon (`docs/local-mode.md`). Take the installer of a
+release that attaches `podrunner-install.sh` (`docs/install.md`), with its
+version in place of `VERSION`:
+
+```sh
+curl -fsSLO "https://github.com/PodUtils/podrunner/releases/download/vVERSION/podrunner-install.sh"
+sh podrunner-install.sh
+cd YOUR-PROJECT && podrunner run .github/workflows/ci.yml --checkout .
+```
+
+The installer checks each file against the SHA-256 that it pins. For a
+host with no network, the release attaches one offline bundle for each
+architecture.
+
 ## Build
 
 ```sh

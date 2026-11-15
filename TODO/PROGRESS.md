@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 201 entries: 0 open, 15 partial, 7 blocked, 179 done.
+`TODO/INDEX.md` holds 205 entries: 3 open, 16 partial, 7 blocked, 179 done.
 
 ## State
 
@@ -34,6 +34,7 @@ The queue, most valuable first:
 
 1. The live reports (GitHub #74, #75, and the issues #116 to #147 of the owner): T-192 (P1: `serve` stops after a unit ends `unit-failed`), T-179 (P1: H0, the seccomp hold and the egress module time out), then T-181, T-183 (P2), T-186 (P3). The partial entry T-162 waits for its measure in `runner-image.yml`; T-175 waits for its step on the test organization. `v0.1.0-beta.6` is out for LIVE-1 and LIVE-2 (#74, #75) and githome (#151).
 
+2. The onboarding of the local mode: T-205 (P1, partial: a `runner-image.yml` run and a dry run of `release.yml` prove the assets; then the next release), T-203 (P2: a local checkout with no `--checkout`), T-204 (P3: the packages of the image archives).
 
 3. T-162 (M, partial): G-12 limits: the runner runs under `[unit.podvm] mem` (runner-image 43704601731); the incus keys hold with the pinned podvm `0.2.0-beta.21`. Next: the payloads past `pids` and `mem` on the podvm and incus kinds; the cgroup half (`cpus` on podvm) waits for PodUtils/podvm@T-1747.
 4. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.

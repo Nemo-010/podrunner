@@ -2,7 +2,8 @@
 # The checks of AGENTS.md before each push: fmt, clippy, rustdoc and the
 # tests, the check of the record (cargo todo check), the size of the Rust
 # files (scripts/check-size.py, with its self-test), the commit messages
-# (scripts/check-commit-msg.sh, with its self-test), and the static build
+# (scripts/check-commit-msg.sh, with its self-test), the test of the
+# installer (scripts/test-install.sh), and the static build
 # of x86_64 musl (scripts/check-static.sh). Print each exit code and the
 # first faults; exit 1 on a fault. With the argument notest, the tests are
 # skipped.
@@ -27,6 +28,8 @@ echo "fuzz $z"; [ "$z" -eq 0 ] || { rc=1; tail -20 "$log/fuzz.log"; }
 echo "size $s"; [ "$s" -eq 0 ] || { rc=1; grep -v "^ok \|^check-size:" "$log/size.log" | head -20; }
 { sh scripts/check-commit-msg.sh --self-test && sh scripts/check-commit-msg.sh --rev HEAD; } > "$log/msg.log" 2>&1; m=$?
 echo "commit-msg $m"; [ "$m" -eq 0 ] || { rc=1; grep -v "^ok" "$log/msg.log" | head -20; }
+sh scripts/test-install.sh > "$log/install.log" 2>&1; i=$?
+echo "install $i"; [ "$i" -eq 0 ] || { rc=1; tail -20 "$log/install.log"; }
 t=x86_64-unknown-linux-musl
 { cargo build -q --release -p podrunner &&
     sh scripts/check-static.sh "target/$t/release/podrunner"; } > "$log/static.log" 2>&1; st=$?

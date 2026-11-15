@@ -2638,3 +2638,128 @@ The report of #153: each step has a result, and each fault has an entry `T-NNN` 
 ## Blocker
 
 2026-11-15: waits for the report of a user agent on GitHub #153.
+
+
+# T-202: One installer and one offline bundle for the local mode
+
+**Source:** the owner (2026-11-15): the first two testers of the local mode
+**Category:** feature
+**Milestone:** later
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+Two testers started on the local mode. Each hit the same wall first: the time from "I know about podrunner" to real work. A user must download podrunner, podvm, podnet, the official runner tarball and the runner image archive from four places (the runner image is only a workflow artifact, which needs `gh` and a token, and expires), check each SHA-256 and attestation by hand, load the image into a podvm store with manual OCI steps, and then type a long `podrunner run` command. It takes tens of minutes.
+
+The owner asks for: one POSIX installer (x86_64 and aarch64, `/bin/sh`, curl or wget, a SHA-256 tool, tar; no root, no `gh`, no token, no Python), hermetic (each version and SHA-256 pinned in the script by a generator, with a check that fails when they differ) and idempotent (a second run downloads nothing that is there and correct; a partial download never counts). The default installs the binaries, the podvm store with the runner image, the runner directory and the `run.toml` of the user (T-143), then runs `podrunner doctor` and prints what works and the next command. Options: a prefix, `--full`, `--bundle PATH`. One offline bundle for each architecture, and the runner image archives as release assets with their `.sha256` and attestations. A test against a local fixture, the docs and `THIRD_PARTY.md`.
+
+## Premise
+
+Read on 2026-11-15: `.github/workflows/release.yml`, `.github/workflows/runner-image.yml` (the step "Import into a podvm store"), `images/podvm.toml`, `images/podnet.toml`, `images/runner/runner.toml`, `docs/releases/v0.1.0-beta.6.md`, GitHub #75 and #153 (their steps 2 and 3 are the manual install). Measured here with the real assets of `v0.1.0-beta.6`, podvm `v0.2.0-beta.21` and podnet `v0.4.0-beta.8`: podrunner 7.9 MB, podvm 7.2 MB, podnet 30.7 MB, the runner tarball 228 MB (x64) and 140 MB (arm64), downloaded in 15 s through the proxy of this sandbox; the unpack of the runner takes 5 s. The artifacts of runner-image run 43704601731: `runner-x86_64` 306 MB, `runner-aarch64` 215 MB, `runner-full-x86_64` 482 MB. `podvm inspect runner@DIGEST` exits 0 for an image of the store and 1 else; `podvm verify` hashes each blob. The artifact `runner-ARCH` held the raw archive of buildx, not the archive that `podvm load -i` takes. `podrunner doctor --run` did not read `run.toml`. Not measured: the load of a real runner image (no Docker daemon here, and the artifacts need a token), a run of the release workflow.
+
+## Approach
+
+- `scripts/install.sh` (the release asset `podrunner-install.sh`), POSIX sh: a block of pins; each file to `DEST.part`, checked, then moved; the binaries to `PREFIX/bin` and `DATA/bin`; the runner unpacked with a marker of its SHA-256; the image loaded when `podvm inspect` does not find it, else `podvm verify`; `run.toml` with a marker line (a file of the user stays); `doctor`, `doctor --run`, and the next command. `--prefix`, `--full`, `--bundle`, and `PODRUNNER_MIRROR` for a mirror and the test.
+- `scripts/install-pins.py`: the block from `images/*.toml`, and for a release the SHA-256 of each podrunner binary and image archive and the digest of each image; `--check` for the tree.
+- `scripts/make-bundle.sh`: the bundle of one architecture from the stamped installer, each file checked against its pin.
+- The release assets: T-205.
+- `podrunner doctor --run` reads the configuration files of `run` first, so that the installer checks the run that it configured.
+- `scripts/test-install.sh` in the gate and in `scripts/agent/check.sh`.
+
+## Prove
+
+```sh
+sh scripts/test-install.sh
+python3 -I scripts/install-pins.py --check scripts/install.sh
+cargo test -p podrunner --test doctor
+```
+
+
+# T-203: A local checkout with no --checkout fails with a 404
+
+**Source:** T-202 (found in the work)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The installer writes `run.toml` so that `podrunner run FILE` needs no flag of the executor. A real workflow starts with `uses: actions/checkout@...`. With no `--checkout`, the broker answers the route of the tree with 404 (`crates/podrunner-broker-fake/src/actions.rs`, the route `_checkout.tar.gz`), and the step fails with an error of curl that does not name the cause. A `run.toml` of the user cannot give "the current directory": a relative path is read from the directory of the file. So the next command of the installer must be `podrunner run .github/workflows/ci.yml --checkout .`.
+
+## Premise
+
+Read `crates/podrunner/src/run_local.rs` (the tree of `--checkout`) and `crates/podrunner-local/src/message.rs` (`checkout_script`) on 2026-11-15. Not measured: the cost of a tarball of a large tree for each run.
+
+## Approach
+
+Choose one, and record the call in `docs/decisions.md`:
+
+- With no `--checkout`, use the git tree of the current directory when a step of the run uses the local checkout (as act copies the working tree), and name it on stderr.
+- Or fail the job before it starts, with the cause and the fix (`--checkout .`).
+
+Then the installer prints `podrunner run .github/workflows/ci.yml` as the next command.
+
+## Prove
+
+`cargo test -p podrunner --test local` (a workflow with `uses: actions/checkout@v4` and no `--checkout`: the step gets the tree, or the job fails with the fix before a unit starts).
+
+
+# T-204: The packages of the image archives and their sources
+
+**Source:** T-202 (found in the work)
+**Category:** chore
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+From T-202, a release redistributes the runner image archives (`runner-ARCH.tar`, `runner-full-ARCH.tar`) as assets. They hold Ubuntu packages under the GPL and other licences (`images/runner/Dockerfile`, `images/runner/full.txt`). A redistribution of a GPL binary must tell where its source is. `THIRD_PARTY.md` names the packages in general only.
+
+## Premise
+
+Read `images/runner/Dockerfile` and `THIRD_PARTY.md` on 2026-11-15. The base image is pinned by digest; the packages of `apt-get install` are not pinned, so each build can take other versions. Not measured: the list of packages of a built image.
+
+## Approach
+
+In `runner-image.yml`, after the build, write the list of the packages of each image (`dpkg-query -W -f '${Package} ${Version} ${source:Package} ${source:Version}\n'` in the image) to `runner-ARCH.packages.txt`, upload it with the archive, and let the release attach it beside each archive. `THIRD_PARTY.md` names the list and the Ubuntu archive (`apt-get source`, and snapshot.ubuntu.com for an older version) as the place of the sources.
+
+## Prove
+
+`sh scripts/test-install.sh` stays green, and a `runner-image.yml` run uploads `runner-x86_64.packages.txt` with one line for each package of the image.
+
+
+# T-205: The release attaches the assets of the local mode
+
+**Source:** T-202 (the owner, 2026-11-15)
+**Category:** release
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** partial
+
+## Problem
+
+The installer of T-202 needs its files at fixed places with no token: the runner image archives are workflow artifacts of `runner-image.yml` only, which need `gh` and a token, and expire after 30 days. The owner asks the release to attach the image archives, the installer with the pins of the release and one offline bundle for each architecture, with their `.sha256` files and attestations, under the limit of 2 GiB for a release asset.
+
+## Premise
+
+Read `.github/workflows/release.yml` and `.github/workflows/runner-image.yml` on 2026-11-15. The artifact `runner-ARCH` holds the raw archive of buildx; the step "Import into a podvm store" makes the archive that `podvm load -i` takes and does not upload it. The larger image is built on x86_64 only. The sizes of the artifacts of runner-image run 43704601731: 306 MB, 215 MB and 482 MB. No release run and no `runner-image.yml` run of this change ran.
+
+## Approach
+
+- `runner-image.yml`: the artifact `runner-ARCH` is the archive that `podvm load -i` takes (the ref name in `index.json`, the files of the layout only); the larger image is built, loaded and run on aarch64 too.
+- `release.yml`: the job `check` finds the green `runner-image.yml` run of the commit (a release fails with no such run); the job `assets` downloads its archives, checks their sums, stamps the installer (`scripts/install-pins.py --release`), makes the bundles (`scripts/make-bundle.sh`) and fails on a file of 2 GiB or more; the job `release` attaches each file and attests the installer, the bundles and the image archives.
+
+## Prove
+
+A `runner-image.yml` run of the commit uploads `runner-ARCH` and `runner-full-ARCH` for x86_64 and aarch64; a dry run of `release.yml` makes the artifact `local-mode` (`gh run download RUN -n local-mode`); the next release attaches `podrunner-install.sh`, `runner-ARCH.tar`, `runner-full-ARCH.tar` and `podrunner-bundle-ARCH.tar.gz` with their `.sha256` files and attestations, and on a clean host:
+
+```sh
+sh podrunner-install.sh && podrunner run "$HOME/.local/share/podrunner/hello.yml"
+```

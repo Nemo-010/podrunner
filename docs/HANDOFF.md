@@ -70,6 +70,11 @@ is done.
   `--schedule` (T-142); `run.toml` and `.actrc` (T-143); an `env:` of one
   expression (T-152); the fetch of the actions through an egress grant
   (T-154); `podrunner doctor --run` (T-153).
+  The installer `scripts/install.sh` and the offline bundle
+  (`docs/install.md`, T-202); a release attaches them with the runner
+  image archives from the green `runner-image.yml` run of its commit
+  (T-205, partial: dispatch `runner-image.yml` on the commit before a
+  release; the notes of the release list the new files).
   The parity suite (`crates/podrunner/tests/parity.rs`, T-147) gives one
   verdict for each workflow: with `--runner-dir`, or in a unit kind
   through `PODRUNNER_PARITY_UNIT`.

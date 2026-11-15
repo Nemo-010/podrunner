@@ -1,5 +1,20 @@
 # The local mode against act and runner.server
 
+## Quick start
+
+`docs/install.md` gives the installer: podrunner, podvm, podnet, the
+official runner, the runner image in a podvm store, and the file of the
+user `run.toml`, each checked against its pin. Take it from a release that
+attaches `podrunner-install.sh`:
+
+```sh
+curl -fsSLO "https://github.com/PodUtils/podrunner/releases/download/vVERSION/podrunner-install.sh"
+sh podrunner-install.sh
+cd YOUR-PROJECT && podrunner run .github/workflows/ci.yml --checkout .
+```
+
+## The comparison
+
 `podrunner run FILE` runs the jobs of one workflow file with the official
 runner, against a fake broker on the loopback, one fresh unit for each job
 (T-046, `docs/cli.md`). This note compares it with nektos/act and with

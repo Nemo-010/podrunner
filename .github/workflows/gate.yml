@@ -5,7 +5,7 @@ name: gate
 #
 # * lint: format, clippy with -D warnings, docs, the fuzz targets, the size
 #   of each Rust file (at most 500 lines), no agent attribution line in a
-#   new commit.
+#   new commit, the test of the installer (scripts/test-install.sh).
 # * test: the tests of the workspace.
 # * record: the tests of the checker, and `cargo todo check`.
 # * static: the release build of each binary for x86_64 and aarch64 musl,
@@ -77,6 +77,14 @@ jobs:
         run: |
           python3 -I scripts/check-size.py
           python3 -I scripts/check-size.py --self-test
+      # T-202: the installer of the local mode against a local fixture, its
+      # pins against images/*.toml (a changed pin must fail), and shellcheck
+      # (in the image of the runner).
+      - name: The installer
+        run: |
+          set -eu
+          command -v shellcheck
+          sh scripts/test-install.sh
       - name: No agent attribution line in a commit
         env:
           BEFORE: ${{ github.event.before }}

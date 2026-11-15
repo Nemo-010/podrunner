@@ -158,7 +158,11 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
                 }
             }
         }
-        "doctor" if rest.first().map(String::as_str) == Some("--run") => Ok(crate::run_local::doctor(&rest[1..])),
+        "doctor" if rest.first().map(String::as_str) == Some("--run") => {
+            // The checks see the flags that `run` sees: those of the files first.
+            let rest = crate::run_config::expand(&rest[1..]).map_err(|e| err(Class::Config, e))?;
+            Ok(crate::run_local::doctor(&rest))
+        }
         "doctor" => {
             let o = opts(rest)?;
             o.only(&["--config"])?;
