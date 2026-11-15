@@ -1099,7 +1099,7 @@ A test of the podvm driver: the argv or the environment of the unit names the un
 
 ## Blocker
 
-podvm: `podvm run -d --hostname NAME` on the rungs with no UTS namespace (COORD-053, GitHub #115). .NET reads the machine name from `uname`, with no variable to set it, and podvm `0.2.0-beta.21` has no `--hostname`. When a podvm release has it, the driver gives `--hostname podrunner-UNIT`.
+podvm: a release with `podvm run --hostname NAME` (PodUtils/podvm@T-1908, on podvm `main` at 1e94e1dc; PodUtils/podvm#404 answers COORD-053, GitHub #115). It holds on the userland rung (both families); the namespace rung, the machine tier and the incus tier exit 125 by name. When it is out: pin it, give each podvm unit `--hostname podrunner-UNIT`, and on exit 125 with the `--hostname` message start the unit again with no name and log it.
 
 # T-183: The tree-kill self-test of a held podvm unit fails, and its units stay after it
 

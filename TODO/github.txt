@@ -128,7 +128,7 @@
 122 issue closed
 123 issue closed
 124 issue closed
-125 issue open
+125 issue closed
 126 issue open
 127 issue open
 128 issue closed
@@ -140,7 +140,7 @@
 134 issue closed
 135 issue open
 136 issue open
-137 issue open
+137 issue closed
 138 issue open
 139 issue open
 140 issue open

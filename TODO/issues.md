@@ -114,7 +114,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #112 | [gh action] requested | closed (gate 43683347311 and secrets 43683349837 green on `ed54ccb`; runner-image 43683637902 on `6ac1c42` red only at the static image, T-158) | T-164, T-165, T-166, T-167, T-158 |
 | #113 | COORD-052: podrunner takes podcrates v0.50.0 at cbb5372 (the answer to PodUtils/podcrates#164) (to podcrates) | closed (podcrates closed PodUtils/podcrates#164) | T-118 |
 | #114 | [gh action] requested | open (the gate, the secrets scan, `runner-image.yml` and `level2.yml` of `main` at `4fe27da` or later) | T-158, T-162, T-175, T-177, T-178 |
-| #115 | COORD-053: a host name of the run for `podvm run -d` (`--hostname`) on the rungs with no UTS namespace (to podvm) | open | T-182 |
+| #115 | COORD-053: a host name of the run for `podvm run -d` (`--hostname`) on the rungs with no UTS namespace (to podvm) | open (podvm answered on PodUtils/podvm#404: PodUtils/podvm@T-1908 on `main`, in its next beta) | T-182 |
 | #116 | Live run 2026-11-15: the scale-set sidecar ignores wait_s of next, and mint kills it at its first idle poll | closed (T-164 is done) | T-164 |
 | #117 | Live run 2026-11-15: sign refuses each restarted sidecar for 60 s, and the backoff never grows: a livelock | closed (T-165 is done) | T-165 |
 | #118 | Live run 2026-11-15: the scale-set sidecar prints "no answer" for each error that is not an HTTP status | closed (T-168 is done) | T-168 |
@@ -124,7 +124,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #122 | Live run 2026-11-15: a withdrawal of the tier rule in the mint leaves no audit line and no log line | closed (T-170 is done) | T-170 |
 | #123 | Live run 2026-11-15: the sidecar never closes its message session, so the next sidecar gets 409 | closed (T-168 is done) | T-168 |
 | #124 | Live run 2026-11-15: podrunner check refuses each key of a mint file | closed (T-171 is done) | T-171 |
-| #125 | Live run 2026-11-15: check says a configuration is usable when no unit kind serves its source | open (T-185 is open) | T-185 |
+| #125 | Live run 2026-11-15: check says a configuration is usable when no unit kind serves its source | closed (T-185 is done) | T-185 |
 | #126 | Live run 2026-11-15: doctor says egress_hold unknown for the podvm kind while serve says enforced or advisory | open (T-181 is open) | T-181 |
 | #127 | Live run 2026-11-15: the tree-kill self-test of a held podvm unit fails, and its units stay after a stop | open (T-183 is open) | T-183 |
 | #128 | Live run 2026-11-15: status and stop --wait answer busy while the supervisor waits on a source | closed (T-184 is done) | T-184 |
@@ -136,7 +136,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #134 | Live run 2026-11-15: the design copy of job-offer.v1 differs from the parser, and a parse failure reads as event-not-allowed | closed (T-188 is done) | T-188 |
 | #135 | Live run 2026-11-15: serve does not pull a digest-pinned container image, and the hook hides the cause | open (T-177 is partial) | T-177 |
 | #136 | Live run 2026-11-15: a redirect host can serve one repository only, so the G-01 pair cannot run on it | open (T-193 is open) | T-193 |
-| #137 | Live run 2026-11-15: a podvm host runs one unit at a time while status says slots 2 | open (T-185 is open) | T-185 |
+| #137 | Live run 2026-11-15: a podvm host runs one unit at a time while status says slots 2 | closed (T-185 is done) | T-185 |
 | #138 | Live run 2026-11-15: local mode refuses the netns hold of podnet | open (T-187 is open) | T-187 |
 | #139 | Live run 2026-11-15: the tier rule trusts an organization owner only | open (T-191 is open) | T-191 |
 | #140 | Live run 2026-11-15: the JIT configuration is minted before the unit starts, and a failed start leaves the job assigned | open (T-176 is partial) | T-176 |
