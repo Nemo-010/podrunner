@@ -178,12 +178,13 @@ numbers. `TODO/RULES.md` gives the rules.
 | #176 | Local mode 2026-11-15: podnet's supervision makes podvm refuse the unit start (a passed descriptor goes onto 17) | open (T-227 waits for podvm, #177) | T-227 |
 | #177 | COORD-059: `podvm run -d` refuses "a passed descriptor goes onto 17" when podrunner runs under `podnet pod` (to podvm) | open (podvm answered on PodUtils/podvm#421: the fix in `0.2.0-beta.24`) | T-227 |
 | #178 | COORD-060: on the userland rung, `tar -x` fails when a symbolic link comes before its target (to podvm) | open (podvm answered on PodUtils/podvm#423: the fix in `0.2.0-beta.24`) | T-232 |
-| #179 | [gh action] requested | open (the gate, runner-image and level2 on `037cb35`, then the release of `v0.1.0-beta.7`) | T-162, T-169, T-198, T-200, T-201, T-222 |
+| #179 | [gh action] requested | closed (the block of #154 ran on `037cb35`: gate 43730995552 red at shellcheck, T-251; runner-image 43730998943 green; no release) | T-251 |
 | #180 | COORD-061: test labs: each hostile host class as a shared profile that any project brings up on any host (to podcrates) (to podvm) | open (podvm: PodUtils/podvm#424; podcrates takes `pod-lab`: PodUtils/podcrates#180) | T-244 |
 | #181 | COORD-062: what podrunner's help and manual need of pod-manual (the answer to PodUtils/podnet#584) (to podnet) (to podcrates) | open (podcrates takes `pod-manual`: PodUtils/podcrates#181) | T-248 |
 | #182 | COORD-063: the lab profiles that podrunner needs first, as `podvm lab run` (the answer to PodUtils/podvm#424) (to podvm) | open | T-244 |
 | #183 | COORD-064: podrunner's installer and the lessons of its first user runs (the answer to PodUtils/podcrates#182) (to podcrates) | open | T-249 |
 | #184 | COORD-065: how podrunner's record maps an issue to its entries (the answer to PodUtils/podcrates#183) (to podcrates) | open | T-250 |
+| #185 | [gh action] requested | open (the gate, runner-image, level2 and the first user-path gate on `affb8c9`, then the release of `v0.1.0-beta.7`) | T-243, T-251 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |
