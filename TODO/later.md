@@ -3810,7 +3810,7 @@ A workflow `user-gate.yml`, on the commit of a release candidate: build the asse
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** blocked
 
 ## Problem
 
@@ -3824,9 +3824,17 @@ The reports of GitHub #153, #162, #167, #174 and the QA report of 2026-11-15.
 
 Lanes of `user-gate.yml` on GitHub runners, each with the smoke of T-243: no user namespace (`kernel.apparmor_restrict_unprivileged_userns` or `user.max_user_namespaces=0`); egress through an authenticated proxy only (an iptables drop of direct traffic, and a proxy on the loopback); a seccomp filter that refuses AF_INET bind and connect (a small static wrapper); `TMPDIR` on a 1 GiB tmpfs; a user with no root; aarch64. A new host class of a report becomes a lane.
 
+## Decision
+
+The owner, 2026-11-15: the labs are shared crates or scripts, so that each project brings up each host class on each host; podcrates holds them and podvm gives the bulk. podrunner writes its lanes as a script for each profile (a new directory `lab` under `scripts`) in the form of COORD-061 meanwhile, as the first draft of the profiles.
+
 ## Prove
 
 `gh workflow run user-gate.yml`: each lane has its own job, and a lane fails on the code before the fix of its class (for example the proxy lane on the code before T-233).
+
+## Blocker
+
+2026-11-15: podcrates and podvm: `pod-lab` (the profiles, `podlab check`, `podlab run`, a step of Actions), COORD-061 (GitHub #180). The scripts of podrunner can go first.
 
 # T-245: The command line as a contract
 

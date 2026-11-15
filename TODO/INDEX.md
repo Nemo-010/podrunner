@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**247 entries: 19 open, 16 partial, 10 blocked, 202 done.**
+**247 entries: 18 open, 16 partial, 11 blocked, 202 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 3 | 6 | 1 | 44 | 54 |
+| P1 | 2 | 6 | 2 | 44 | 54 |
 | P2 | 11 | 7 | 6 | 85 | 109 |
 | P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 19 | 16 | 10 | 202 | 247 |
+| **All** | 18 | 16 | 11 | 202 | 247 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -291,7 +291,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-241](later.md) | P3 | S | later | defect | open | The small findings of the second QA report |
 | [T-242](later.md) | P2 | M | later | defect | open | Each run copies the runner image several times into a new directory |
 | [T-243](later.md) | P1 | M | later | release | open | The user-path gate: the files of the release, installed and used as a user |
-| [T-244](later.md) | P1 | M | later | release | open | The host lanes of the user-path gate |
+| [T-244](later.md) | P1 | M | later | release | blocked | The host lanes of the user-path gate |
 | [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |
 | [T-246](later.md) | P1 | S | later | release | open | An adversarial QA before each release |
 | [T-247](later.md) | P2 | S | later | release | open | The notes of a release name the level of the proof of each claim |

@@ -153,7 +153,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #151 | COORD-054: githome and podrunner after the live run: the beta.6 changes and the next pair run (to githome) | open (the pair on beta.6 passed each test but one: T-222) | T-162, T-178, T-189, T-190, T-191, T-193, T-198, T-200, T-201, T-222 |
 | #152 | COORD-055: podrunner takes podcrates v0.51.0 at 800f6d4 (the answer to PodUtils/podcrates#172) (to podcrates) | closed (podcrates closed PodUtils/podcrates#172) | T-118 |
 | #153 | LIVE-3: a user agent of the local mode: run real workflows with `podrunner run` and report (T-199) | open (the report of 2026-11-15: no job ran on its host; 12 issues #155 to #166 and nits, T-206 to T-219) | T-199, T-218, T-219 |
-| #154 | [gh action] requested | open (the gate, runner-image and level2 on `2f56267`, then the release of `v0.1.0-beta.7`) | T-162, T-169, T-198, T-200, T-201 |
+| #154 | [gh action] requested | closed (replaced by #179; the gate, runner-image and level2 on `2f56267`, then the release of `v0.1.0-beta.7`) | T-162, T-169, T-198, T-200, T-201 |
 | #155 | Local mode 2026-11-15: --platform turns off every later flag check, so nine refusals run and two executors can be given at once | open (fixed on `main`; closes with the next beta) | T-206 |
 | #156 | Local mode 2026-11-15: doctor answers a missing --podvm or --incus binary with a podvm version bump, which cannot fix a wrong path | open (fixed on `main`; closes with the next beta) | T-212 |
 | #157 | Local mode 2026-11-15: "one of --runner-dir DIR, or a unit kind ... is necessary" is printed while --runner-dir is given | open (fixed on `main`; closes with the next beta) | T-207 |
@@ -178,6 +178,8 @@ numbers. `TODO/RULES.md` gives the rules.
 | #176 | Local mode 2026-11-15: podnet's supervision makes podvm refuse the unit start (a passed descriptor goes onto 17) | open (T-227 waits for podvm, #177) | T-227 |
 | #177 | COORD-059: `podvm run -d` refuses "a passed descriptor goes onto 17" when podrunner runs under `podnet pod` (to podvm) | open (podvm answered on PodUtils/podvm#421: the fix in `0.2.0-beta.24`) | T-227 |
 | #178 | COORD-060: on the userland rung, `tar -x` fails when a symbolic link comes before its target (to podvm) | open (podvm answered on PodUtils/podvm#423: the fix in `0.2.0-beta.24`) | T-232 |
+| #179 | [gh action] requested | open (the gate, runner-image and level2 on `037cb35`, then the release of `v0.1.0-beta.7`) | T-162, T-169, T-198, T-200, T-201, T-222 |
+| #180 | COORD-061: test labs: each hostile host class as a shared profile that any project brings up on any host (to podcrates) (to podvm) | open | T-244 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

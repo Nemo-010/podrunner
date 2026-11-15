@@ -135,7 +135,10 @@ write an issue of this repository titled `[gh action] requested` (the
 form of PodUtils/podvm#387). Its body says why, gives one `sh` block that
 dispatches each workflow and watches it, and asks for the run ids or the
 line where the block stopped. The local agent runs the block once and
-answers on the issue. Read the runs, then close the issue.
+answers on the issue. Read the runs, then close the issue. Each request is
+a new issue: the local agent does not read a comment on an issue that is
+there already (the owner, 2026-11-15). When a request changes, close the
+old issue and open a new one.
 
 ## A release
 
