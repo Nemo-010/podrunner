@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 196 entries: 3 open, 15 partial, 8 blocked, 170 done.
+`TODO/INDEX.md` holds 196 entries: 3 open, 12 partial, 8 blocked, 173 done.
 
 ## State
 
@@ -33,7 +33,7 @@ then take the next one.
 
 The queue, most valuable first:
 
-1. The live reports (GitHub #74, #75, and the issues #116 to #147 of the owner): T-192 (P1: `serve` stops after a unit ends `unit-failed`), T-179 (P1: H0, the seccomp hold and the egress module time out), then T-181, T-183 (P2), T-186 (P3). The partial entries T-162, T-177, T-178 wait for measures in `runner-image.yml`; T-175 waits for its step on the test organization. A new beta for LIVE-1 and LIVE-2 follows.
+1. The live reports (GitHub #74, #75, and the issues #116 to #147 of the owner): T-192 (P1: `serve` stops after a unit ends `unit-failed`), T-179 (P1: H0, the seccomp hold and the egress module time out), then T-181, T-183 (P2), T-186 (P3). The partial entry T-162 waits for its measure in `runner-image.yml`; T-175 waits for its step on the test organization. A new beta for LIVE-1 and LIVE-2 follows.
 
 
 3. T-162 (M, open): G-12 limits: `--ulimit nproc=` and `as=` hold on podvm `run -d` now (PodUtils/podvm#382); the incus keys come with the next podvm release.

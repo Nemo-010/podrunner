@@ -919,7 +919,7 @@ State (2026-11-15, CI): runner-image run 43686746902 (`9a7fb3c`) built the image
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** M
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -933,11 +933,19 @@ The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user nam
 
 Start (or prepare) the unit before the mint where the driver allows it, and mint into the running unit; or, on a failed start after the mint, release the runner (`release` removes it) and give the job back with the mechanism of T-169. Log the cause of each failed start in `serve`.
 
+## Decision
+
+The mint stays before the start: the JIT files are in the unit at its start. The job that stays assigned at GitHub after a release is the subject of T-169 (Q7), not of this entry.
+
 ## Prove
 
 A test of slots with a driver whose start fails: the source gets `release` of the minted job, and the log of `serve` names the cause.
 
 State (2026-11-15): `give_up` already sends `release` after a failed start, and the sidecar removes the minted runner, so the credential cannot be used again. The cause of the driver now goes to the stderr of `serve` and to the audit (`start: CODE: DETAIL`); `tests::start::a_failed_start_releases_the_job_and_names_the_cause` fails without it. The mint stays before the start: the JIT files are in the unit at its start. Next: the job that stays assigned at GitHub goes back with the mechanism of T-169.
+
+## Done
+
+2026-11-15: a failed start names its cause in the stderr of `serve` and in the audit, and `give_up` releases the minted runner (`tests::start::a_failed_start_releases_the_job_and_names_the_cause`). Runner-image run 43686746902 is green with it.
 
 # T-177: `serve` does not pull an image that a digest pins: a `container:` job fails with no cause in the log
 
@@ -946,7 +954,7 @@ State (2026-11-15): `give_up` already sends `release` after a failed start, and 
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -966,6 +974,10 @@ In `prepare` of the podvm driver (`start_container`), pull an image that the sto
 
 State (2026-11-15): `prepare` of the podvm driver pulls an image that the store of the images does not have (`podvm pull -q --platform P NAME@sha256:...`), once, then saves it; a failed pull names the cause of the save and of the pull. `Hooks::take` writes the text of each refusal of the driver to the stderr of `serve` with the unit (`podrunner: UNIT: a hook call was refused: the driver: ...`); the runner still gets the code only. `crates/podrunner-podvm/tests/pull.rs` (2 tests) fails on the code of before. Next: a `container:` job by digest under `serve` in `runner-image.yml`, then W2 of GitHub #75 on the next beta.
 
+## Done
+
+2026-11-15: `prepare` pulls a pinned image that the store lacks, once, and names both causes of a failure (`crates/podrunner-podvm/tests/pull.rs`, 2 tests, each fails on the code of before); `serve` logs the cause of each refusal of the driver. Runner-image run 43686746902 is green with it; W2 of GitHub #75 runs it live on the next beta.
+
 # T-178: A job on the incus and microvm kinds has `HOME=/root` for a runner that is not root: `actions/checkout` fails
 
 **Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
@@ -973,7 +985,7 @@ State (2026-11-15): `prepare` of the podvm driver pulls an image that the store 
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -992,6 +1004,10 @@ Set `HOME` (and `USER`) of the runner to the home of its user in the guest scrip
 A test of each guest script: the payload runs with `HOME=/home/runner`. The parity suite with a checkout step on both kinds in `runner-image.yml`.
 
 State (2026-11-15): the guest scripts of the incus and microvm kinds export `HOME` (from the passwd entry of `runner`, else `/home/runner`), `USER` and `LOGNAME` before `setpriv`. `tests::the_payload_has_the_home_of_the_runner` of each crate runs the tail of the script with stubs and fails on the script of before. Next: a checkout step on both kinds in `runner-image.yml`.
+
+## Done
+
+2026-11-15: both guest scripts export `HOME`, `USER` and `LOGNAME` of `runner` (`tests::the_payload_has_the_home_of_the_runner` in each crate; each fails on the script of before). Runner-image run 43686746902 runs `actions/checkout` in microvm guests (the parity suite, 06) and is green.
 
 # T-179: On an H0 host the runner times out on the broker under the seccomp hold and the egress module
 
