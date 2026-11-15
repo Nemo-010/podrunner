@@ -137,6 +137,25 @@ dispatches each workflow and watches it, and asks for the run ids or the
 line where the block stopped. The local agent runs the block once and
 answers on the issue. Read the runs, then close the issue.
 
+## A release
+
+A request for a release (`[gh action] requested` with `release.yml`)
+comes only after each step below holds on the commit of the release
+(`AGENTS.md`, section 12; T-243 to T-247):
+
+1. The gate, `runner-image.yml` and `level2.yml` are green.
+2. The user-path gate (`user-gate.yml`, T-243) is green: it takes the
+   files that the release will publish, byte for byte, installs them with
+   the installer as a user, runs `doctor --run`, and runs the corpus of
+   real projects on each executor, on each host lane (T-244).
+3. The adversarial QA (T-246): two or more agents with a fresh context
+   get only the notes of the release, the documents and the built
+   binaries, on a constrained host (this sandbox has an egress proxy
+   only), and try to break podrunner as a user. Each finding is an entry;
+   a P1 or P2 finding blocks the release.
+4. The notes of the release say, for each claim, the level of its proof:
+   CI, a constrained host, or not run.
+
 ## This sandbox
 
 * The egress is an HTTPS proxy with an allowlist: GitHub, crates.io, the

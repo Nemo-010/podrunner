@@ -3777,3 +3777,128 @@ Keep the tar of each image in a cache of the user, keyed by its digest, across r
 ## Prove
 
 A measure in `runner-image.yml`: `podrunner run` of one job two times on `--podvm`, and the bytes written (`/proc/self/io` of the run): the second run writes no tar of the image.
+
+# T-243: The user-path gate: the files of the release, installed and used as a user
+
+**Source:** the owner, 2026-11-15: "why did podrunner not survive a contact with real users"
+**Category:** release
+**Milestone:** later
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+No step of CI used the files that a release publishes as a user does. The runner-image workflow loaded a copy of the image that it made, not the artifact that it uploaded (T-217); the release asset that a user downloads was never installed and run.
+
+## Premise
+
+The first user runs of `v0.1.0-beta.6` (GitHub #153, #155 to #178, and the QA report of 2026-11-15).
+
+## Approach
+
+A workflow `user-gate.yml`, on the commit of a release candidate: build the assets as `release.yml` does (or take them from its dry run); install them with the installer as a user with no root; run `doctor --run`; run each command of the quick start of `README.md` and `docs/install.md` as it is written; run a pinned corpus of real public projects (ripgrep, click, express, requests, and one with `services:`) on `--runner-dir`, `--podvm` and `--microvm`, and compare the result of each job with the result of GitHub at that commit. `release.yml` refuses a commit with no green run of it.
+
+## Prove
+
+`gh workflow run user-gate.yml`: green on a commit; red on a commit that publishes an image archive that the pinned podvm cannot load (the defect of T-217, put back on a branch).
+
+# T-244: The host lanes of the user-path gate
+
+**Source:** the owner, 2026-11-15: "why did podrunner not survive a contact with real users"
+**Category:** release
+**Milestone:** later
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+Each defect class that the users found comes from a host that CI does not have: a refused AF_INET bind and connect, no user namespace, a proxy as the only way out (with a credential), a small `/tmp`, a `/` that cannot be read, a user with no root.
+
+## Premise
+
+The reports of GitHub #153, #162, #167, #174 and the QA report of 2026-11-15.
+
+## Approach
+
+Lanes of `user-gate.yml` on GitHub runners, each with the smoke of T-243: no user namespace (`kernel.apparmor_restrict_unprivileged_userns` or `user.max_user_namespaces=0`); egress through an authenticated proxy only (an iptables drop of direct traffic, and a proxy on the loopback); a seccomp filter that refuses AF_INET bind and connect (a small static wrapper); `TMPDIR` on a 1 GiB tmpfs; a user with no root; aarch64. A new host class of a report becomes a lane.
+
+## Prove
+
+`gh workflow run user-gate.yml`: each lane has its own job, and a lane fails on the code before the fix of its class (for example the proxy lane on the code before T-233).
+
+# T-245: The command line as a contract
+
+**Source:** the owner, 2026-11-15: "why did podrunner not survive a contact with real users"
+**Category:** chore
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The tests of `run` took each flag on its own path. A combination (`--platform` with another flag), a short option, `--help` of a command, and the text of an error were not tested; the first user found eleven defects there in one hour.
+
+## Premise
+
+GitHub #155 to #165.
+
+## Approach
+
+A table of each pair of the flags of `run`, with the answer that each pair must give (accept, or refuse with a text); a test that runs each pair. A test that each command has `--help`. A test that each error of the command line names its path or its flag, and a fix where one exists.
+
+## Prove
+
+`cargo test -p podrunner --lib the_flags_of_run_as_a_contract`.
+
+# T-246: An adversarial QA before each release
+
+**Source:** the owner, 2026-11-15: "why did podrunner not survive a contact with real users"
+**Category:** release
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+Two agents with no context of the work found about 30 defects in a few hours, after the release. Beta testers are not always there.
+
+## Premise
+
+The QA of GitHub #153 and the QA report of 2026-11-15.
+
+## Approach
+
+Before each request for a release, the lead session starts two or more agents with a fresh context. Each gets only the notes of the release, the documents and the built binaries, on a constrained host (this sandbox: an egress proxy only), and the brief to break podrunner as a user (`docs/maintenance.md`, "A release"). Each finding is an entry; a P1 or P2 blocks the release. The brief is kept in `docs/qa-brief.md`.
+
+## Prove
+
+The record of each release names the QA run and its findings: `grep -n 'adversarial QA' docs/releases/v*.md`.
+
+# T-247: The notes of a release name the level of the proof of each claim
+
+**Source:** the owner, 2026-11-15: "why did podrunner not survive a contact with real users"
+**Category:** release
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The notes of `v0.1.0-beta.6` listed what CI proves next to what users need, and a reader took the first for the second.
+
+## Premise
+
+The owner, 2026-11-15.
+
+## Approach
+
+Each claim of the notes names its level: CI on GitHub-hosted runners, a lane of the user-path gate, or not run. A check of `release.yml` refuses notes with no section "What is not proven".
+
+## Prove
+
+`sh scripts/agent/check.sh`: a note of a release with no level of proof fails the check.

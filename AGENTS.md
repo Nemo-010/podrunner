@@ -196,3 +196,21 @@ cargo todo check
 `sh scripts/agent/check.sh` runs these and more. `docs/development.md`
 gives the rules of the code and the tests. CI runs the same and more
 (`.github/workflows/gate.yml`).
+
+## 12. A release, and the word "ready"
+
+Green CI on GitHub-hosted runners proves that the parts agree with each
+other. It does not prove that a user can use the release. The first user
+runs of `v0.1.0-beta.6` found about 30 defects that CI did not find (the
+owner, 2026-11-15).
+
+* Each report of a state names one of three levels: proven in CI on
+  GitHub-hosted runners; proven on a constrained host as a user; not run.
+  Do not write "ready", "release-ready" or "works" for a level below the
+  second.
+* Before a request for a release, run the checklist of
+  `docs/maintenance.md`, "A release". A P1 or P2 finding of the user-path
+  gate or of the adversarial QA blocks the release.
+* Each host class that a report finds (a refused bind, no user namespace,
+  a proxy only, a small `/tmp`) becomes a lane of the user-path gate, not
+  only a fix.
