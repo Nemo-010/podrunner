@@ -2647,7 +2647,7 @@ The report of #153: each step has a result, and each fault has an entry `T-NNN` 
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -2675,6 +2675,10 @@ sh scripts/test-install.sh
 python3 -I scripts/install-pins.py --check scripts/install.sh
 cargo test -p podrunner --test doctor
 ```
+
+## Done
+
+2026-11-15, `5c8720a`. `scripts/install.sh`, `scripts/install-pins.py`, `scripts/make-bundle.sh` and `docs/install.md`; `podrunner doctor --run` reads `run.toml` (`crates/podrunner/src/cli.rs`). `sh scripts/test-install.sh`: 10 passed (the pins of the tree and a planted pin; the copy of the tree refuses; a fresh install; a second run with an empty mirror downloads nothing; a changed binary and a partial file are replaced; a corrupt asset fails by name and leaves no file; a `run.toml` of the user stays; the bundle as an archive and as a directory, with `--prefix` and `--full`; shellcheck 0.11.0). A planted pass of a corrupt file and a planted download on the second run each fail the test. `cargo test -p podrunner --test doctor`: 3 passed; the new test fails on the code before (exit 64). `sh scripts/agent/check.sh`: green. With the real assets of `v0.1.0-beta.6`, podvm `v0.2.0-beta.21`, podnet `v0.4.0-beta.8` and a small image: the install takes 6 s from a local mirror (the downloads of 275 MB took 15 s here, so about 35 s more with the base image), a second run 0.1 s; `podrunner doctor --run` of this commit passes each check on the installed `run.toml`, and `podrunner run DATA/hello.yml --runner-dir DATA/runner/2.338.2` gives `ok hello` in 3 s. Not proven: the load of a real runner image (T-205).
 
 
 # T-203: A local checkout with no --checkout fails with a 404
