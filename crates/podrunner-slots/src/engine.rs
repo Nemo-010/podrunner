@@ -323,6 +323,11 @@ impl Slots {
     fn intake(&mut self, s: usize, offer: Offer, now: u64) {
         let id = offer.job_id.clone();
         if self.suppressed.get(&id).is_some_and(|until| *until > now) {
+            // The source offers a refused job again: withdraw it again, so
+            // that a source that keeps it at the head of its queue moves on
+            // (T-189).
+            let code = self.jobs.get(&(s, id.clone())).and_then(|j| j.refusal).unwrap_or(RefusalCode::EventNotAllowed);
+            let _ = self.sources[s].source.withdraw(&id, code.as_str());
             return;
         }
         let key = (s, id.clone());

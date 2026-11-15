@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**191 entries: 17 open, 10 partial, 6 blocked, 158 done.**
+**191 entries: 16 open, 10 partial, 6 blocked, 159 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 5 | 1 | 37 | 44 |
-| P2 | 8 | 3 | 3 | 69 | 83 |
+| P2 | 7 | 3 | 3 | 70 | 83 |
 | P3 | 8 | 2 | 2 | 52 | 64 |
-| **All** | 17 | 10 | 6 | 158 | 191 |
+| **All** | 16 | 10 | 6 | 159 | 191 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -236,6 +236,6 @@ acceptance, later The crate dependencies later than v1.
 | [T-186](live.md) | P3 | S | M-C | defect | open | The store of podvm keeps `machine/run-PID-*` after each guest of the microvm kind |
 | [T-187](live.md) | P3 | S | later | defect | open | The local mode refuses the netns hold |
 | [T-188](live.md) | P3 | S | M-C | defect | done | The tier intake names each parse failure of an offer `event-not-allowed`, and the offer schema of the design differs from the parser |
-| [T-189](live.md) | P2 | S | M-C | defect | open | A program source re-offers a refused job at the head of each `next` |
+| [T-189](live.md) | P2 | S | M-C | defect | done | A program source re-offers a refused job at the head of each `next` |
 | [T-190](live.md) | P3 | S | later | defect | open | `source-conformance` needs two offers on the first `next` of each test, and its claims stay |
 | [T-191](live.md) | P3 | S | later | defect | open | The tier rule takes only an organization as the owner of a trusted repository |

@@ -1230,7 +1230,7 @@ A test of the gate: an offer with a bad field gets `bad-request` and the name of
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -1247,6 +1247,10 @@ Send `withdraw` with the refusal code to the source for each job that podrunner 
 ## Prove
 
 `cargo test -p podrunner-slots refused`: with a fake source, a refused job gets one `withdraw`, and the next job runs.
+
+## Done
+
+2026-11-15: slots already sent `withdraw` at the refusal; the gap was the offer of a suppressed job again, which slots dropped with no answer. Now each such offer gets `withdraw` again with the code of the refusal (`intake` of `crates/podrunner-slots/src/engine.rs`). `tests::refused::a_refused_job_offered_again_is_withdrawn_again` fails on the code of before. cargo test --workspace: 345 passed.
 
 # T-190: `source-conformance` needs two offers on the first `next` of each test, and its claims stay
 
