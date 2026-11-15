@@ -49,7 +49,13 @@ pub struct PublicRepo {
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TierConfig {
+    #[serde(default)]
     pub organizations: Vec<Organization>,
+    /// Personal accounts whose repositories the operator trusts (T-191): a
+    /// forge with repositories of a person (a `program` source). The
+    /// GitHub scale set refuses a personal account at its start (call C3).
+    #[serde(default)]
+    pub users: Vec<Organization>,
     #[serde(default)]
     pub trusted_public: Vec<PublicRepo>,
     /// More events that a trusted job may come from: only those of
@@ -93,7 +99,7 @@ fn same_id(offer: Option<u64>, config: Option<u64>) -> bool {
 }
 
 fn configured_owner(t: &TrustInputs, cfg: &TierConfig) -> bool {
-    cfg.organizations.iter().any(|o| same(&o.login, &t.owner) && same_id(t.owner_id, o.id))
+    cfg.organizations.iter().chain(&cfg.users).any(|o| same(&o.login, &t.owner) && same_id(t.owner_id, o.id))
 }
 
 fn listed_public(t: &TrustInputs, cfg: &TierConfig) -> bool {

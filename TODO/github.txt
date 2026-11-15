@@ -149,5 +149,5 @@
 143 issue open
 144 issue open
 145 issue closed
-146 issue open
+146 issue closed
 147 issue open

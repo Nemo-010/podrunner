@@ -1338,7 +1338,7 @@ Take the offers of the first `next` once and share them between the tests that n
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -1352,9 +1352,17 @@ The answer of githome on GitHub #107, read on 2026-11-15, after its live run wit
 
 Add `[trust] users` (a login and an optional id) for a source whose forge allows a repository of a person (the `program` kind); keep the GitHub scale set to organizations (call C3). The facts of a trusted job are the same: no fork, an actor `member` (for a person: the person or a collaborator that the source names).
 
+## Decision
+
+The tier rule does not read the kind of the source: the scale-set sidecar refuses a personal account at its start (`repo-scope-refused`, call C3), so `users` cannot reach a GitHub job. The facts of a trusted job stay: no fork, an actor `member`, an allowed event; the source names the member.
+
 ## Prove
 
 `cargo test -p podrunner-tier users`: a trusted job of a listed user passes on a `program` source and is refused on a `github-scaleset` source.
+
+## Done
+
+2026-11-15: `[trust] users` (a login and an optional id) beside `organizations` (`crates/podrunner-tier/src/lib.rs`); `organizations` may be empty. `tests::a_listed_user_owns_a_trusted_repository`. `docs/configuration.md` names the key.
 
 # T-192: `serve` stops after a unit ends `unit-failed`
 

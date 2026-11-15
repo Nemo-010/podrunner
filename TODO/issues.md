@@ -145,7 +145,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #143 | Live run 2026-11-15: podrunner as PID 1 does not reap the processes of a unit, and its supervisor stops | open (T-180 is partial) | T-180 |
 | #144 | Live run 2026-11-15: serve stops after a unit ends unit-failed | open (T-192 is open) | T-192 |
 | #145 | Live run 2026-11-15: a refused offer of a program source is not withdrawn to the source | closed (T-189 is done) | T-189 |
-| #146 | Live run 2026-11-15: an aarch64 host under QEMU user mode serves no tier | open (T-194 is open) | T-194 |
+| #146 | Live run 2026-11-15: an aarch64 host under QEMU user mode serves no tier | closed (T-194 is done) | T-194 |
 | #147 | Live run 2026-11-15: a podvm unit has the host name of the host | open (T-182 is blocked) | T-182 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |

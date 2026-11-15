@@ -175,6 +175,7 @@ fn the_case_table_finds_each_plant() {
 fn extra_events_are_trusted_only_when_listed_and_only_those_four() {
     let cfg = |extra: Vec<Event>| TierConfig {
         organizations: vec![Organization { login: "o".into(), id: None }],
+        users: vec![],
         trusted_public: vec![],
         extra_events: extra,
     };
@@ -203,6 +204,7 @@ fn extra_events_are_trusted_only_when_listed_and_only_those_four() {
 fn an_agent_needs_a_guest_and_a_bot_is_never_trusted() {
     let cfg = TierConfig {
         organizations: vec![Organization { login: "o".into(), id: None }],
+        users: vec![],
         trusted_public: vec![],
         extra_events: vec![],
     };
@@ -218,4 +220,20 @@ fn an_agent_needs_a_guest_and_a_bot_is_never_trusted() {
     assert_eq!(compute(&job(ActorClass::Bot, Event::Push), &cfg), Err(RefusalCode::EventNotAllowed));
     // An agent's job never runs on a trusted set.
     assert_eq!(intake(&job(ActorClass::Agent, Event::Push), &cfg, Tier::Trusted), Err(RefusalCode::TierMismatch));
+}
+
+/// T-191: a repository of a listed user is trusted as one of a listed
+/// organization; an owner on neither list is not.
+#[test]
+fn a_listed_user_owns_a_trusted_repository() {
+    let job = |owner: &str| {
+        let mut t: TrustInputs = serde_json::from_value(Value::Object(table().base)).unwrap();
+        (t.event, t.head_is_fork, t.actor_class, t.repo_visibility) =
+            (Event::Push, Fact::No, ActorClass::Member, Visibility::Private);
+        (t.owner, t.repo, t.owner_id, t.repo_id) = (owner.into(), "r".into(), None, None);
+        t
+    };
+    let cfg: TierConfig = serde_json::from_value(serde_json::json!({ "users": [{ "login": "alice" }] })).unwrap();
+    assert_eq!(compute(&job("alice"), &cfg), Ok(Tier::Trusted));
+    assert_eq!(compute(&job("mallory"), &cfg), Err(RefusalCode::EventNotAllowed));
 }

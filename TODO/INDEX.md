@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**196 entries: 7 open, 15 partial, 7 blocked, 167 done.**
+**196 entries: 6 open, 15 partial, 7 blocked, 168 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 6 | 1 | 37 | 45 |
 | P2 | 1 | 6 | 4 | 73 | 84 |
-| P3 | 5 | 3 | 2 | 57 | 67 |
-| **All** | 7 | 15 | 7 | 167 | 196 |
+| P3 | 4 | 3 | 2 | 58 | 67 |
+| **All** | 6 | 15 | 7 | 168 | 196 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -238,7 +238,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-188](live.md) | P3 | S | M-C | defect | done | The tier intake names each parse failure of an offer `event-not-allowed`, and the offer schema of the design differs from the parser |
 | [T-189](live.md) | P2 | S | M-C | defect | done | A program source re-offers a refused job at the head of each `next` |
 | [T-190](live.md) | P3 | S | later | defect | open | `source-conformance` needs two offers on the first `next` of each test, and its claims stay |
-| [T-191](live.md) | P3 | S | later | defect | open | The tier rule takes only an organization as the owner of a trusted repository |
+| [T-191](live.md) | P3 | S | later | defect | done | The tier rule takes only an organization as the owner of a trusted repository |
 | [T-192](live.md) | P1 | M | M-C | defect | partial | `serve` stops after a unit ends `unit-failed` |
 | [T-193](live.md) | P3 | M | later | feature | open | A `redirect` host serves one repository only, so it cannot hold two sources |
 | [T-194](live.md) | P3 | S | later | feature | done | An emulated aarch64 host (QEMU user mode) serves no tier |
