@@ -122,6 +122,10 @@ is done.
   and #75 (LIVE-2, the unit host and the test jobs) name `v0.1.0-beta.5`
   and the runner-image run 43658370121 of its tag. Read their comments;
   fix each defect they find.
+- The account of this session starts no GitHub Actions run: neither a
+  push nor a dispatch. Ask the local agent with an issue `[gh action]
+  requested` (`docs/maintenance.md`, "A run of a workflow"). #112 asks
+  for the gate, the secrets scan and `runner-image.yml` of `ed54ccb`.
 - podvm answers COORD issues `(to podvm)` in its repository with
   `(to podrunner)`. podssh is on break.
 - The x86_64 job of `runner-image.yml` takes up to 120 minutes; it has

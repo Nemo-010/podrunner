@@ -129,6 +129,14 @@ A push to `main` starts `gate.yml` and `secrets.yml`. Dispatch a workflow
 with the GitHub MCP tool `actions_run_trigger`, and read the run with
 `actions_list` and `actions_get`, or through the mirror.
 
+When the account of the session cannot start a run (no run starts for
+its push, or the dispatch is refused), ask the local agent of the owner:
+write an issue of this repository titled `[gh action] requested` (the
+form of PodUtils/podvm#387). Its body says why, gives one `sh` block that
+dispatches each workflow and watches it, and asks for the run ids or the
+line where the block stopped. The local agent runs the block once and
+answers on the issue. Read the runs, then close the issue.
+
 ## This sandbox
 
 * The egress is an HTTPS proxy with an allowlist: GitHub, crates.io, the
