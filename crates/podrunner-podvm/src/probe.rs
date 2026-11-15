@@ -63,6 +63,9 @@ pub const LOWEST_ENGINE: &str = "0.2.0-beta.14";
 /// The lowest podvm of the `incus` kind: `run -d -i`, and no NIC and one
 /// channel on the incus tier with no proxy device (T-109).
 pub const LOWEST_INCUS: &str = "0.2.0-beta.13";
+/// The lowest podvm whose incus tier takes `--memory`, `--cpus` and
+/// `--pids-limit` (PodUtils/podvm@T-1897, T-162).
+pub const LOWEST_INCUS_LIMITS: &str = "0.2.0-beta.20";
 
 /// True when `v` comes before the core version of `beyond`: each
 /// pre-release of `beyond` is not before it.

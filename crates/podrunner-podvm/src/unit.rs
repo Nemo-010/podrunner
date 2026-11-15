@@ -30,6 +30,7 @@ mod confine;
 mod containers;
 mod hold;
 mod labels;
+mod limits;
 mod root;
 
 /// The working directory of the payload in the rootfs.
@@ -70,6 +71,8 @@ pub struct PodvmUnit {
     podnet: Option<(PathBuf, &'static str)>,
     /// The confine layer of podvm on each `run -d` (T-079).
     confine: bool,
+    /// The rlimits of each unit (T-162).
+    limits: podrunner_unit::limits::Limits,
 }
 
 fn host(what: &str, e: std::io::Error) -> UnitError {
@@ -93,6 +96,7 @@ impl PodvmUnit {
             containers: std::sync::atomic::AtomicU64::new(0),
             podnet: None,
             confine: false,
+            limits: podrunner_unit::limits::Limits::default(),
         })
     }
 
@@ -250,6 +254,7 @@ impl UnitDriver for PodvmUnit {
         env.insert(TAG_VAR.into(), tag.clone());
         // The .NET runner dies at start under a small RLIMIT_FSIZE with W^X on.
         env.insert("DOTNET_EnableWriteXorExecute".into(), "0".into());
+        args.extend(limits::ulimit_args(&self.limits, &mut env));
         for (k, v) in &env {
             args.push("-e".into());
             args.push(format!("{k}={v}"));

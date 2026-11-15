@@ -166,7 +166,13 @@ impl UnitDriver for MicrovmUnit {
             mount_modes: vec!["ro".into()],
             rootfs_fresh: Fact::Yes,
             tree_kill: TreeKill::Unverified,
-            limits: Default::default(),
+            // The guest has its memory and its vCPUs (`--podvm-mem`, `--podvm-cpus`):
+            // a payload cannot take more (T-162).
+            limits: [
+                ("memory".to_string(), podrunner_schema::LimitMode::Enforced),
+                ("cpu".to_string(), podrunner_schema::LimitMode::Enforced),
+            ]
+            .into(),
             // No NIC: the channel to the egress socket is the only way out.
             egress_hold: EgressHold::Enforced,
             kvm: kvm(),

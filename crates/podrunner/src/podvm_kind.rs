@@ -35,6 +35,8 @@ pub fn build(u: &UnitConfig, cfg: &Config, state: &Path) -> Result<(Arc<dyn Unit
     if u.confine {
         unit = unit.with_confine();
     }
+    let limits = podrunner_slots::limits::limits_of(u).map_err(|e| fail(Class::Config, format!("[unit.podvm] {e}")))?;
+    unit = unit.with_limits(limits).map_err(|e| fail(Class::Config, format!("[unit.podvm] cpus: {}", e.detail)))?;
     // The tree kill is verified on this host, with the pinned
     // payload, before a wall limit counts as enforced; the
     // confine layer before the kind says `confined`.

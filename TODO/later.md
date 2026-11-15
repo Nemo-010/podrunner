@@ -2507,7 +2507,7 @@ State (2026-11-15): steps 1 and 2: `docs/alternate-payload.md` has the census of
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -2531,6 +2531,7 @@ State (2026-11-15): step 1 is read from the limits page of podvm: the CLI refuse
 
 State (2026-11-15, later): podvm answered on PodUtils/podvm#382. (1) `--ulimit nproc=N` and `--ulimit as=BYTES` already hold on `run -d` of the native tiers (also where chroot is denied); each child keeps them. The cgroup half (`--memory`, `--cpus`, `--pids-limit` on a delegated subtree) is PodUtils/podvm@T-1747, open. (2) The incus tier: `--memory`, `--cpus` and `--pids-limit` become `limits.memory`, `limits.cpu` and `limits.processes` (PodUtils/podvm@T-1897, on podvm `main`, in the next release). (3) The `limits` field of `--report` names the held limits. Next: `[unit.podvm] mem` and `pids` as `--ulimit as=` and `--ulimit nproc=`, with the conformance tests of the Prove; the incus keys after the podvm release with PodUtils/podvm@T-1897.
 
+State (2026-11-15, step 3): `[unit.podvm] mem` and `pids` become `--ulimit as=` and `--ulimit nproc=` of `podvm run -d` (with `DOTNET_GCHeapHardLimit` at three quarters of `mem`); `cpus` on the podvm kind is refused (no cgroup). `[unit.incus] mem`, `cpus` and `pids` become `--memory`, `--cpus` and `--pids-limit` (podvm `0.2.0-beta.20` or later, `LOWEST_INCUS_LIMITS`). The microvm kind says `memory` and `cpu` `enforced` (the size of its guest) and refuses `pids`. Each kind records its held limits as `enforced`, so placement refuses an offer that needs another. A kind holds its own value, not the value of the offer. `docs/configuration.md`, "The limits of a unit". Tests: `podrunner_unit::limits` (sizes), `the_limits_become_rlimits_of_the_payload`, `the_limits_become_the_keys_of_the_instance`, and the cases of `tests/check.rs`. Next: the measure in `runner-image.yml`: the runner under `[unit.podvm] mem` (does .NET start under `RLIMIT_AS`), and a payload that forks past `pids` or allocates past `mem` on the podvm and incus kinds. A process that an rlimit stops gets an error (`EAGAIN`, `ENOMEM`), not the end of the unit: the Prove reads the error, not the code `limit`.
 
 # T-163: Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units
 

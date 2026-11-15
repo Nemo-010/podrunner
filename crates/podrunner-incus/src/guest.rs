@@ -52,21 +52,36 @@ pub const EGRESS_PORT: u16 = 3128;
 /// script makes the proxy variables of the payload from it.
 pub const CHANNEL_PORT_VAR: &str = "PODRUNNER_CHANNEL_PORT";
 
+/// The fixed parts of one instance.
+#[derive(Debug, Clone, Copy)]
+pub struct Instance<'a> {
+    pub name: &'a str,
+    pub reference: &'a str,
+    pub work: &'a Path,
+    pub egress: Option<&'a Path>,
+    pub runner_root: &'a str,
+    pub limits: &'a podrunner_unit::limits::Limits,
+}
+
 /// The argv of `podvm run -d -i` for the instance `name`, with the work
 /// directory `work`. The instance has no NIC; with an egress socket it has
 /// one channel to it (T-109). The argv of the payload goes to the script
 /// as positional parameters: no word of it is quoted again.
-pub fn run_args(
-    name: &str,
-    reference: &str,
-    work: &Path,
-    egress: Option<&Path>,
-    runner_root: &str,
-    env: &BTreeMap<String, String>,
-    argv: &[String],
-) -> Vec<String> {
+pub fn run_args(i: &Instance, env: &BTreeMap<String, String>, argv: &[String]) -> Vec<String> {
+    let Instance { name, reference, work, egress, runner_root, limits } = *i;
     let mut a: Vec<String> =
         ["run", "-d", "-i", "--name", name, "--podvm-tier=incus", "--podvm-net", "none"].map(String::from).to_vec();
+    // The limits of the instance (T-162): incus `limits.memory`,
+    // `limits.cpu` and `limits.processes`.
+    if let Some(m) = limits.memory_bytes {
+        a.extend(["--memory".into(), m.to_string()]);
+    }
+    if let Some(c) = limits.cpus {
+        a.extend(["--cpus".into(), c.to_string()]);
+    }
+    if let Some(n) = limits.pids {
+        a.extend(["--pids-limit".into(), n.to_string()]);
+    }
     if let Some(egress) = egress {
         a.push("--podvm-channel".into());
         a.push(format!("{}:127.0.0.1:{EGRESS_PORT}", egress.display()));

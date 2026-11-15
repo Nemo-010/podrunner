@@ -70,6 +70,8 @@ pub struct IncusUnit {
     /// links `.runner`, `.credentials` and `.credentials_rsaparams` of
     /// `/home/runner` to it, as for the podvm kind.
     cred_root: String,
+    /// The limits of each instance (T-162).
+    limits: podrunner_unit::limits::Limits,
 }
 
 fn host(what: &str, e: std::io::Error) -> UnitError {
@@ -97,7 +99,15 @@ impl IncusUnit {
             references: Mutex::new(HashMap::new()),
             units: Mutex::new(HashMap::new()),
             cred_root: "/podrunner/.runner".into(),
+            limits: Default::default(),
         }
+    }
+
+    /// The limits of memory, CPU and processes of each instance
+    /// (`[unit.incus] mem`, `cpus`, `pids`; T-162).
+    pub fn with_limits(mut self, limits: podrunner_unit::limits::Limits) -> IncusUnit {
+        self.limits = limits;
+        self
     }
 
     fn unit_dir(&self, unit: &UnitId) -> PathBuf {
@@ -148,7 +158,7 @@ impl UnitDriver for IncusUnit {
     }
 
     fn probe(&self) -> Result<Capability, UnitError> {
-        Ok(Capability {
+        let mut cap = Capability {
             schema: 1,
             kind: "incus".into(),
             arch: std::env::consts::ARCH.into(),
@@ -171,7 +181,9 @@ impl UnitDriver for IncusUnit {
             // (T-109, `tests/egress.rs`).
             egress_hold: EgressHold::Enforced,
             kvm: Fact::Unknown,
-        })
+        };
+        self.limits.record(&mut cap);
+        Ok(cap)
     }
 
     fn prepare(&self, reference: &str, platform: &str, _emulation: bool) -> Result<Prepared, UnitError> {
@@ -223,7 +235,18 @@ impl UnitDriver for IncusUnit {
                 return Err(host("the egress socket", why));
             }
         }
-        let args = run_args(&name, &reference, &work, egress.as_deref(), &self.cred_root, &spec.env, &spec.argv);
+        let args = run_args(
+            &guest::Instance {
+                name: &name,
+                reference: &reference,
+                work: &work,
+                egress: egress.as_deref(),
+                runner_root: &self.cred_root,
+                limits: &self.limits,
+            },
+            &spec.env,
+            &spec.argv,
+        );
         let mut child =
             match self.podvm().args(&args).stdin(Stdio::piped()).stdout(Stdio::null()).stderr(Stdio::piped()).spawn() {
                 Ok(c) => c,

@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**191 entries: 21 open, 9 partial, 5 blocked, 156 done.**
+**191 entries: 20 open, 10 partial, 5 blocked, 156 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 2 | 5 | 0 | 37 | 44 |
-| P2 | 10 | 2 | 3 | 68 | 83 |
+| P2 | 9 | 3 | 3 | 68 | 83 |
 | P3 | 9 | 2 | 2 | 51 | 64 |
-| **All** | 21 | 9 | 5 | 156 | 191 |
+| **All** | 20 | 10 | 5 | 156 | 191 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -209,7 +209,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-159](later.md) | P2 | S | later | defect | partial | An intermittent unknown count of processes at the destroy of a podvm unit |
 | [T-160](later.md) | P3 | S | later | feature | done | Local mode: a shell in a paused job of the incus kind |
 | [T-161](later.md) | P3 | M | later | research | partial | An alternate payload: a runner other than the official one |
-| [T-162](later.md) | P2 | M | later | feature | open | G-12: limits of CPU, memory and processes on the podvm and incus kinds |
+| [T-162](later.md) | P2 | M | later | feature | partial | G-12: limits of CPU, memory and processes on the podvm and incus kinds |
 | [T-163](later.md) | P3 | S | later | chore | done | Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units |
 | [T-164](live.md) | P1 | S | M-C | defect | done | The scale-set sidecar ignores `wait_s` of `next`, and the unit host polls without a wait |
 | [T-165](live.md) | P1 | S | M-C | defect | done | `sign` refuses each restarted sidecar for 60 s, and the backoff of the sidecar never grows |

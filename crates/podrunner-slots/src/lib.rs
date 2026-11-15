@@ -12,6 +12,7 @@ pub mod forget;
 pub mod guest;
 pub mod hooks;
 pub mod journal;
+pub mod limits;
 pub mod pins;
 pub mod placement;
 pub mod policy;

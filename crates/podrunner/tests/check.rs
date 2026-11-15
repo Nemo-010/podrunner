@@ -70,12 +70,14 @@ fn check_and_serve_refuse_a_bad_file_with_one_text() {
         // The microvm kind (T-037): its podvm binary, and its vCPUs.
         (format!("{head}[unit.microvm]\nslots = 1\nbinary = \"/\"\nimages = \"/\"\n{pin}"), "[unit.microvm] binary"),
         (format!("{head}[unit.microvm]\nslots = 1\nbinary = \"/bin/true\"\nimages = \"/\"\ncpus = 0\n{pin}"), "cpus"),
-        // The incus kind (T-105): its podvm binary, and no size of a guest.
+        // The incus kind (T-105): its podvm binary; a limit is a size (T-162).
         (format!("{head}[unit.incus]\nslots = 1\nbinary = \"/\"\nimages = \"/\"\n{pin}"), "[unit.incus] binary"),
         (
-            format!("{head}[unit.incus]\nslots = 1\nbinary = \"/bin/true\"\nimages = \"/\"\nmem = \"4G\"\n{pin}"),
-            "microvm kind only",
+            format!("{head}[unit.incus]\nslots = 1\nbinary = \"/bin/true\"\nimages = \"/\"\nmem = \"4X\"\n{pin}"),
+            "[unit.incus] mem",
         ),
+        // T-162: a guest holds no limit of processes.
+        (format!("{head}[unit.microvm]\nslots = 1\nbinary = \"/bin/true\"\nimages = \"/\"\npids = 9\n{pin}"), "pids"),
         // T-111: a key of the podvm kind that the incus kind does not read.
         (
             format!(

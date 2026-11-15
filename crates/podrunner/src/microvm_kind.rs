@@ -43,6 +43,9 @@ pub fn plan(u: &UnitConfig) -> Result<(), Failure> {
     {
         return Err(fail(Class::Config, "[unit.microvm] engine: no dockerd in the directory"));
     }
+    if u.pids.is_some() {
+        return Err(fail(Class::Config, "[unit.microvm] pids: a guest holds no limit of processes"));
+    }
     if u.cpus.is_some_and(|c| c == 0 || c > 64) {
         return Err(fail(Class::Config, "[unit.microvm] cpus: 1 to 64"));
     }

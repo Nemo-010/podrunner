@@ -9,6 +9,7 @@
 
 pub mod confine;
 pub mod conformance;
+pub mod limits;
 pub mod procs;
 pub mod shim;
 mod stub;

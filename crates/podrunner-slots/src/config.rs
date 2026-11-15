@@ -139,11 +139,16 @@ pub struct UnitConfig {
     pub confine: bool,
     /// `microvm`: the memory of each guest (`--podvm-mem`, default `4G`)
     /// and its vCPUs (default 2). The image is an initramfs: the memory
-    /// holds it twice.
+    /// holds it twice. `podvm`: the memory of each unit (`RLIMIT_AS`);
+    /// `incus`: the memory and the CPUs of each instance (T-162).
     #[serde(default)]
     pub mem: Option<String>,
     #[serde(default)]
     pub cpus: Option<u32>,
+    /// `podvm`, `incus`: the most processes of each unit (T-162). `mem`
+    /// and, on `incus`, `cpus` are limits there too.
+    #[serde(default)]
+    pub pids: Option<u32>,
     /// `microvm`: the directory of the static Docker binaries; each guest
     /// runs an engine of its own (T-103).
     #[serde(default)]

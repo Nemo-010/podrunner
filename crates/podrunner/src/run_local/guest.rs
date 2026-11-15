@@ -26,6 +26,7 @@ pub(super) fn in_guest(a: &Args, state: &std::path::Path) -> Result<InUnit, Out>
         confine: false,
         mem: None,
         cpus: None,
+        pids: None,
         engine: a.engine.as_ref().map(|e| e.display().to_string()),
     };
     let built = if *microvm { crate::microvm_kind::build(&u, state) } else { crate::incus_kind::build(&u, state) };

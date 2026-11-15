@@ -240,3 +240,30 @@ fn the_payload_has_the_home_of_the_runner() {
     let _ = std::fs::remove_dir_all(&d);
     assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "/home/runner runner runner", "{out:?}");
 }
+
+/// T-162: the limits of the kind go to `podvm run` as the incus keys, and
+/// the record says `enforced` for each.
+#[test]
+fn the_limits_become_the_keys_of_the_instance() {
+    use podrunner_unit::limits::Limits;
+    let limits = Limits { memory_bytes: Some(2 << 30), cpus: Some(2), pids: Some(256) };
+    let i = crate::guest::Instance {
+        name: "n",
+        reference: "r@sha256:1",
+        work: std::path::Path::new("/w"),
+        egress: None,
+        runner_root: "/podrunner/.runner",
+        limits: &limits,
+    };
+    let a = run_args(&i, &Default::default(), &[]).join(" ");
+    assert!(a.contains("--memory 2147483648 --cpus 2 --pids-limit 256"), "{a}");
+    let none =
+        run_args(&crate::guest::Instance { limits: &Limits::default(), ..i }, &Default::default(), &[]).join(" ");
+    assert!(!none.contains("--memory") && !none.contains("--pids-limit"), "{none}");
+    let (u, d) = driver("limits", "true");
+    let cap = u.with_limits(limits).probe().unwrap();
+    for name in ["memory", "cpu", "pids"] {
+        assert_eq!(cap.limit(name), podrunner_schema::LimitMode::Enforced, "{name}");
+    }
+    let _ = std::fs::remove_dir_all(&d);
+}

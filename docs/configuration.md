@@ -155,7 +155,27 @@ slots = 2
 command = ["/home/runner/run.sh"]        # an absolute path: the job runs in a work directory
 binary = "/opt/podrunner/drivers/podvm"  # the released podvm binary
 images = "/var/lib/podrunner/images"     # a podvm store with the pinned images
+mem = "8G"                               # the memory of each instance (limits.memory)
+cpus = 2                                 # its CPUs (limits.cpu)
+pids = 4096                              # its processes (limits.processes)
 ```
+
+## The limits of a unit (G-12)
+
+Each kind holds the limits of its own keys on each unit, and says
+`enforced` for them; placement refuses an offer that needs a limit that no
+kind holds (`limit-not-enforceable`). A kind holds its own value, not the
+value of the offer.
+
+| Kind | `mem` | `cpus` | `pids` |
+| --- | --- | --- | --- |
+| `podvm` | `RLIMIT_AS` of the payload (`--ulimit as=`); .NET gets a heap limit of three quarters | refused: no cgroup | `RLIMIT_NPROC` (`--ulimit nproc=`); it counts each process of the user, also of other units of that user |
+| `incus` | `limits.memory` (podvm `0.2.0-beta.20` or later) | `limits.cpu` | `limits.processes` |
+| `microvm` | the memory of the guest | its vCPUs | refused |
+
+A size is whole bytes, or a number with `K`, `M`, `G` or `T`. Set
+`[unit.podvm] mem` large: `RLIMIT_AS` counts the address space, which is
+more than the memory in use.
 
 ## The floors of the tiers
 
