@@ -156,10 +156,9 @@ is done.
   podcrates `v0.50.0`.
 - GitHub #9, #32, #33, #40: wait for the live gates (#74, #75). GitHub
   #43 waits for podcrates.
-- Q8 is open (`TODO/PROGRESS.md`): two repositories on one `redirect` host
-  (T-193); githome gives its reasons on #151 (COORD-054). The owner ruled
-  Q7 (cancel the run of a refused job) and the size of a job (apply the
-  values of the offer) on 2026-11-15.
+- No question for the owner is open: Q7 (cancel the run of a refused job), the
+  size of a job (apply the values of the offer), Q8 and `limits_required`
+  (settled with githome on #151) on 2026-11-15.
 
 ## Talk between sessions
 

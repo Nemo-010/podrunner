@@ -1430,7 +1430,7 @@ State (2026-11-15): `hooks::tests::close_returns_while_a_client_holds_half_a_req
 **Milestone:** later
 **Priority:** P3
 **Effort:** M
-**Status:** blocked
+**Status:** done
 
 ## Problem
 
@@ -1452,9 +1452,9 @@ A `repository` for each source puts two repositories on one shared uid at `redir
 
 `cargo test -p podrunner-slots redirect`: two sources at `redirect`, each with its own repository; a job of another repository of each source is refused.
 
-## Blocker
+## Done
 
-The owner: Q8 of `TODO/PROGRESS.md` (two repositories on one `redirect` host).
+2026-11-15: settled with githome on GitHub #151 (COORD-054): githome withdraws the ask. Its reason was the checkout that failed on the incus and microvm kinds, which T-178 fixes; it runs the pair at `confined` or on two hosts. DR-4 stays: one repository for a `redirect` host. githome binds a `redirect` host to its one repository on its side.
 
 # T-194: An emulated aarch64 host (QEMU user mode) serves no tier
 

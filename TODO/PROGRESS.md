@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 198 entries: 0 open, 15 partial, 7 blocked, 176 done.
+`TODO/INDEX.md` holds 198 entries: 0 open, 15 partial, 6 blocked, 177 done.
 
 ## State
 
@@ -44,11 +44,11 @@ The local mode against act and runner.server (`docs/local-mode.md`) has no open 
 
 Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040).
 
-Blocked: T-193 (Q8: githome gives its reasons on #151), T-182 (podvm `--hostname`, #115), T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
+Blocked: T-182 (podvm `--hostname`, #115), T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
 
 ## Questions for the owner
 
-**Q8 (T-193, GitHub #136):** a `redirect` host serves one repository (DR-4: the files of a shared uid outlive a job). githome asks for a `repository` for each source, so that one host holds the scale set of an organization and a `program` source at `redirect`. That puts two repositories on one uid: a job of one can read what a job of the other left. Recommendation: keep one repository for each `redirect` host, and run such a pair at `confined` (the incus kind) or on two hosts, as githome did in the live run. The other way: a `repository` for each source, with a wipe of the home of the uid between two jobs of different repositories, which no kind proves now.
+None is open. The owner ruled Q7 and the size of a job, and Q8 and `limits_required` settled with githome, on 2026-11-15 (`docs/decisions.md`).
 
 Before Q7: The owner answered Q6 and U15 on 2026-11-14 (`docs/decisions.md`).
 

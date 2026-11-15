@@ -54,6 +54,7 @@ at the tag `v0.41.0`.
 | 2026-11-15 | Q7 (T-169) | "Cancel the run": the App of a scale set gets the repository permission "Actions: read and write", and the sidecar cancels the run of a job that podrunner refuses (`POST /repos/O/R/actions/runs/N/cancel`), with a line of its log. It changes G-H3 of the live gates (DR-7 named "Actions: read"). |
 | 2026-11-15 | The size of a job (T-162) | "Apply offer values": a unit gets the lesser of the value of the offer and the value of its kind for `memory`, `cpu` and `pids`. |
 | 2026-11-15 | Q8 (T-193), `limits_required` | "Ask githome": githome gives its reasons on GitHub #151 before the owner rules. |
+| 2026-11-15 | Q8 and `limits_required`, settled (githome on GitHub #151) | githome withdraws the ask for a `repository` for each source: with T-178 its pair runs at `confined` or on two hosts, so DR-4 stays (one repository for a `redirect` host), and githome offers a `redirect` host the jobs of its one repository only. githome requires no limit: it sends `memory`, `cpu` and `pids` as values of the offer (T-198) with `limits_required: []`; the operator sets the safety values of a host in `[unit.KIND]`. |
 
 ## Calls made without a ruling
 
@@ -93,8 +94,7 @@ C13 to C16 are rulings since 2026-11-11 ("Confirm, keep swappable").
 ## Questions for the owner
 
 `TODO/PROGRESS.md`, "Questions for the owner", has each open question
-with its recommendation. Q8 is open (2026-11-15): two repositories on one `redirect` host (T-193);
-githome gives its reasons on GitHub #151 first.
+with its recommendation. None is open.
 
 ## Superseded
 

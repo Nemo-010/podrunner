@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**198 entries: 0 open, 15 partial, 7 blocked, 176 done.**
+**198 entries: 0 open, 15 partial, 6 blocked, 177 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 5 | 0 | 40 | 45 |
 | P2 | 0 | 7 | 4 | 75 | 86 |
-| P3 | 0 | 3 | 3 | 61 | 67 |
-| **All** | 0 | 15 | 7 | 176 | 198 |
+| P3 | 0 | 3 | 2 | 62 | 67 |
+| **All** | 0 | 15 | 6 | 177 | 198 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -240,7 +240,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-190](live.md) | P3 | S | later | defect | done | `source-conformance` needs two offers on the first `next` of each test, and its claims stay |
 | [T-191](live.md) | P3 | S | later | defect | done | The tier rule takes only an organization as the owner of a trusted repository |
 | [T-192](live.md) | P1 | M | M-C | defect | partial | `serve` stops after a unit ends `unit-failed` |
-| [T-193](live.md) | P3 | M | later | feature | blocked | A `redirect` host serves one repository only, so it cannot hold two sources |
+| [T-193](live.md) | P3 | M | later | feature | done | A `redirect` host serves one repository only, so it cannot hold two sources |
 | [T-194](live.md) | P3 | S | later | feature | done | An emulated aarch64 host (QEMU user mode) serves no tier |
 | [T-195](live.md) | P3 | S | M-C | defect | done | Issue #75 names the expiry of the artifacts without the time, and not `runner-full-x86_64` |
 | [T-196](later.md) | P2 | S | later | defect | done | The level2 corpus fails on podcrates jobs that read live state |
