@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**220 entries: 4 open, 16 partial, 7 blocked, 193 done.**
+**221 entries: 4 open, 15 partial, 8 blocked, 194 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 6 | 0 | 42 | 48 |
-| P2 | 2 | 7 | 5 | 80 | 94 |
-| P3 | 2 | 3 | 2 | 71 | 78 |
-| **All** | 4 | 16 | 7 | 193 | 220 |
+| P2 | 2 | 6 | 5 | 81 | 94 |
+| P3 | 2 | 3 | 3 | 71 | 79 |
+| **All** | 4 | 15 | 8 | 194 | 221 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -209,7 +209,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-159](later.md) | P2 | S | later | defect | partial | An intermittent unknown count of processes at the destroy of a podvm unit |
 | [T-160](later.md) | P3 | S | later | feature | done | Local mode: a shell in a paused job of the incus kind |
 | [T-161](later.md) | P3 | M | later | research | partial | An alternate payload: a runner other than the official one |
-| [T-162](later.md) | P2 | M | later | feature | partial | G-12: limits of CPU, memory and processes on the podvm and incus kinds |
+| [T-162](later.md) | P2 | M | later | feature | done | G-12: limits of CPU, memory and processes on the podvm and incus kinds |
 | [T-163](later.md) | P3 | S | later | chore | done | Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units |
 | [T-164](live.md) | P1 | S | M-C | defect | done | The scale-set sidecar ignores `wait_s` of `next`, and the unit host polls without a wait |
 | [T-165](live.md) | P1 | S | M-C | defect | done | `sign` refuses each restarted sidecar for 60 s, and the backoff of the sidecar never grows |
@@ -268,3 +268,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-218](later.md) | P3 | S | later | defect | done | The nits of the local-mode user run |
 | [T-219](later.md) | P3 | S | later | defect | open | An unknown `--event` gets the text of the `on:` filter, and `--event-path` is read after the filter |
 | [T-220](later.md) | P2 | M | later | feature | open | The local mode cannot run on a host that refuses each AF_INET bind |
+| [T-221](later.md) | P3 | S | later | feature | blocked | `cpus` on the podvm kind |

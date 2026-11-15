@@ -2511,7 +2511,7 @@ State (2026-11-15): steps 1 and 2: `docs/alternate-payload.md` has the census of
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -2544,6 +2544,11 @@ State (2026-11-15, the measure ran): runner-image run 43690754546 (`ba24d0e`): u
 State (2026-11-15, green): runner-image run 43704601731 (`88cc4d7`) passed `the_runner_runs_under_the_limits_of_the_unit`. The pinned podvm `0.2.0-beta.21` has the incus keys (`LOWEST_INCUS_LIMITS` is `0.2.0-beta.20`). Next: a payload past `pids` and one past `mem` on the podvm and incus kinds (the Prove); `cpus` on the podvm kind waits for the cgroup half of podvm (PodUtils/podvm@T-1747, COORD-050).
 
 State (2026-11-15, the Prove): `crates/podrunner-podvm/tests/limits.rs` and `crates/podrunner-incus/tests/limits.rs` start a payload with the limits of an offer (T-198): 1 GiB of `dd` under `memory` 256 MiB, and 1000 forks under `pids` 256, each with a control with no limit. On podvm `0.2.0-beta.21` as a user with no root here, both pass (the fork ends with "Cannot fork"). `runner-image.yml` runs both. Next: their run, the incus one on real instances.
+
+## Done
+
+2026-11-15: runner-image run 43711862741 (`b1c058f`) passed `crates/podrunner-podvm/tests/limits.rs` and `crates/podrunner-incus/tests/limits.rs` on real units and instances, after `the_runner_runs_under_the_limits_of_the_unit` in run 43704601731. `cpus` on the podvm kind waits for the cgroup half of podvm: T-221.
+
 
 # T-163: Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units
 
@@ -3197,3 +3202,32 @@ The report of GitHub #167, read on 2026-11-15: `podnet net doctor` and a control
 ## Prove
 
 A test of the guest kinds with the broker on a unix socket only. On a host that refuses AF_INET bind (a seccomp filter in the test), `run --podvm` with the shim of podnet runs a canned job.
+
+# T-221: `cpus` on the podvm kind
+
+**Source:** T-162 (the cgroup half of COORD-050, GitHub #110)
+**Category:** feature
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+The podvm kind refuses `[unit.podvm] cpus`, and takes no `cpu` of an offer: podvm `run -d` holds no CPU limit with no root (no cgroup that the user owns).
+
+## Premise
+
+podvm answered COORD-050 on PodUtils/podvm#382: the cgroup half (`--memory`, `--cpus`, `--pids-limit` on a delegated subtree) is PodUtils/podvm@T-1747, open.
+
+## Approach
+
+When podvm releases it: give `--cpus` to `podvm run -d` where the host delegates a cgroup, say `cpu` `enforced` in the capability of the kind there, and keep the refusal elsewhere.
+
+## Prove
+
+A unit test of the arguments, and a measure in `runner-image.yml`: a payload that spins on two CPUs under `cpus = 1` uses one.
+
+## Blocker
+
+2026-11-15: PodUtils/podvm@T-1747 (COORD-050, GitHub #110).
