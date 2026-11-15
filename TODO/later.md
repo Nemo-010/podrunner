@@ -3840,6 +3840,8 @@ State (2026-11-15): podvm answered on PodUtils/podvm#424 (PodUtils/podvm@T-1916)
 
 State (2026-11-15, podcrates): podcrates takes `pod-lab` (PodUtils/podcrates#180, PodUtils/podcrates@T-692, P1). Part 1 in the tag after `v0.53.0`: the profiles as data, `check` against `pod-hostprobe`, `run` of the parts that a host with no root holds, and a static `podlab`. Part 2: the step of Actions, the machine-tier form (podvm), the network profiles (podnet). The scripts of podrunner are the first draft of the profiles.
 
+State (2026-11-15, the first scripts): `scripts/lab/` has `small-tmp.sh`, `userns-off.sh`, `nonroot.sh` and `inherited-fds.sh`; each checks its class first and exits 70 when the class does not hold. Measured in this sandbox: `small-tmp` mounts 1 GiB, `nonroot` runs with `CapEff` 0, `inherited-fds` opens 3 to 15; `userns-off` refuses (exit 70: the sysctl cannot be written here). Next: `bind-denied` (a seccomp filter; with `podvm lab run` when podvm has it), `proxy-only` (podnet), and the lanes of `user-gate.yml` (T-243).
+
 
 # T-245: The command line as a contract
 
