@@ -1402,7 +1402,7 @@ State (2026-11-15): `hooks::tests::close_returns_while_a_client_holds_half_a_req
 **Milestone:** later
 **Priority:** P3
 **Effort:** M
-**Status:** open
+**Status:** blocked
 
 ## Problem
 
@@ -1416,9 +1416,17 @@ The issue of the owner, read on 2026-11-15 (podrunner `v0.1.0-beta.5`, podvm `0.
 
 Add `repository` to `[[source]]` for the mitigations of DR-4, so that each source keeps its own one repository; the key of the host stays the default for a source with none.
 
+## Decision
+
+A `repository` for each source puts two repositories on one shared uid at `redirect`, and DR-4 asks for one repository for the host because "the files of the uid outlive a job" (`check_redirect` of `crates/podrunner-slots/src/config.rs`): a job of one repository can read what a job of the other left. That changes a mitigation of the ruling DR-4: Q8.
+
 ## Prove
 
 `cargo test -p podrunner-slots redirect`: two sources at `redirect`, each with its own repository; a job of another repository of each source is refused.
+
+## Blocker
+
+The owner: Q8 of `TODO/PROGRESS.md` (two repositories on one `redirect` host).
 
 # T-194: An emulated aarch64 host (QEMU user mode) serves no tier
 
