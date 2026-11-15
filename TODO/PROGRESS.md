@@ -10,7 +10,7 @@
 - Pins: podcrates `v0.49.0`, podvm `v0.2.0-beta.18`, podnet
   `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.5` (release
   run 43656918895, `34d56b5`; it pins podcrates `v0.47.0`). Last green
-  `runner-image.yml`: 43652953452 (`eea3401`).
+  `runner-image.yml`: 43663327458 (`c695295`); the tag `v0.1.0-beta.5` has run 43658370121 with its archives.
 - M-A and M-B hold. M-C: T-027 to T-030 done; the gate T-032 waits for
   the live gates (GitHub #74, #75). M-D: T-031 and T-045 done; the gate
   T-033 waits for the live gates. L2 holds: T-034 to T-039 done

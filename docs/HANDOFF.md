@@ -16,7 +16,7 @@ is done.
   official runner v2.338.2 (`images/runner/runner.toml`). Last beta of
   podrunner: `v0.1.0-beta.5` (release run 43656918895, `34d56b5`).
 - The record: `cargo todo check` gives the counts. The last green
-  `runner-image.yml` run is 43632726810 (`7530b2c`): the podvm suites,
+  `runner-image.yml` run is 43663327458 (`c695295`): the podvm suites,
   the held tests, the local suite on each kind, the parity suite in
   guests with an engine, the microvm kind on real guests, and the incus
   suite on real instances.
