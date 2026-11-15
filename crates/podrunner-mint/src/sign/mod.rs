@@ -2,6 +2,8 @@
 //! one JWT shape (RS256; the claims `iat`, `exp` and `iss`, with a fixed
 //! `iss` and `exp` at most ten minutes after `iat`), at most once a minute,
 //! and writes an audit line for each request (the caller, `iss`, `exp`).
+//! Inside the minute it gives the last token again while it is valid for
+//! [`REUSE_MIN_S`] more: a restarted sidecar has no token (T-165).
 //! Another shape is refused and audited. The signature comes from `ring`,
 //! not from the private-key path of `rsa` 0.9 (RUSTSEC-2023-0071).
 
@@ -19,6 +21,8 @@ use serde_json::{Map, Value};
 pub const MAX_LIFE_S: u64 = 600;
 /// The least time between two signatures.
 pub const MIN_GAP_MS: u64 = 60_000;
+/// The least life left of a token that is given again.
+pub const REUSE_MIN_S: u64 = 120;
 
 /// Why `sign` refused.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -51,6 +55,8 @@ pub struct Signer {
     /// The time of the Unix epoch in seconds.
     now_unix: Box<dyn Fn() -> u64 + Send + Sync>,
     last_ms: Option<u64>,
+    /// The last token and its `exp`.
+    last: Option<(String, u64)>,
     pub audit: Vec<Audit>,
 }
 
@@ -84,7 +90,7 @@ impl Signer {
         clock: Arc<dyn Clock>,
         now_unix: Box<dyn Fn() -> u64 + Send + Sync>,
     ) -> Signer {
-        Signer { key, iss: iss.into(), clock, now_unix, last_ms: None, audit: Vec::new() }
+        Signer { key, iss: iss.into(), clock, now_unix, last_ms: None, last: None, audit: Vec::new() }
     }
 
     /// The public key, for a verifier.
@@ -100,18 +106,37 @@ impl Signer {
         let now_ms = self.clock.now_ms();
         let iss = claims.get("iss").and_then(Value::as_str).unwrap_or("").to_string();
         let exp = claims.get("exp").and_then(Value::as_u64).unwrap_or(0);
-        let result = self.check(claims, now_ms).and_then(|()| self.jwt(claims));
+        let mut reused = false;
+        let result = match self.check(claims, now_ms) {
+            Err(Refusal::Rate) => match &self.last {
+                Some((token, last_exp)) if last_exp.saturating_sub((self.now_unix)()) >= REUSE_MIN_S => {
+                    reused = true;
+                    Ok(token.clone())
+                }
+                _ => Err(Refusal::Rate),
+            },
+            other => other.and_then(|()| self.jwt(claims)),
+        };
         let outcome = match &result {
+            Ok(_) if reused => "reused",
             Ok(_) => "signed",
             Err(Refusal::Shape(_)) => "refused-shape",
             Err(Refusal::Rate) => "refused-rate",
             Err(Refusal::Key(_)) => "refused-key",
         };
         self.audit.push(Audit { t_ms: now_ms, caller: caller.chars().take(64).collect(), iss, exp, outcome });
-        if result.is_ok() {
+        if let Ok(token) = &result
+            && !reused
+        {
             self.last_ms = Some(now_ms);
+            self.last = Some((token.clone(), exp));
         }
         result
+    }
+
+    /// The `exp` of the last token that `sign` gave.
+    pub fn last_exp(&self) -> Option<u64> {
+        self.last.as_ref().map(|(_, exp)| *exp)
     }
 
     fn check(&self, claims: &Map<String, Value>, now_ms: u64) -> Result<(), Refusal> {

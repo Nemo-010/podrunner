@@ -51,12 +51,18 @@ func (s *signer) token(int64) (string, error) {
 	}
 	var rep struct {
 		Token string `json:"token"`
+		Exp   int64  `json:"exp"`
 		Error string `json:"error"`
 	}
 	if err := json.Unmarshal(line, &rep); err != nil || rep.Token == "" {
 		return "", fmt.Errorf("sign refused: %s", rep.Error)
 	}
-	s.cached, s.until = rep.Token, time.Unix(now+540, 0)
+	// sign can give its last token again, with an older exp (T-165).
+	exp := now + 540
+	if rep.Exp > 0 && rep.Exp < exp {
+		exp = rep.Exp
+	}
+	s.cached, s.until = rep.Token, time.Unix(exp, 0)
 	return s.cached, nil
 }
 

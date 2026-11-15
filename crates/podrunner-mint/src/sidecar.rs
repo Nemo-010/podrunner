@@ -116,8 +116,10 @@ fn serve_sign(stream: UnixStream, signer: Arc<Mutex<Signer>>, caller: String) {
         let Ok(line) = line else { return };
         let req: Value = serde_json::from_str(&line).unwrap_or(Value::Null);
         let claims = req.get("claims").and_then(Value::as_object).cloned().unwrap_or_default();
-        let reply = match signer.lock().map(|mut s| s.sign(&caller, &claims)) {
-            Ok(Ok(token)) => serde_json::json!({ "token": token }),
+        let signed = signer.lock().map(|mut s| s.sign(&caller, &claims).map(|t| (t, s.last_exp())));
+        let reply = match signed {
+            // `exp` of the token: a token given again has an older one.
+            Ok(Ok((token, exp))) => serde_json::json!({ "token": token, "exp": exp }),
             Ok(Err(Refusal::Rate)) => serde_json::json!({ "error": "rate" }),
             Ok(Err(Refusal::Shape(_))) => serde_json::json!({ "error": "shape" }),
             _ => serde_json::json!({ "error": "key" }),
@@ -204,10 +206,14 @@ impl SidecarSource {
     }
 
     /// One call of the wire, with `wait` (the long poll of `next`) added to
-    /// the reply deadline. A timeout is a broken wire: the child goes.
+    /// the reply deadline. A timeout is a broken wire: the child goes. Only
+    /// a call that `resets` (a `next` that passed) resets the backoff: a
+    /// sidecar that answers `hello` and then ends must not restart each
+    /// second (T-165).
     fn call<T>(
         &mut self,
         wait: Duration,
+        resets: bool,
         f: impl FnOnce(&mut dyn JobSource) -> Result<T, SourceError>,
     ) -> Result<T, SourceError> {
         if self.revoked {
@@ -230,7 +236,7 @@ impl SidecarSource {
                 self.not_before = Some(Instant::now() + self.backoff);
                 self.backoff = (self.backoff * 2).min(BACKOFF_MAX);
             }
-            Ok(_) => self.backoff = BACKOFF_FIRST,
+            Ok(_) if resets => self.backoff = BACKOFF_FIRST,
             _ => {}
         }
         got
@@ -239,31 +245,31 @@ impl SidecarSource {
 
 impl JobSource for SidecarSource {
     fn hello(&mut self, client: &str, version: &str) -> Result<Hello, SourceError> {
-        self.call(Duration::ZERO, |s| s.hello(client, version))
+        self.call(Duration::ZERO, false, |s| s.hello(client, version))
     }
     fn next(&mut self, capacity: u32, wait: Duration) -> Result<Vec<Event>, SourceError> {
-        self.call(wait, |s| s.next(capacity, wait))
+        self.call(wait, true, |s| s.next(capacity, wait))
     }
     fn ack(&mut self, job: &JobId) -> Result<(), SourceError> {
-        self.call(Duration::ZERO, |s| s.ack(job))
+        self.call(Duration::ZERO, false, |s| s.ack(job))
     }
     fn claim(&mut self, job: &JobId, runner: &str) -> Result<(), SourceError> {
-        self.call(Duration::ZERO, |s| s.claim(job, runner))
+        self.call(Duration::ZERO, false, |s| s.claim(job, runner))
     }
     fn mint(&mut self, job: &JobId, runner: &str) -> Result<Credential, SourceError> {
-        self.call(Duration::ZERO, |s| s.mint(job, runner))
+        self.call(Duration::ZERO, false, |s| s.mint(job, runner))
     }
     fn report(&mut self, job: &JobId, report: &Map<String, Value>) -> Result<(), SourceError> {
-        self.call(Duration::ZERO, |s| s.report(job, report))
+        self.call(Duration::ZERO, false, |s| s.report(job, report))
     }
     fn audit(&mut self, line: &Map<String, Value>) -> Result<(), SourceError> {
-        self.call(Duration::ZERO, |s| s.audit(line))
+        self.call(Duration::ZERO, false, |s| s.audit(line))
     }
     fn withdraw(&mut self, job: &JobId, reason: &str) -> Result<(), SourceError> {
-        self.call(Duration::ZERO, |s| s.withdraw(job, reason))
+        self.call(Duration::ZERO, false, |s| s.withdraw(job, reason))
     }
     fn release(&mut self, job: &JobId) -> Result<(), SourceError> {
-        self.call(Duration::ZERO, |s| s.release(job))
+        self.call(Duration::ZERO, false, |s| s.release(job))
     }
 }
 
@@ -329,6 +335,26 @@ mod tests {
         // The killed child cannot answer; a new child starts with hello.
         s.not_before = None;
         assert!(s.ack(&JobId::new("j-2").unwrap()).is_err());
+    }
+
+    /// T-165: a sidecar that answers `hello` and ends at `next` gets a
+    /// backoff that grows; `hello` does not reset it.
+    #[test]
+    fn a_sidecar_that_ends_after_each_hello_backs_off_more() {
+        let mut s = script("exit 0");
+        for want in [2, 4, 8] {
+            s.not_before = None;
+            s.hello("p", "0").unwrap();
+            assert_eq!(s.next(1, Duration::ZERO).unwrap_err().code, SourceCode::Unavailable);
+            assert_eq!(s.backoff, BACKOFF_FIRST * want);
+        }
+        // A `next` that passes resets it.
+        let mut ok = script(r#"echo '{"schema":1,"reply":"events","events":[]}'; sleep 5"#);
+        ok.backoff = BACKOFF_FIRST * 8;
+        ok.hello("p", "0").unwrap();
+        assert_eq!(ok.backoff, BACKOFF_FIRST * 8);
+        ok.next(1, Duration::ZERO).unwrap();
+        assert_eq!(ok.backoff, BACKOFF_FIRST);
     }
 
     #[test]

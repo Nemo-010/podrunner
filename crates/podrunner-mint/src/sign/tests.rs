@@ -66,16 +66,43 @@ fn another_shape_is_refused_and_audited() {
     assert!(s.audit.iter().all(|a| a.outcome == "refused-shape"));
 }
 
+/// A signer whose Unix time follows `clock`.
+fn moving(clock: &ManualClock) -> Signer {
+    let key = key_from_pem(&test_key()).unwrap();
+    let c = clock.clone();
+    Signer::new(key, "12345", Arc::new(clock.clone()), Box::new(move || NOW + c.now_ms() / 1000))
+}
+
 #[test]
 fn one_signature_a_minute() {
     let clock = ManualClock::default();
-    let mut s = signer(&clock);
-    let c = claims(json!({ "iat": NOW, "exp": NOW + 600, "iss": "12345" }));
-    s.sign("a", &c).unwrap();
+    let mut s = moving(&clock);
+    // A token with a short life is not given again: the rate holds.
+    let short = claims(json!({ "iat": NOW, "exp": NOW + 100, "iss": "12345" }));
+    s.sign("a", &short).unwrap();
     clock.advance(Duration::from_secs(59));
+    let c = claims(json!({ "iat": NOW + 59, "exp": NOW + 600, "iss": "12345" }));
     assert_eq!(s.sign("a", &c), Err(Refusal::Rate));
     clock.advance(Duration::from_secs(1));
     assert!(s.sign("a", &c).is_ok());
+    assert_eq!(s.audit.iter().map(|a| a.outcome).collect::<Vec<_>>(), ["signed", "refused-rate", "signed"]);
+}
+
+/// T-165: a restarted sidecar asks again inside the minute; it gets the
+/// last token, which is valid for long enough, and no new signature.
+#[test]
+fn a_second_request_in_the_minute_gets_the_last_token() {
+    let clock = ManualClock::default();
+    let mut s = moving(&clock);
+    let first = s.sign("a", &claims(json!({ "iat": NOW - 30, "exp": NOW + 540, "iss": "12345" }))).unwrap();
+    clock.advance(Duration::from_secs(5));
+    let again = s.sign("a", &claims(json!({ "iat": NOW - 25, "exp": NOW + 545, "iss": "12345" }))).unwrap();
+    assert_eq!(again, first);
+    assert_eq!(s.last_exp(), Some(NOW + 540));
+    assert_eq!(s.audit.last().unwrap().outcome, "reused");
+    // A request of another shape is still refused inside the minute.
+    let bad = claims(json!({ "iat": NOW, "exp": NOW + 60, "iss": "999" }));
+    assert!(matches!(s.sign("a", &bad), Err(Refusal::Shape(_))));
 }
 
 #[test]

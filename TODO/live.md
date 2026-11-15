@@ -580,7 +580,7 @@ A Go test: `next` with `wait_s = 2` against a stub that holds the long poll retu
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -594,9 +594,17 @@ The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. T
 
 Keep the last JWT of the `Signer` in `mint-serve` and give it again to a restarted sidecar while it is valid, in place of a refusal. Reset the backoff only after a call that reads GitHub (`next`), not after `hello`.
 
+## Decision
+
+`sign` gives the last token again, not a cached one of the sidecar: the key and each token stay in `mint-serve`, and the rate of new signatures stays one each minute. A token is given again only while it is valid for `REUSE_MIN_S` (120 s) more; its audit line says `reused`. The reply of `sign` carries `exp`, and the sidecar keeps the token until that `exp`, not until the `exp` that it asked for.
+
 ## Prove
 
 A Rust test: a sidecar that is restarted inside `MIN_GAP_MS` gets a JWT. A test of the backoff: a sidecar that dies after each `hello` gets a backoff that doubles. Each fails on the code before the fix.
+
+## Done
+
+2026-11-15: `sign::tests::a_second_request_in_the_minute_gets_the_last_token` and `sidecar::tests::a_sidecar_that_ends_after_each_hello_backs_off_more` pass, and each fails on a plant of the old code (no reuse; a reset after `hello`). `one_signature_a_minute` now holds the rate with a token of a short life. Go: `TestATokenGivenAgainKeepsItsOwnExp`. The tests of the sidecar on the fake scale set pass; `cargo test --workspace`: 333 passed.
 
 # T-166: The scale-set sidecar reads no `JobAssigned` message
 
