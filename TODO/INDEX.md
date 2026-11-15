@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**191 entries: 13 open, 10 partial, 6 blocked, 162 done.**
+**191 entries: 12 open, 10 partial, 6 blocked, 163 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 5 | 1 | 37 | 44 |
-| P2 | 6 | 3 | 3 | 71 | 83 |
+| P2 | 5 | 3 | 3 | 72 | 83 |
 | P3 | 6 | 2 | 2 | 54 | 64 |
-| **All** | 13 | 10 | 6 | 162 | 191 |
+| **All** | 12 | 10 | 6 | 163 | 191 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -218,7 +218,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-168](live.md) | P2 | S | M-C | defect | done | The sidecar names each non-HTTP error "no answer", and never closes its message session |
 | [T-169](live.md) | P1 | M | M-C | defect | blocked | A withdrawn job holds the capacity of the scale set |
 | [T-170](live.md) | P2 | S | M-C | defect | done | A withdrawal by the tier rule leaves no trace in the mint |
-| [T-171](live.md) | P2 | S | M-C | defect | open | No command checks a mint file before `mint-serve` |
+| [T-171](live.md) | P2 | S | M-C | defect | done | No command checks a mint file before `mint-serve` |
 | [T-172](live.md) | P3 | S | M-C | defect | done | The audit of `sign` lives only in memory |
 | [T-173](live.md) | P3 | S | M-C | defect | done | `podrunner --version` does not name the beta |
 | [T-174](live.md) | P3 | S | later | defect | open | A trusted source cannot use a fine-grained organization PAT |

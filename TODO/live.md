@@ -770,7 +770,7 @@ A Rust test: a refused offer gives one audit line `withdraw` with its code; it f
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -787,6 +787,10 @@ Let `podrunner check` know the form of a mint file (by its keys, or by `--mint`)
 ## Prove
 
 A test of the CLI: `podrunner check` exits 0 on the example mint file and 78 on a planted bad key.
+
+## Done
+
+2026-11-15: `check` reads a file that names `cert_file` as a file of `mint-serve`: `mint_serve::check` (the parser of the mint, its source as `mint-serve` builds it, the key file of the mint at mode 0600 and its certificate; nothing starts), which `mint-serve` now calls first. `check_reads_a_mint_file_as_the_mint_does` (`crates/podrunner/tests/check.rs`): exit 0 for a good file, 78 for a key file open to others, and no state directory; it fails on the code of before ("TOML parse error"). `docs/cli.md` says so. The steps of GitHub #74 name `podrunner check --config mint.toml` already.
 
 # T-172: The audit of `sign` lives only in memory
 

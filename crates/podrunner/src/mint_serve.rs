@@ -96,11 +96,28 @@ impl MintConfig {
     }
 }
 
-/// Run the mint until the process ends.
-pub fn run(config: &Path) -> Result<(), Failure> {
+/// True for a file of `mint-serve`: it names the certificate of the mint.
+/// `podrunner check` then checks it as a mint file (T-171).
+pub fn is_mint_file(text: &str) -> bool {
+    text.parse::<toml::Table>().is_ok_and(|t| t.contains_key("cert_file"))
+}
+
+/// Check a mint file as `mint-serve` reads it, and start nothing: the keys,
+/// the source (its key file and its program), and the certificate and the
+/// key of the mint (T-171).
+pub fn check(config: &Path) -> Result<MintConfig, Failure> {
     let text =
         std::fs::read_to_string(config).map_err(|e| fail(Class::Config, format!("the configuration: {}", e.kind())))?;
     let c = MintConfig::parse(&text).map_err(|e| fail(Class::Config, e))?;
+    source_of(&c.source, Arc::new(SystemClock::default()), None)?;
+    private_file("the key file of the mint", &c.key_file)?;
+    std::fs::read(&c.cert_file).map_err(|e| fail(Class::Config, format!("the certificate: {}", e.kind())))?;
+    Ok(c)
+}
+
+/// Run the mint until the process ends.
+pub fn run(config: &Path) -> Result<(), Failure> {
+    let c = check(config)?;
     let clock: Arc<dyn Clock> = Arc::new(SystemClock::default());
     // A mint holds no remote source: no lookup.
     let source = source_of(&c.source, clock, None)?;

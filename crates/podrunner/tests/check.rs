@@ -143,3 +143,36 @@ fn the_keys_of_the_documents_exist() {
         }
     }
 }
+
+/// T-171: `check` reads a file of `mint-serve` as the mint does: a good one
+/// exits 0, and a key file of the mint that others can read exits 78.
+#[test]
+fn check_reads_a_mint_file_as_the_mint_does() {
+    use std::os::unix::fs::PermissionsExt;
+    let d = dir("mint");
+    std::fs::write(d.join("cert.pem"), "made-up certificate\n").unwrap();
+    std::fs::write(d.join("key.pem"), "made-up key\n").unwrap();
+    std::fs::set_permissions(d.join("key.pem"), std::fs::Permissions::from_mode(0o600)).unwrap();
+    let text = format!(
+        "listen = \"127.0.0.1:0\"\ncert_file = \"{0}/cert.pem\"\nkey_file = \"{0}/key.pem\"\nstate = \"{0}/state\"\nallow_fake = true\n\
+         [source]\nname = \"src\"\nkind = \"fake\"\ntier = \"trusted\"\narch = \"x86_64\"\n\
+         [trust]\norganizations = [{{ login = \"example-org\" }}]\n\
+         [[host]]\nname = \"h1\"\npin = \"sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\"\nslots = 2\n",
+        d.display()
+    );
+    std::fs::write(d.join("mint.toml"), text).unwrap();
+    let check = || Command::new(BIN).args(["check", "--config"]).arg(d.join("mint.toml")).output().unwrap();
+    let out = check();
+    assert_eq!(out.status.code(), Some(0), "{}", String::from_utf8_lossy(&out.stderr));
+    assert!(String::from_utf8_lossy(&out.stdout).contains("mint configuration is usable"));
+    std::fs::set_permissions(d.join("key.pem"), std::fs::Permissions::from_mode(0o644)).unwrap();
+    let out = check();
+    assert_eq!(out.status.code(), Some(78), "{}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("open to the group"),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(!d.join("state").exists(), "check made the state directory");
+    let _ = std::fs::remove_dir_all(&d);
+}

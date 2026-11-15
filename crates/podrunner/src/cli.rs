@@ -131,7 +131,14 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
         "check" => {
             let o = opts(rest)?;
             o.only(&["--config"])?;
-            crate::serve::check(&o.need("--config")?).map_err(|f| err(f.class, f.detail))?;
+            let path = o.need("--config")?;
+            // A file of `mint-serve` is checked as the mint reads it (T-171).
+            let text = std::fs::read_to_string(&path).unwrap_or_default();
+            if crate::mint_serve::is_mint_file(&text) {
+                crate::mint_serve::check(&path).map_err(|f| err(f.class, f.detail))?;
+                return Ok(ok("the mint configuration is usable\n".into()));
+            }
+            crate::serve::check(&path).map_err(|f| err(f.class, f.detail))?;
             Ok(ok("the configuration is usable\n".into()))
         }
         "stop" if rest.iter().any(|a| a == "--wait") => stop_wait(rest),
