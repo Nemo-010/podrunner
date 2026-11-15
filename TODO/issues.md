@@ -147,7 +147,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #145 | Live run 2026-11-15: a refused offer of a program source is not withdrawn to the source | closed (T-189 is done) | T-189 |
 | #146 | Live run 2026-11-15: an aarch64 host under QEMU user mode serves no tier | closed (T-194 is done) | T-194 |
 | #147 | Live run 2026-11-15: a podvm unit has the host name of the host | open (T-182 is blocked) | T-182 |
-| #148 | [gh action] requested | open (the gate, secrets, `runner-image.yml` and `level2.yml` of `main` at `04ff34f` or later) | T-162, T-183, T-192 |
+| #148 | [gh action] requested | closed (gate 43690748922 and secrets green on `ba24d0e`; runner-image 43690754546 red at the limits measure, T-162; level2 red at the corpus, T-196 fixed after it) | T-162, T-183, T-192 |
 | #149 | Live run 2026-11-15: on an emulated aarch64 host, start_s (120 s) kills the first unit, and nothing names the deadline | open | T-197 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |

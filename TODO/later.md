@@ -2539,6 +2539,8 @@ State (2026-11-15, step 3): `[unit.podvm] mem` and `pids` become `--ulimit as=` 
 
 State (2026-11-15, the measure): `the_runner_runs_under_the_limits_of_the_unit` (`crates/podrunner-broker-fake/tests/podvm.rs`, in the podvm step of `runner-image.yml`) runs a canned job of the official runner in a podvm unit with `mem` 16 GiB and `pids` 4096: the job must pass, and `ulimit -v` in the step must name the limit. Next: its run; the incus keys on real instances (the incus step).
 
+State (2026-11-15, the measure ran): runner-image run 43690754546 (`ba24d0e`): under `[unit.podvm] mem` 16 GiB the runner did not start (the broker saw no request). Measured here with the runner v2.338.2 and `prlimit --as=16G`: CoreCLR fails ("GC heap initialization failed with error 0x8007000E") with `DOTNET_GCHeapHardLimit` alone, and starts with `DOTNET_GCRegionRange` at the same value: the GC reserves its regions (256 GiB by default) at start. `ulimit_args` now sets both. The test prints the log of the unit. Next: the measure again.
+
 # T-163: Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units
 
 **Source:** podvm's answer to COORD-044 (PodUtils/podvm#375)

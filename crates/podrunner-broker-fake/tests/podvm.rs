@@ -261,9 +261,16 @@ fn the_runner_runs_under_the_limits_of_the_unit() {
         std::thread::sleep(Duration::from_millis(100));
     }
     let (done, logs) = (broker.completions(), broker.logs());
+    // The output of the runner in the unit: the cause of a start that failed.
+    let unit_log = std::process::Command::new(env("PODRUNNER_PODVM"))
+        .args(["logs", "u-3"])
+        .env("PODVM_STORE", state.join("units").join("u-3").join("store"))
+        .output()
+        .map(|o| String::from_utf8_lossy(&[o.stdout, o.stderr].concat()).into_owned())
+        .unwrap_or_default();
     let residue = unit.destroy(&id).unwrap();
     let _ = std::fs::remove_dir_all(&state);
-    println!("limits log:\n{logs}");
+    println!("limits log:\n{logs}\nunit log:\n{unit_log}");
     assert_eq!(done.len(), 1, "{:?}\n{logs}", broker.seen());
     assert_eq!(done[0].conclusion, "succeeded", "{logs}");
     assert!(logs.contains("podrunner-limits-42"), "{logs}");

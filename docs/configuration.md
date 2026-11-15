@@ -181,7 +181,7 @@ value of the offer.
 
 | Kind | `mem` | `cpus` | `pids` |
 | --- | --- | --- | --- |
-| `podvm` | `RLIMIT_AS` of the payload (`--ulimit as=`); .NET gets a heap limit of three quarters | refused: no cgroup | `RLIMIT_NPROC` (`--ulimit nproc=`); it counts each process of the user, also of other units of that user |
+| `podvm` | `RLIMIT_AS` of the payload (`--ulimit as=`); .NET gets a heap limit and a region range of three quarters | refused: no cgroup | `RLIMIT_NPROC` (`--ulimit nproc=`); it counts each process of the user, also of other units of that user |
 | `incus` | `limits.memory` (podvm `0.2.0-beta.20` or later) | `limits.cpu` | `limits.processes` |
 | `microvm` | the memory of the guest | its vCPUs | refused |
 

@@ -30,7 +30,12 @@ pub(super) fn ulimit_args(
     let mut a = Vec::new();
     if let Some(m) = limits.memory_bytes {
         a.extend(["--ulimit".into(), format!("as={m}")]);
-        env.insert("DOTNET_GCHeapHardLimit".into(), format!("{:x}", m / 4 * 3));
+        // The GC of .NET reserves its regions (256 GiB by default) at start,
+        // and fails under RLIMIT_AS (runner-image run 43690754546): its range
+        // is the heap limit too.
+        let heap = format!("{:x}", m / 4 * 3);
+        env.insert("DOTNET_GCHeapHardLimit".into(), heap.clone());
+        env.insert("DOTNET_GCRegionRange".into(), heap);
     }
     if let Some(n) = limits.pids {
         a.extend(["--ulimit".into(), format!("nproc={n}")]);
@@ -49,6 +54,7 @@ mod tests {
         let a = super::ulimit_args(&l, &mut env);
         assert_eq!(a, ["--ulimit", "as=8589934592", "--ulimit", "nproc=512"]);
         assert_eq!(env["DOTNET_GCHeapHardLimit"], format!("{:x}", 6u64 << 30));
+        assert_eq!(env["DOTNET_GCRegionRange"], format!("{:x}", 6u64 << 30));
         let mut none = std::collections::BTreeMap::new();
         assert!(super::ulimit_args(&Limits::default(), &mut none).is_empty() && none.is_empty());
     }
