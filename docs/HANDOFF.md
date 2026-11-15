@@ -89,6 +89,12 @@ is done.
 
 ## In flight
 
+- **First:** the LIVE-1 report (GitHub #74, 2026-11-15): with the
+  release binaries of `v0.1.0-beta.5`, the mint served no job. The
+  defects are T-164 to T-174; T-164 to T-167 and T-169 block the live
+  gates. LIVE-1 ran the gates with a local build of the sidecar that fixed
+  defects 1 to 4; LIVE-2 (#75) reports the gates next. Fix the P1 entries,
+  then release a beta and point #74 and #75 at it.
 - The runner-image run 43669743775 (`fa84341`, podvm `0.2.0-beta.19`)
   is red only at the job `static` of `tags.yml` (T-158): podvm refuses
   the mount `/__e:ro` on the detached run of a static image. T-158 is
@@ -135,7 +141,7 @@ is done.
 
 | Who | What | Entries |
 | --- | --- | --- |
-| LIVE-1 and LIVE-2 | the reports of GitHub #74 and #75 | T-032, T-033, T-040 |
+| LIVE-1 and LIVE-2 | the report of GitHub #75, and a new run on the next beta | T-032, T-033, T-040 |
 | githome | `githome source`, for the pair on the host of LIVE-2 (#107) | T-101 |
 | podvm | the incus keys of the limits (PodUtils/podvm@T-1897, next release) | T-162 |
 | podvm | a read-only bind on the detached run of a static image (#111) | T-158 |

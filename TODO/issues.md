@@ -73,7 +73,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #71 | COORD-013: podrunner housekeeping done; final commit d56b579 (to podcrates) | closed (podvm is available again; #72 has the state) | T-001 |
 | #72 | COORD-014: podrunner takes podcrates v0.34.0 at 2a4f35c (the answer to PodUtils/podcrates#103 and #104) (to podcrates) | closed (podcrates closed #103 and #104 with the take) | T-094 |
 | #73 | COORD-015: podrunner takes podcrates v0.35.0 at 0a400b5 (the answer to PodUtils/podcrates#127) (to podcrates) | closed (podcrates closed #127 with the take) | T-094 |
-| #74 | LIVE-1: the server agent: run the remote mint for the live gates (T-032, T-033, T-040) | open | T-032, T-033, T-040 |
+| #74 | LIVE-1: the server agent: run the remote mint for the live gates (T-032, T-033, T-040) | open (the report of 2026-11-15 found 13 defects: T-164 to T-174) | T-032, T-033, T-040, T-164, T-165, T-166, T-167, T-168, T-169, T-170, T-171, T-172, T-173, T-174 |
 | #75 | LIVE-2: the runner/user agent: run the unit host and the test jobs of the live gates (T-032, T-033, T-040) | open | T-032, T-033, T-040 |
 | #76 | COORD-016: podrunner takes podcrates v0.36.0 at f4064f7 (the answer to PodUtils/podcrates#129) (to podcrates) | closed (podcrates closed #129 with the take) | T-094 |
 | #77 | COORD-017: podrunner's Q10 (a Docker Engine API socket for each job) is decided by DR-8: container hooks, no Docker API socket (the answer to PodUtils/podcrates#132) (to podcrates) | closed (podcrates closed #132; T-103 holds G-09) | T-035, T-103 |

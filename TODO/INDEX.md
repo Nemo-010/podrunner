@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**163 entries: 1 open, 5 partial, 6 blocked, 151 done.**
+**174 entries: 12 open, 5 partial, 6 blocked, 151 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 0 | 2 | 0 | 32 | 34 |
-| P2 | 1 | 2 | 3 | 68 | 74 |
-| P3 | 0 | 1 | 3 | 51 | 55 |
-| **All** | 1 | 5 | 6 | 151 | 163 |
+| P1 | 5 | 2 | 0 | 32 | 39 |
+| P2 | 4 | 2 | 3 | 68 | 77 |
+| P3 | 3 | 1 | 3 | 51 | 58 |
+| **All** | 12 | 5 | 6 | 151 | 174 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -211,3 +211,14 @@ acceptance, later The crate dependencies later than v1.
 | [T-161](later.md) | P3 | M | later | research | partial | An alternate payload: a runner other than the official one |
 | [T-162](later.md) | P2 | M | later | feature | open | G-12: limits of CPU, memory and processes on the podvm and incus kinds |
 | [T-163](later.md) | P3 | S | later | chore | done | Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units |
+| [T-164](live.md) | P1 | S | M-C | defect | open | The scale-set sidecar ignores `wait_s` of `next`, and the unit host polls without a wait |
+| [T-165](live.md) | P1 | S | M-C | defect | open | `sign` refuses each restarted sidecar for 60 s, and the backoff of the sidecar never grows |
+| [T-166](live.md) | P1 | M | M-C | defect | open | The scale-set sidecar reads no `JobAssigned` message |
+| [T-167](live.md) | P1 | S | M-C | defect | open | The trust lookup reads `visibility`, which a run gives as null |
+| [T-168](live.md) | P2 | S | M-C | defect | open | The sidecar names each non-HTTP error "no answer", and never closes its message session |
+| [T-169](live.md) | P1 | M | M-C | defect | open | A withdrawn job holds the capacity of the scale set |
+| [T-170](live.md) | P2 | S | M-C | defect | open | A withdrawal by the tier rule leaves no trace in the mint |
+| [T-171](live.md) | P2 | S | M-C | defect | open | No command checks a mint file before `mint-serve` |
+| [T-172](live.md) | P3 | S | M-C | defect | open | The audit of `sign` lives only in memory |
+| [T-173](live.md) | P3 | S | M-C | defect | open | `podrunner --version` does not name the beta |
+| [T-174](live.md) | P3 | S | later | defect | open | A trusted source cannot use a fine-grained organization PAT |

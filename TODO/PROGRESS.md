@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 163 entries: 1 open, 5 partial, 6 blocked, 151 done.
+`TODO/INDEX.md` holds 174 entries: 12 open, 5 partial, 6 blocked, 151 done.
 
 ## State
 
@@ -33,11 +33,13 @@ then take the next one.
 
 The queue, most valuable first:
 
-1. T-101 (M, partial): the `program` source kind is in; its pair with GitHub runs on the host of LIVE-2 (GitHub #75) when githome gives its program.
+1. T-164, T-165, T-166, T-167, T-169 (P1, open): the blockers of the mint from the LIVE-1 report (GitHub #74, 2026-11-15). With the release binaries the mint served no job. Then T-168, T-170, T-171 (P2), T-172, T-173 (P3). T-174 is later. A new beta for LIVE-1 and LIVE-2 follows the P1 fixes.
 
-2. T-162 (M, open): G-12 limits: `--ulimit nproc=` and `as=` hold on podvm `run -d` now (PodUtils/podvm#382); the incus keys come with the next podvm release.
-3. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.
-4. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
+2. T-101 (M, partial): the `program` source kind is in; its pair with GitHub runs on the host of LIVE-2 (GitHub #75) when githome gives its program.
+
+3. T-162 (M, open): G-12 limits: `--ulimit nproc=` and `as=` hold on podvm `run -d` now (PodUtils/podvm#382); the incus keys come with the next podvm release.
+4. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.
+5. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 
 The local mode against act and runner.server (`docs/local-mode.md`) has no open entry.
 

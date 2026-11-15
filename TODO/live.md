@@ -539,3 +539,278 @@ A new test target, crates/podrunner/tests/live.rs, on the fake scale set with th
 ## Done
 
 2026-11-11, `e1910fa`; gate run 43073532205 of `296bfd0` is green. `crates/podrunner/tests/live.rs` runs in the gate job `go` on the fake scale set with the real sidecar: one creation of the scale set with one label, its name (G-H2); each request on a route of the minimum permissions, with a planted route that the check names (G-H3).
+
+# T-164: The scale-set sidecar ignores `wait_s` of `next`, and the unit host polls without a wait
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`next` of the sidecar calls `session.GetMessage`, the long poll of GitHub, which holds about 50 s when no job waits. The unit host sends `next` with `wait_s = 0` (`Duration::ZERO` in `poll` of `crates/podrunner-slots/src/engine.rs`), so the reply limit of the mint is `REPLY_LIMIT` (15 s). The mint kills the sidecar at its first idle poll, so the mint serves no job (defect 1). The unit host also sends `next` about 10 times each second, each on a new TLS connection: 368 `next` lines in the audit in the first minutes (defect 10).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Bound `GetMessage` in the sidecar by a context of `wait_s` plus a margin, and read its time-out as no message. Make the reply limit of the mint for `next` `wait_s` plus `REPLY_LIMIT`. Let the unit host send a real `wait_s` to a remote source, and keep one connection to the mint between calls.
+
+## Prove
+
+A Go test: `next` with `wait_s = 2` against a stub that holds the long poll returns no message in about 2 s. A Rust test: the mint does not kill a sidecar that answers within `wait_s` plus the limit. A test of the engine: an idle remote source gets no more than one `next` in each `wait_s`. Each fails on the code before the fix.
+
+# T-165: `sign` refuses each restarted sidecar for 60 s, and the backoff of the sidecar never grows
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The `Signer` of `mint-serve` refuses a second JWT inside `MIN_GAP_MS` (60 s). A restarted sidecar has an empty JWT cache and asks again inside the minute: `sign refused: rate`. `SidecarSource::call` (`crates/podrunner-mint/src/sidecar.rs`) resets the backoff to `BACKOFF_FIRST` (1 s) after each `Ok` call, and `hello` is such a call, so the restarts never reach 60 s. With T-164 this is a livelock; a fresh `mint-serve` after 75 s of rest hit it too (defect 2).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Keep the last JWT of the `Signer` in `mint-serve` and give it again to a restarted sidecar while it is valid, in place of a refusal. Reset the backoff only after a call that reads GitHub (`next`), not after `hello`.
+
+## Prove
+
+A Rust test: a sidecar that is restarted inside `MIN_GAP_MS` gets a JWT. A test of the backoff: a sidecar that dies after each `hello` gets a backoff that doubles. Each fails on the code before the fix.
+
+# T-166: The scale-set sidecar reads no `JobAssigned` message
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+`actions/scaleset` v0.5.0 gives `JobAssignedMessages`. github.com assigned each job to the scale set with no `JobAvailable` (`totalAssignedJobs 1`, `totalAvailableJobs 0`). The sidecar reads only `JobAvailableMessages` (`next` in `tools/scaleset-sidecar/sidecar.go`), so the run waited for ever. A `JobAssigned` has `runnerRequestId` 0: only `jobId` (a GUID) names the job, and the job is acquired already. The model offer, `claim` (`AcquireJobs`), `mint` does not fit it (defect 3).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Offer each assigned job with the id `a-JOBID`, with its trust inputs. Make `claim` of such a job a no-op that answers success, and mint its JIT configuration as for an acquired job. Write the model in `docs/contracts/` and keep the source conformance suite green with both kinds of message.
+
+## Prove
+
+A Go test: a stub session that gives one `JobAssigned` gives one offer `a-JOBID`; its `claim` calls no `AcquireJobs`, and `mint` gives a JIT configuration. The source conformance suite passes on the sidecar with the stub. The live gates (GitHub #74, #75) run a job with the release binaries.
+
+# T-167: The trust lookup reads `visibility`, which a run gives as null
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The `repository` of `GET /repos/O/R/actions/runs/N` is a minimal repository: `private: true`, `visibility: null`. `tools/scaleset-sidecar/trust.go` reads only `visibility`, so `repo_visibility` is `unknown`, and the tier rule refuses each trusted job (`event-not-allowed`) (defect 4).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+When `visibility` is absent or null, read `private`: `true` gives `private`, `false` gives `public`. Do not guess `internal`: it stays `unknown` unless `GET /repos/O/R` names it. Prefer one `GET /repos/O/R` when the run gives no `visibility`.
+
+## Prove
+
+A Go test with the JSON of a minimal repository (`private: true`, `visibility: null`) gives `private`; it fails on the code before the fix.
+
+# T-168: The sidecar names each non-HTTP error "no answer", and never closes its message session
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`statusOf` (`tools/scaleset-sidecar/sidecar.go`) prints "no answer" for `sign refused: rate`, for a 409 of the session, and for a TLS or a DNS failure. Each of defects 1 to 6 needed a debug build to find (defect 5). The sidecar calls no `session.Close` at the end of stdin or at SIGTERM, so the next sidecar gets `409 Conflict ... already has an active session` for 1 to 2 minutes (defect 6).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Give a class of each non-HTTP error (`sign refused: rate`, `tls`, `dns`, `connect`, `timeout`) with no URL and no token. Close the message session at the end of stdin and at SIGTERM, with a time limit.
+
+## Prove
+
+Go tests: each class gives its word, and a canary token in the error text appears in no reply. A stub session gets `Close` at the end of stdin and at SIGTERM. Each fails on the code before the fix.
+
+# T-169: A withdrawn job holds the capacity of the scale set
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+A pull request from a fork that names the trusted set is refused by the tier rule (`tier-mismatch`), as G-H4 asks. But GitHub assigned the job already, and nothing gives it back. With `X-ScaleSetMaxCapacity` 1 the set counts it as busy (`totalBusyRunners 1`), and GitHub assigned no other job for about 20 minutes, until the run was cancelled. Any pull request from a fork can stop a trusted set (defect 7).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Find the call of the scale-set API that gives an assigned job back, or that ends it: measure it on the test organization. When none exists, run the job to an end at once with a refusal: a unit with no secret that reports the job failed with the refusal code, so GitHub frees the capacity. Keep the capacity that the sidecar sends to GitHub as the free slots, not counting a withdrawn job.
+
+## Prove
+
+A test of the mint: a withdrawn job frees its slot in the next `next`. A live check (GitHub #74, #75): after a refused fork job, the next trusted job runs within one poll.
+
+# T-170: A withdrawal by the tier rule leaves no trace in the mint
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`route` of `crates/podrunner-remote/src/gate.rs` withdraws an offer whose tier does not hold with no audit line, no ledger line and no log line. The job of T-169 is in no file of the mint (defect 8).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Write an audit line `withdraw` with the job id and the refusal code, and a log line, for each withdrawal.
+
+## Prove
+
+A Rust test: a refused offer gives one audit line `withdraw` with its code; it fails on the code before the fix.
+
+# T-171: No command checks a mint file before `mint-serve`
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner check --config mint.toml` refuses each key of the mint (`unknown field cert_file`, exit 78). Step 6 of GitHub #74 says that it must exit 0 (defect 9).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Let `podrunner check` know the form of a mint file (by its keys, or by `--mint`), and check it with the parser of `mint-serve`. Update the steps of GitHub #74 to name the command.
+
+## Prove
+
+A test of the CLI: `podrunner check` exits 0 on the example mint file and 78 on a planted bad key.
+
+# T-172: The audit of `sign` lives only in memory
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`Signer.audit` is a `Vec` in memory: it is never written and has no bound (defect 11).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Write each `sign` audit line to the audit file of the mint, and keep no unbounded list in memory.
+
+## Prove
+
+A Rust test: each `sign` gives one line in the audit file, and the memory list stays bounded after many calls.
+
+# T-173: `podrunner --version` does not name the beta
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner --version` of `v0.1.0-beta.5` prints `podrunner 0.1.0 (34d56b50d37a)`, with no `-beta.5` (defect 12).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Take the version string from the release tag in the release build (an environment value of `release.yml`), else from `Cargo.toml`, and print it in full.
+
+## Prove
+
+A test of the release script: a build with the tag `v0.1.0-beta.9` prints `podrunner 0.1.0-beta.9 (...)`.
+
+# T-174: A trusted source cannot use a fine-grained organization PAT
+
+**Source:** LIVE-1 report on GitHub #74 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+SPEC.md section 5.3 allows a fine-grained organization PAT for a trusted source. The configuration (`config.rs`) requires `app_id` and `installation_id`, so no PAT path exists (defect 13).
+
+## Premise
+
+The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. The cited code was read at `d31fb41`.
+
+## Approach
+
+Add a `token_file` form to the source of the mint, read at start with mode 0600, given to the sidecar on fd 3 as `sign` gives a JWT. Refuse both forms in one source.
+
+## Prove
+
+A test of the configuration: a source with `token_file` is accepted, and one with both forms is refused. The source conformance suite passes with a PAT stub.
