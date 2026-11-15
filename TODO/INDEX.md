@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**191 entries: 10 open, 11 partial, 7 blocked, 163 done.**
+**191 entries: 9 open, 11 partial, 7 blocked, 164 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 5 | 1 | 37 | 44 |
-| P2 | 3 | 4 | 4 | 72 | 83 |
+| P2 | 2 | 4 | 4 | 73 | 83 |
 | P3 | 6 | 2 | 2 | 54 | 64 |
-| **All** | 10 | 11 | 7 | 163 | 191 |
+| **All** | 9 | 11 | 7 | 164 | 191 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -231,7 +231,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-181](live.md) | P2 | M | M-C | defect | open | `--podvm-confine` stops name resolution in a podvm unit: the runner cannot reach the broker |
 | [T-182](live.md) | P2 | S | M-C | defect | blocked | A podvm unit has the host name of the host: the job log of GitHub shows it |
 | [T-183](live.md) | P2 | S | M-C | defect | open | The tree-kill self-test of a held podvm unit fails, and its units stay after it |
-| [T-184](live.md) | P2 | S | M-C | defect | open | `status` answers `busy` while the supervisor waits on a call of a source |
+| [T-184](live.md) | P2 | S | M-C | defect | done | `status` answers `busy` while the supervisor waits on a call of a source |
 | [T-185](live.md) | P3 | S | M-C | defect | open | `check`, `doctor` and `status` give a capacity that `serve` does not have |
 | [T-186](live.md) | P3 | S | M-C | defect | open | The store of podvm keeps `machine/run-PID-*` after each guest of the microvm kind |
 | [T-187](live.md) | P3 | S | later | defect | open | The local mode refuses the netns hold |

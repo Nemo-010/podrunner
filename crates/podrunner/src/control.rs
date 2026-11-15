@@ -142,6 +142,15 @@ pub struct Call {
 /// Serve `l` in threads of its own (GitHub #56): the supervisor gets whole
 /// requests from the channel, so a slow or silent peer delays no tick.
 pub fn spawn(l: UnixListener) -> std::sync::mpsc::Receiver<Call> {
+    spawn_with(l, Snapshot::default())
+}
+
+/// The last `status` reply of the supervisor (T-184): while the supervisor
+/// waits on a call of a source, a `status` gets it, not `busy`.
+pub type Snapshot = std::sync::Arc<std::sync::Mutex<Option<Reply>>>;
+
+/// `spawn`, with the snapshot of `status` that the supervisor keeps.
+pub fn spawn_with(l: UnixListener, snapshot: Snapshot) -> std::sync::mpsc::Receiver<Call> {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
     let (tx, rx) = std::sync::mpsc::channel();
@@ -155,9 +164,9 @@ pub fn spawn(l: UnixListener) -> std::sync::mpsc::Receiver<Call> {
                 continue;
             }
             active.fetch_add(1, Ordering::SeqCst);
-            let (tx, active) = (tx.clone(), active.clone());
+            let (tx, active, snapshot) = (tx.clone(), active.clone(), snapshot.clone());
             std::thread::spawn(move || {
-                let _ = exchange(stream, &tx);
+                let _ = exchange(stream, &tx, &snapshot);
                 active.fetch_sub(1, Ordering::SeqCst);
             });
         }
@@ -183,7 +192,7 @@ fn read_line(mut s: &UnixStream, deadline: std::time::Instant) -> std::io::Resul
     Ok(line)
 }
 
-fn exchange(stream: UnixStream, tx: &std::sync::mpsc::Sender<Call>) -> std::io::Result<()> {
+fn exchange(stream: UnixStream, tx: &std::sync::mpsc::Sender<Call>, snapshot: &Snapshot) -> std::io::Result<()> {
     let deadline = std::time::Instant::now() + EXCHANGE;
     stream.set_write_timeout(Some(EXCHANGE))?;
     let mut writer = &stream;
@@ -194,13 +203,19 @@ fn exchange(stream: UnixStream, tx: &std::sync::mpsc::Sender<Call>) -> std::io::
     let reply = match parse(&line) {
         Err(r) => r,
         Ok(req) => {
+            let status = req == Request::Status;
             let (rtx, rrx) = std::sync::mpsc::channel();
             if tx.send(Call { req, reply: rtx }).is_err() {
                 return Ok(());
             }
             let left = deadline.saturating_duration_since(std::time::Instant::now());
+            // A `status` takes the last snapshot when the supervisor is in a
+            // call of a source; another request gets `busy`.
+            let last = || if status { snapshot.lock().ok().and_then(|s| s.clone()) } else { None };
             rrx.recv_timeout(left.max(Duration::from_secs(1)))
-                .unwrap_or_else(|_| Reply::error("busy", "the supervisor did not answer in time"))
+                .ok()
+                .or_else(last)
+                .unwrap_or_else(|| Reply::error("busy", "the supervisor did not answer in time"))
         }
     };
     writer.write_all(line_of(&reply).as_bytes())
@@ -325,6 +340,20 @@ mod tests {
         std::thread::sleep(Duration::from_millis(100));
         assert!(matches!(call(&path, &Request::Status).unwrap(), Reply::Error { code, .. } if code == "busy"));
         drop(idle);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// T-184: while the supervisor answers nothing, `status` gets the last
+    /// snapshot, and another request gets `busy`.
+    #[test]
+    fn status_takes_the_snapshot_while_the_supervisor_is_busy() {
+        let dir = dir("snapshot");
+        let path = dir.join("ctl.sock");
+        let snap = Snapshot::default();
+        *snap.lock().unwrap() = Some(Reply::Ok { value: serde_json::json!({ "jobs": 3 }) });
+        let _rx = spawn_with(bind(&path).unwrap(), snap);
+        assert_eq!(call(&path, &Request::Status).unwrap(), Reply::Ok { value: serde_json::json!({ "jobs": 3 }) });
+        assert!(matches!(call(&path, &Request::Drain).unwrap(), Reply::Error { .. }));
         let _ = std::fs::remove_dir_all(&dir);
     }
 

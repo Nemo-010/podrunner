@@ -413,7 +413,8 @@ pub fn run(config: &Path, state: &Path, socket: &Path) -> Result<(), Failure> {
         let class = if e.kind() == std::io::ErrorKind::AlreadyExists { Class::Usage } else { Class::Unavailable };
         fail(class, format!("the control socket: {e}"))
     })?;
-    let calls = control::spawn(listener);
+    let snapshot = control::Snapshot::default();
+    let calls = control::spawn_with(listener, snapshot.clone());
     crate::notify::install();
     crate::notify::send("READY=1");
     let watchdog = crate::notify::watchdog();
@@ -430,6 +431,12 @@ pub fn run(config: &Path, state: &Path, socket: &Path) -> Result<(), Failure> {
         if Instant::now() >= next {
             sup.slots.tick();
             next = next_tick(next, Instant::now());
+            // The `status` for a client while a later tick waits on a
+            // source (T-184).
+            let status = control::Handler::handle(&mut sup, &Request::Status);
+            if let Ok(mut s) = snapshot.lock() {
+                *s = Some(status);
+            }
         }
         if let Some(w) = watchdog
             && ping.elapsed() >= w

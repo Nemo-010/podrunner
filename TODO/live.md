@@ -1133,7 +1133,7 @@ Give the self-test unit its own egress socket when the kind has a hold, and dest
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -1147,9 +1147,17 @@ The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user nam
 
 T-164 makes `next` of the sidecar answer at once. Also put each call of a source of a tick under a time limit that stays below the deadline of the control socket, or answer the control socket from its own thread with a copy of the state.
 
+## Decision
+
+The supervisor stays one loop. After each tick `serve` keeps the reply of `status` (`control::Snapshot`); when the supervisor does not answer in the deadline of the control socket, a `status` gets that reply, at most one tick old, and another request gets `busy`. T-164 makes `next` of the sidecar answer at once, so a tick waits on a source less.
+
 ## Prove
 
 A test of `serve` with a source whose `next` takes 10 s: `status` answers in its deadline.
+
+## Done
+
+2026-11-15: `control::spawn_with` and `Snapshot`; `serve` writes the snapshot after each tick. `control::tests::status_takes_the_snapshot_while_the_supervisor_is_busy`: with no answer of the supervisor, `status` gets the snapshot and `drain` gets an error. cargo test --workspace: all pass.
 
 # T-185: `check`, `doctor` and `status` give a capacity that `serve` does not have
 
