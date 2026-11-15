@@ -1108,7 +1108,7 @@ podvm: `podvm run -d --hostname NAME` on the rungs with no UTS namespace (COORD-
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -1125,6 +1125,8 @@ Give the self-test unit its own egress socket when the kind has a hold, and dest
 ## Prove
 
 `cargo test -p podrunner-slots guest`: the self-test of a held kind passes and leaves no unit; a stale self-test unit is removed at the start.
+
+State (2026-11-15): the self-tests of the tree kill and of the confine layer destroy a unit of the same id first (a unit of the last self-test of a process that ended), and a held driver gives the self-test unit its own socket directory with a listener on its egress socket for the time of the test (`self_test_sockets` of `crates/podrunner-podvm/src/unit/hold.rs`); the directory goes at the end. `unit::hold::tests::a_held_self_test_has_its_egress_socket`. Next: the held self-test on a real podvm in `runner-image.yml` (the step of the held tests).
 
 # T-184: `status` answers `busy` while the supervisor waits on a call of a source
 

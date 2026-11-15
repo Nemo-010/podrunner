@@ -427,6 +427,9 @@ impl PodvmUnit {
     /// `sleep`.
     pub fn verify_tree_kill(&mut self, reference: &str, unit: UnitId) -> Result<bool, UnitError> {
         let image = self.prepare(reference, &self.platform.clone(), false)?;
+        // A unit of the last self-test, of a process that ended (T-183).
+        let _ = self.destroy(&unit);
+        let held = self.self_test_sockets(&unit)?;
         let argv = ["sh", "-c", "setsid sh -c 'sleep 300 & wait' & wait"].map(String::from).to_vec();
         let spec = StartSpec {
             unit: unit.clone(),
@@ -434,7 +437,7 @@ impl PodvmUnit {
             argv,
             env: Default::default(),
             credential: Default::default(),
-            sockets: None,
+            sockets: held.as_ref().map(|h| h.dir.clone()),
             mounts: Vec::new(),
         };
         self.start(&spec)?;

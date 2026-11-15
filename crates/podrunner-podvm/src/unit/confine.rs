@@ -112,6 +112,10 @@ impl PodvmUnit {
     /// and what it read of the environment of `pid`.
     fn self_test(&self, reference: &str, unit: &UnitId, pid: u32) -> Result<Option<(bool, String)>, UnitError> {
         let image = self.prepare(reference, &self.platform.clone(), false)?;
+        // A unit of the last self-test, and the egress socket of a held
+        // driver (T-183).
+        let _ = self.destroy(unit);
+        let held = self.self_test_sockets(unit)?;
         let script = format!(
             "echo own > {OWN}; tr '\\0' '\\n' < /proc/{pid}/environ > {SEEN} 2>/dev/null; echo done >> {SEEN}; exec sleep 60"
         );
@@ -121,7 +125,7 @@ impl PodvmUnit {
             argv: ["sh", "-c", &script].map(String::from).to_vec(),
             env: Default::default(),
             credential: Default::default(),
-            sockets: None,
+            sockets: held.as_ref().map(|h| h.dir.clone()),
             mounts: Vec::new(),
         };
         if self.start(&spec).is_err() {

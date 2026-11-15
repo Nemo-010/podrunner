@@ -18,7 +18,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use podrunner_schema::EgressHold;
-use podrunner_unit::{EGRESS_SOCKET, StartSpec, UnitCode, UnitError};
+use podrunner_unit::{EGRESS_SOCKET, StartSpec, UnitCode, UnitError, UnitId};
 use serde_json::Value;
 
 use super::{PodvmUnit, host};
@@ -51,6 +51,23 @@ impl PodvmUnit {
             Some(dir) => Ok(Some(dir.join(EGRESS_SOCKET))),
             None => Err(UnitError::new(UnitCode::UnitStartFailed, "a held unit needs its egress socket")),
         }
+    }
+
+    /// The socket directory of a self-test unit when the driver holds its
+    /// units (T-183): a listener on its egress socket for the time of the
+    /// test. The payload of a self-test makes no connection.
+    pub(super) fn self_test_sockets(&self, unit: &UnitId) -> Result<Option<SelfTestSockets>, UnitError> {
+        use std::os::unix::fs::PermissionsExt;
+        if self.podnet.is_none() {
+            return Ok(None);
+        }
+        let dir = self.state_dir.join("self-test").join(unit.as_str());
+        let io = |e: std::io::Error| UnitError::new(UnitCode::Host, format!("the self-test sockets: {}", e.kind()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).map_err(io)?;
+        std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700)).map_err(io)?;
+        let listener = std::os::unix::net::UnixListener::bind(dir.join(EGRESS_SOCKET)).map_err(io)?;
+        Ok(Some(SelfTestSockets { dir, _listener: listener }))
     }
 
     /// The command of `podvm`, under `podnet pod` when `egress` is given.
@@ -88,6 +105,18 @@ fn choose(out: &[u8]) -> Result<(&'static str, EgressHold, String), String> {
     }
 }
 
+/// The socket directory of a self-test unit; it goes when this goes.
+pub(super) struct SelfTestSockets {
+    pub(super) dir: PathBuf,
+    _listener: std::os::unix::net::UnixListener,
+}
+
+impl Drop for SelfTestSockets {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.dir);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -103,5 +132,35 @@ mod tests {
         assert_eq!((choose(plant).unwrap().0, choose(plant).unwrap().1), ("seccomp", EgressHold::Advisory));
         assert!(choose(br#"{"seccomp":{"level":"none"}}"#).is_err());
         assert!(choose(b"no json").is_err());
+    }
+
+    /// T-183: a held driver gives a self-test unit a socket directory with
+    /// its egress socket, which goes at the end; an unheld driver none.
+    #[test]
+    fn a_held_self_test_has_its_egress_socket() {
+        use std::os::unix::fs::PermissionsExt;
+        let d = std::env::temp_dir().join(format!("podrunner-selftest-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(&d).unwrap();
+        let script = |name: &str, body: &str| {
+            let f = d.join(name);
+            std::fs::write(&f, format!("#!/bin/sh\n{body}\n")).unwrap();
+            std::fs::set_permissions(&f, std::fs::Permissions::from_mode(0o755)).unwrap();
+            f
+        };
+        let podvm = script("podvm", "echo '{\"podvm\":\"0.2.0-beta.21\",\"rung\":\"userland\"}'");
+        let podnet = script("podnet", "echo '{\"seccomp\":{\"level\":\"advisory\"},\"netns\":{\"level\":\"none\"}}'");
+        let unit = UnitId::parse("u-999999999").unwrap();
+        let plain = PodvmUnit::new(crate::Podvm { binary: podvm.clone() }, &d.join("a"), &d).unwrap();
+        assert!(plain.self_test_sockets(&unit).unwrap().is_none());
+        let held =
+            PodvmUnit::new(crate::Podvm { binary: podvm }, &d.join("b"), &d).unwrap().with_podnet(&podnet).unwrap();
+        let s = held.self_test_sockets(&unit).unwrap().expect("a socket directory");
+        let dir = s.dir.clone();
+        assert!(dir.join(EGRESS_SOCKET).exists());
+        assert_eq!(std::fs::metadata(&dir).unwrap().permissions().mode() & 0o777, 0o700);
+        drop(s);
+        assert!(!dir.exists());
+        let _ = std::fs::remove_dir_all(&d);
     }
 }
