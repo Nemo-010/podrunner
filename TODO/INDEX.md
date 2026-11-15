@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**205 entries: 2 open, 16 partial, 7 blocked, 180 done.**
+**217 entries: 2 open, 16 partial, 7 blocked, 192 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 0 | 6 | 0 | 41 | 47 |
-| P2 | 1 | 7 | 5 | 76 | 89 |
-| P3 | 1 | 3 | 2 | 63 | 69 |
-| **All** | 2 | 16 | 7 | 180 | 205 |
+| P1 | 0 | 6 | 0 | 42 | 48 |
+| P2 | 1 | 7 | 5 | 80 | 93 |
+| P3 | 1 | 3 | 2 | 70 | 76 |
+| **All** | 2 | 16 | 7 | 192 | 217 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -253,3 +253,15 @@ acceptance, later The crate dependencies later than v1.
 | [T-203](later.md) | P2 | S | later | defect | open | A local checkout with no --checkout fails with a 404 |
 | [T-204](later.md) | P3 | S | later | chore | open | The packages of the image archives and their sources |
 | [T-205](later.md) | P1 | S | later | release | partial | The release attaches the assets of the local mode |
+| [T-206](later.md) | P2 | S | later | defect | done | `--platform` turns off each later check of the flags of `run` |
+| [T-207](later.md) | P3 | S | later | defect | done | The refusal of an executor of `run` does not name the flag that clashes |
+| [T-208](later.md) | P2 | S | later | defect | done | No command has its own help, and a short option of `run` becomes a file |
+| [T-209](later.md) | P3 | S | later | defect | done | `run --validate` says valid for a dangling need and a cycle |
+| [T-210](later.md) | P3 | S | later | defect | done | `--break` takes a job, a step and a step id that the workflow does not have |
+| [T-211](later.md) | P2 | S | later | defect | done | `--local-repository` still opens the relay of the fetch |
+| [T-212](later.md) | P3 | S | later | defect | done | `doctor --run` answers a missing podvm binary with a version of podvm |
+| [T-213](later.md) | P2 | S | later | defect | done | A loopback bind that the host refuses is a raw error, and `doctor --run` does not try it |
+| [T-214](later.md) | P3 | S | later | defect | done | `status`, `drain`, `stop`, `check` and `audit verify` do not name the path that is missing |
+| [T-215](later.md) | P3 | S | later | defect | done | `stop --wait` says stopped for a state directory that does not exist |
+| [T-216](later.md) | P3 | S | later | defect | done | `mint-serve` gives a TOML type error for a file of `serve` |
+| [T-217](later.md) | P1 | S | later | defect | done | The artifact `runner-ARCH.tar` cannot be loaded by the pinned podvm and has no ref name |

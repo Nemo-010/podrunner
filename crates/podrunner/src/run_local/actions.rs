@@ -88,6 +88,19 @@ pub(super) fn pin(
         // Any git server serves `git ls-remote` and a fetch: GitHub
         // Enterprise Server, Gitea, Forgejo (T-139).
         let base = a.action_server.as_deref().map_or(FORGE.to_string(), |s| format!("{}/", s.trim_end_matches('/')));
+        // When `--local-repository` serves each reference of the file, no
+        // forge is asked: the run opens no relay, and a reference that a
+        // local action names comes from the lock and the store (T-211).
+        let local = |u: &String| {
+            u.rsplit_once('@').is_some_and(|(left, r)| {
+                let repo: Vec<&str> = left.splitn(3, '/').take(2).collect();
+                a.local_repos.iter().any(|(k, _)| *k == format!("{}@{r}", repo.join("/")))
+            })
+        };
+        let mode = match uses.iter().chain(&trees).all(local) {
+            true => Mode::Offline,
+            false => mode,
+        };
         // The fetch goes through one egress grant of the forge host only
         // (T-154); `--offline` fetches nothing and opens none.
         let fetch = match mode {

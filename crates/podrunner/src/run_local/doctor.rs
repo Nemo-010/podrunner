@@ -57,6 +57,21 @@ fn free_disk(dir: &Path) -> Result<String, String> {
 }
 
 /// The checks of a run with the options `a`.
+/// The runner reads each directory above its root, up to `/` (T-213).
+fn parents_readable(dir: &Path) -> Result<String, String> {
+    let dir = std::path::absolute(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    for p in dir.ancestors().skip(1) {
+        std::fs::read_dir(p).map_err(|e| {
+            format!(
+                "{}: {e}; fix: the runner reads each directory above its root: give it a read of {}, or put the runner directory where each parent can be read",
+                p.display(),
+                p.display()
+            )
+        })?;
+    }
+    Ok(format!("each directory above {} can be read", dir.display()))
+}
+
 pub(super) fn checks(a: &Args) -> Vec<Check> {
     let mut out =
         vec![check("file-size-limit", file_size_limit()), check("scratch-disk", free_disk(&std::env::temp_dir()))];
@@ -65,6 +80,13 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
         std::fs::read_to_string(&a.file)
             .map_err(|e| format!("{}: {e}", a.file.display()))
             .and_then(|t| pod_actions_workflow::parse(&t).map(|_| "it parses".to_string()).map_err(|e| e.to_string())),
+    ));
+    // Each job needs a fake broker on the loopback (T-213).
+    out.push(check(
+        "loopback",
+        std::net::TcpListener::bind("127.0.0.1:0")
+            .map(|_| "a bind of 127.0.0.1:0 holds".to_string())
+            .map_err(|e| format!("bind 127.0.0.1:0: {e}; fix: allow a bind of the loopback on this host")),
     ));
     let lock = a.file.parent().unwrap_or(Path::new(".")).join(podrunner_local::lock::LOCK_FILE);
     out.push(check(
@@ -78,6 +100,7 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
         },
     ));
     if let Some(dir) = &a.runner_dir {
+        out.push(check("runner-dir-parents", parents_readable(dir)));
         let ok = dir.join("run.sh").is_file() && dir.join("bin/Runner.Listener").is_file();
         out.push(check(
             "runner-dir",
@@ -88,20 +111,29 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
             },
         ));
     }
-    let (binary, lowest) = match (&a.podvm, &a.guest) {
-        (Some(b), _) => (Some(b.clone()), LOWEST),
-        (None, Some((true, b))) => (Some(b.clone()), if a.engine.is_some() { LOWEST_ENGINE } else { LOWEST_GUEST }),
-        (None, Some((false, b))) => (Some(b.clone()), LOWEST_INCUS),
-        _ => (None, LOWEST),
+    let (binary, lowest, flag) = match (&a.podvm, &a.guest) {
+        (Some(b), _) => (Some(b.clone()), LOWEST, "--podvm"),
+        (None, Some((true, b))) => {
+            (Some(b.clone()), if a.engine.is_some() { LOWEST_ENGINE } else { LOWEST_GUEST }, "--microvm")
+        }
+        (None, Some((false, b))) => (Some(b.clone()), LOWEST_INCUS, "--incus"),
+        _ => (None, LOWEST, ""),
     };
     if let Some(b) = binary {
         let podvm = Podvm { binary: b.clone() };
+        // Only a podvm that answers with a low version needs another
+        // version; a wrong path needs another path (T-212).
+        let fix = |e: podrunner_unit::UnitError| match (b.is_file(), e.code) {
+            (false, _) => format!("{flag} {}: not a file; fix: give the path of a podvm binary", b.display()),
+            (true, podrunner_unit::UnitCode::Unsupported) => format!("{e}; fix: take podvm {lowest} or later"),
+            (true, _) => format!(
+                "{flag} {}: {e}; fix: give the path of a podvm binary (`podvm probe --json` must answer)",
+                b.display()
+            ),
+        };
         out.push(check(
             "podvm",
-            podvm
-                .require(lowest)
-                .map(|v| format!("{} is {v} ({lowest} or later)", b.display()))
-                .map_err(|e| format!("{e}; fix: take podvm {lowest} or later")),
+            podvm.require(lowest).map(|v| format!("{} is {v} ({lowest} or later)", b.display())).map_err(fix),
         ));
         if let Some(store) = &a.images {
             out.push(check(

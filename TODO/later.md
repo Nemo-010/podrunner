@@ -2767,3 +2767,351 @@ A `runner-image.yml` run of the commit uploads `runner-ARCH` and `runner-full-AR
 ```sh
 sh podrunner-install.sh && podrunner run "$HOME/.local/share/podrunner/hello.yml"
 ```
+
+# T-206: `--platform` turns off each later check of the flags of `run`
+
+**Source:** GitHub #155 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`parse` of `run` returned after the checks of `--platform`, before the checks of `--jobs`, `--toolcache`, `--export`, `--environment-allow`, `--allow`, `--podnet` and `--engine`. One `--platform` let each of these combinations run.
+
+## Premise
+
+The report of GitHub #155, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+The checks of each flag run whatever `--platform` holds; `--platform` keeps its own two checks.
+
+## Prove
+
+`cargo test -p podrunner --lib a_platform_keeps_each_check_of_the_flags`: each combination is refused with and with no `--platform`.
+
+## Done
+
+2026-11-15: `crates/podrunner/src/run_local/args.rs`: the `--platform` branch returns only after the checks of the flags. `flags_tests::a_platform_keeps_each_check_of_the_flags`.
+
+# T-207: The refusal of an executor of `run` does not name the flag that clashes
+
+**Source:** GitHub #157 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`--runner-dir` with `--image`, `--images` or a unit kind got "one of --runner-dir DIR, or a unit kind ... is necessary", which denies a flag on the command line and names no flag that clashes.
+
+## Premise
+
+The report of GitHub #157, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+Each case has its own text: two executors, `--images` or `--image` with no kind, a kind with no `--images` or no `--image`, and no executor.
+
+## Prove
+
+`cargo test -p podrunner --lib the_refusal_of_an_executor_names_its_flag`.
+
+## Done
+
+2026-11-15: `args.rs` names the flag of each case (`--runner-dir and --podvm are two executors: give one, or map labels to each with --platform`). `flags_tests::the_refusal_of_an_executor_names_its_flag`.
+
+# T-208: No command has its own help, and a short option of `run` becomes a file
+
+**Source:** GitHub #158 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`run --help` was an unknown option, `doctor --help` needed a value, `version` and `help` were unknown commands, and `run -h` or `run -x` became the workflow file.
+
+## Premise
+
+The report of GitHub #158, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+`podrunner help [COMMAND]`, `COMMAND --help` and `COMMAND -h` print the usage of the command (for `run`, `run_local::USAGE`) at exit 0; `version` prints the version; a short option that `run` does not have is an unknown option.
+
+## Prove
+
+`cargo test -p podrunner --lib each_command_has_its_help` and `the_refusal_of_an_executor_names_its_flag` (the short option).
+
+## Done
+
+2026-11-15: `crates/podrunner/src/help.rs`; `cli.rs` asks it first; `args.rs` refuses an unknown short option. `USAGE` names `version` and `help`.
+
+# T-209: `run --validate` says valid for a dangling need and a cycle
+
+**Source:** GitHub #159 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`--validate` read the file and its warnings only; `--graph` and `--dry-run` refused a need that is not a job and a cycle of needs.
+
+## Premise
+
+The report of GitHub #159, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+`--validate` builds the graph of the needs, as a plan does, and refuses with the same text.
+
+## Prove
+
+`cargo test -p podrunner --lib validate_refuses_a_dangling_need_and_a_cycle`.
+
+## Done
+
+2026-11-15: `inspect::answer` (`crates/podrunner/src/run_local/inspect.rs`) checks the graph for `--validate`; `run_local.rs` gives it `--validate`, `--list` and `--graph`.
+
+# T-210: `--break` takes a job, a step and a step id that the workflow does not have
+
+**Source:** GitHub #160 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`--break JOB:STEP` checked the form only: a job that is not in the file, a step past the last one, or an id of no step planned a run whose pause never came.
+
+## Premise
+
+The report of GitHub #160, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+Check each `--break` against the parsed workflow before the run, in the words of `--job`.
+
+## Prove
+
+`cargo test -p podrunner --lib a_break_names_a_job_and_a_step_of_the_file`.
+
+## Done
+
+2026-11-15: `pause::check` (`crates/podrunner/src/run_local/pause.rs`): the job of the file and a step by number or by id; usage exit 64 with the file, the jobs or the steps.
+
+# T-211: `--local-repository` still opens the relay of the fetch
+
+**Source:** GitHub #161 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+A workflow whose every reference `--local-repository` serves still opened the egress grant and the relay of the fetch; on a host that denies a loopback bind the run stopped before the local action was read.
+
+## Premise
+
+The report of GitHub #161, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+The call of 2026-11-15 (`docs/decisions.md`): when `--local-repository` serves each reference of the file, the run asks no forge and opens no relay; a reference that a local action names comes from the lock and the store, as with `--offline`.
+
+## Prove
+
+`cargo test -p podrunner --lib a_local_repository_opens_no_relay`: a forge with no host (`--action-server http://`) fails the old code, and the run plans now.
+
+## Done
+
+2026-11-15: `crates/podrunner/src/run_local/actions.rs`: the mode is `Offline` when each reference is local. `flags_tests::a_local_repository_opens_no_relay`.
+
+# T-212: `doctor --run` answers a missing podvm binary with a version of podvm
+
+**Source:** GitHub #156 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+Each failure of the probe became "take podvm VERSION or later", also for a path that is not a file or a binary that is not podvm, and `--incus` was named `podvm`.
+
+## Premise
+
+The report of GitHub #156, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+Only a podvm that answers with a low version gets the version fix; a path that is not a file, or a binary that does not answer, gets a path fix that names its flag.
+
+## Prove
+
+`cargo test -p podrunner --lib doctor_names_a_missing_podvm_as_a_path`.
+
+## Done
+
+2026-11-15: `crates/podrunner/src/run_local/doctor.rs`: the fix by the code of the error and by the file; the text names `--podvm`, `--microvm` or `--incus`.
+
+# T-213: A loopback bind that the host refuses is a raw error, and `doctor --run` does not try it
+
+**Source:** GitHub #162 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+A run failed with `the fake broker: Permission denied (os error 13)` and `--web` the same, with no address and no fix. `doctor --run` did not try the bind, nor the read of each directory above the runner directory that the runner needs.
+
+## Premise
+
+The report of GitHub #162, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+The errors name the bind of `127.0.0.1:0` and the fix; `doctor --run` binds `127.0.0.1:0` (`loopback`) and reads each directory above the runner directory (`runner-dir-parents`).
+
+## Prove
+
+`cargo test -p podrunner --lib doctor_names_a_missing_podvm_as_a_path` (the `loopback` check is in the output).
+
+## Done
+
+2026-11-15: `podrunner_local::exec::broker_error`; `web.rs`; the two checks of `doctor.rs`.
+
+# T-214: `status`, `drain`, `stop`, `check` and `audit verify` do not name the path that is missing
+
+**Source:** GitHub #163 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+A missing state directory, a directory with no socket and a missing socket gave one line, `the control socket: entity not found`; `check` and `audit verify` named no file.
+
+## Premise
+
+The report of GitHub #163, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+Name the path: `--state DIR: not a directory`, `the control socket PATH: ...`, `the configuration PATH: ...`, `the audit file PATH: ...`. The class stays.
+
+## Prove
+
+`cargo test -p podrunner --lib each_failure_names_its_path`.
+
+## Done
+
+2026-11-15: `verbs::no_socket` (`crates/podrunner/src/verbs.rs`); the configuration in `serve.rs`, `mint_serve.rs`, `doctor.rs` and `pin-sign`; the audit file in `audit_verify`. `stop_wait`, `audit_verify` and `human` moved from `cli.rs` to `verbs.rs`.
+
+# T-215: `stop --wait` says stopped for a state directory that does not exist
+
+**Source:** GitHub #164 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`stop --wait --state DIR` ignored the missing socket, read the lock of a directory that does not exist as free, and printed `stopped` at exit 0; `stop` with no `--wait` exits 69.
+
+## Premise
+
+The report of GitHub #164, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+A path that is not a directory is refused before the wait, in the words of `stop`.
+
+## Prove
+
+`cargo test -p podrunner --lib each_failure_names_its_path`.
+
+## Done
+
+2026-11-15: `stop_wait` refuses `--state` that is not a directory, exit 69.
+
+# T-216: `mint-serve` gives a TOML type error for a file of `serve`
+
+**Source:** GitHub #165 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`mint-serve --config` on a file of `serve` failed with a type error at `host`; `check` said "the configuration is usable" and did not say which form it read.
+
+## Premise
+
+The report of GitHub #165, read on 2026-11-15, and the code of `main` at `e9b0cff`.
+
+## Approach
+
+`mint-serve` says that a file with no `cert_file` is not a mint configuration; `check` names the form that it read.
+
+## Prove
+
+`cargo test -p podrunner --lib each_failure_names_its_path`.
+
+## Done
+
+2026-11-15: `mint_serve::check` refuses a file with no `cert_file` by name; `check_any` says `(a file of serve)` or `(a file of mint-serve)`.
+
+# T-217: The artifact `runner-ARCH.tar` cannot be loaded by the pinned podvm and has no ref name
+
+**Source:** GitHub #166 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`runner-image.yml` uploaded `runner-ARCH.tar` as `docker buildx --output type=oci` writes it: with the directory entries `blobs/` and `blobs/sha256/`, which podvm `0.2.0-beta.21` refuses, and with no `org.opencontainers.image.ref.name`. The import step built a good archive (`load.tar`) for its own check only. `runner-full-ARCH.tar` was good.
+
+## Premise
+
+The report of GitHub #166, read on 2026-11-15, and `.github/workflows/runner-image.yml` at `e9b0cff`.
+
+## Approach
+
+Upload the archive that the import step builds: the files of the layout only, with the ref name.
+
+## Prove
+
+`runner-image.yml` loads the artifact itself with `podvm load -i runner-ARCH.tar` before the upload; the installer of T-202 loads the release asset as it is.
+
+## Done
+
+2026-11-15: the change of T-202 (`runner-image.yml`): the import step writes `runner-ARCH.tar` (files only, with the ref name), loads it, and that file is the artifact. It holds from the first run of `runner-image.yml` on the merge; the archives of run 43704601731 keep the defect. Whether podvm should take the directory entries of a layout belongs to podvm; podrunner needs no change of podvm.

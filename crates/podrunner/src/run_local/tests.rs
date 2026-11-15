@@ -53,7 +53,8 @@ fn the_options_of_run() {
         &["w.yml", "--podvm", "/p", "--images", "/s"],
         &["w.yml", "--runner-dir", "/r", "--podvm", "/p", "--images", "/s", "--image", "r@sha256:00"],
     ] {
-        assert!(parse(&args(bad)).unwrap_err().contains("--runner-dir"), "{bad:?}");
+        // The text of each case: `flags_tests::the_refusal_of_an_executor_names_its_flag`.
+        assert!(parse(&args(bad)).is_err(), "{bad:?}");
     }
     for bad in [
         &["--runner-dir"][..],

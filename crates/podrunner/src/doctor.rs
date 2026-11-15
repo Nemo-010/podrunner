@@ -131,7 +131,7 @@ fn report_with(config: Option<&Path>, host: Value) -> Result<Value, Failure> {
     let mut hold = Value::Null;
     if let Some(path) = config {
         let text = std::fs::read_to_string(path)
-            .map_err(|e| fail(Class::Config, format!("the configuration: {}", e.kind())))?;
+            .map_err(|e| fail(Class::Config, format!("the configuration {}: {}", path.display(), e.kind())))?;
         let cfg = Config::parse(&text).map_err(|e| fail(Class::Config, e))?;
         let mut caps = Vec::new();
         for (name, u) in &cfg.unit {

@@ -239,7 +239,7 @@ impl Executor for InUnit {
     fn run(&mut self, job: &JobId, message: Job, limit: Duration) -> Result<End, String> {
         use podrunner_schema::{Credential, CredentialFile, Secret, UnitId};
         let broker = if self.guest { Broker::start_seen_at(crate::front::BROKER) } else { Broker::start() };
-        let broker = broker.map_err(|e| format!("the fake broker: {e}"))?;
+        let broker = broker.map_err(broker_error)?;
         if let Some(dir) = &self.actions {
             broker.serve_actions(dir, self.pins.clone());
         }
@@ -451,6 +451,11 @@ impl Executor for InUnit {
 
 /// The job needs the container hooks of a unit: `container:`, `services:`
 /// or a Docker action (T-093).
+/// A fake broker that did not start: the address and the fix (T-213).
+pub fn broker_error(e: std::io::Error) -> String {
+    format!("the fake broker: bind 127.0.0.1:0: {e}; fix: allow a bind of the loopback on this host")
+}
+
 pub fn needs_containers(message: &Job) -> bool {
     let o = &message.overrides;
     let docker = o

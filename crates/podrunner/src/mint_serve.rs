@@ -107,18 +107,29 @@ pub fn is_mint_file(text: &str) -> bool {
 pub fn check_any(path: &Path) -> Result<&'static str, Failure> {
     if is_mint_file(&std::fs::read_to_string(path).unwrap_or_default()) {
         check(path)?;
-        return Ok("the mint configuration is usable\n");
+        return Ok("the mint configuration is usable (a file of mint-serve)\n");
     }
     crate::serve::check(path)?;
-    Ok("the configuration is usable\n")
+    Ok("the configuration is usable (a file of serve)\n")
 }
 
 /// Check a mint file as `mint-serve` reads it, and start nothing: the keys,
 /// the source (its key file and its program), and the certificate and the
 /// key of the mint (T-171).
 pub fn check(config: &Path) -> Result<MintConfig, Failure> {
-    let text =
-        std::fs::read_to_string(config).map_err(|e| fail(Class::Config, format!("the configuration: {}", e.kind())))?;
+    let text = std::fs::read_to_string(config)
+        .map_err(|e| fail(Class::Config, format!("the configuration {}: {}", config.display(), e.kind())))?;
+    // A file of serve is not a file of the mint: say so, not a type error
+    // at one of its keys (T-216).
+    if text.parse::<toml::Table>().is_ok() && !is_mint_file(&text) {
+        return Err(fail(
+            Class::Config,
+            format!(
+                "{} is not a mint configuration: it has no cert_file (`podrunner check` reads a file of serve)",
+                config.display()
+            ),
+        ));
+    }
     let c = MintConfig::parse(&text).map_err(|e| fail(Class::Config, e))?;
     source_of(&c.source, Arc::new(SystemClock::default()), None)?;
     private_file("the key file of the mint", &c.key_file)?;

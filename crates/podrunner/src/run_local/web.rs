@@ -128,7 +128,8 @@ fn serve(conn: TcpStream, token: &str, view: &Mutex<View>, artifacts: &ArtifactS
 impl Web {
     /// Bind `addr` and serve the view of a run over `artifacts`.
     pub(super) fn start(addr: SocketAddr, artifacts: Arc<ArtifactStore>) -> Result<Web, String> {
-        let listener = TcpListener::bind(addr).map_err(|e| format!("--web {addr}: {e}"))?;
+        let listener = TcpListener::bind(addr)
+            .map_err(|e| format!("--web {addr}: bind: {e}; fix: allow a bind of the loopback on this host"))?;
         let local = listener.local_addr().map_err(|e| format!("--web: {e}"))?;
         let token = token()?;
         let url = format!("http://{local}/{token}/");

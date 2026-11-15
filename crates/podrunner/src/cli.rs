@@ -5,10 +5,10 @@
 use std::path::{Path, PathBuf};
 
 use pod_core::failure::Class;
-use serde_json::Value;
 
 use crate::control::{self, Reply, Request};
 use crate::text::display;
+use crate::verbs::{audit_verify, human, stop_wait};
 
 /// The version line: the version of the crate and the commit of the tree.
 pub fn version() -> String {
@@ -41,7 +41,8 @@ pub const USAGE: &str = "usage: podrunner COMMAND [OPTION...]
       [--secret NAME]... [--secret-file FILE] [--github-token-env NAME]
       [--checkout DIR] [--event NAME] [--var NAME=VALUE]... [--input NAME=VALUE]...
                                                     run the jobs of a workflow, here or in podvm units
-  --version | --help
+  version | --version                               the version
+  help [COMMAND] | COMMAND --help | --help          this text, or the options of one command
 ";
 
 /// The result of a command: the exit code, stdout, stderr.
@@ -51,23 +52,23 @@ pub struct Out {
     pub stderr: String,
 }
 
-fn ok(stdout: String) -> Out {
+pub(crate) fn ok(stdout: String) -> Out {
     Out { code: 0, stdout, stderr: String::new() }
 }
 
-fn err(class: Class, msg: impl Into<String>) -> Out {
+pub(crate) fn err(class: Class, msg: impl Into<String>) -> Out {
     Out { code: class.exit_code(), stdout: String::new(), stderr: format!("podrunner: {}\n", msg.into()) }
 }
 
 /// The options of a command: `--name VALUE` pairs and `--flag` words.
-struct Opts {
-    values: Vec<(String, String)>,
-    flags: Vec<String>,
+pub(crate) struct Opts {
+    pub(crate) values: Vec<(String, String)>,
+    pub(crate) flags: Vec<String>,
 }
 
 const FLAGS: [&str; 2] = ["--json", "--wait"];
 
-fn opts(args: &[String]) -> Result<Opts, Out> {
+pub(crate) fn opts(args: &[String]) -> Result<Opts, Out> {
     let mut o = Opts { values: Vec::new(), flags: Vec::new() };
     let mut it = args.iter();
     while let Some(a) = it.next() {
@@ -84,22 +85,22 @@ fn opts(args: &[String]) -> Result<Opts, Out> {
 }
 
 impl Opts {
-    fn get(&self, name: &str) -> Option<PathBuf> {
+    pub(crate) fn get(&self, name: &str) -> Option<PathBuf> {
         self.values.iter().find(|(k, _)| k == name).map(|(_, v)| PathBuf::from(v))
     }
 
-    fn need(&self, name: &str) -> Result<PathBuf, Out> {
+    pub(crate) fn need(&self, name: &str) -> Result<PathBuf, Out> {
         self.get(name).ok_or_else(|| err(Class::Usage, format!("{name} is necessary\n{USAGE}")))
     }
 
-    fn only(&self, allowed: &[&str]) -> Result<(), Out> {
+    pub(crate) fn only(&self, allowed: &[&str]) -> Result<(), Out> {
         match self.values.iter().find(|(k, _)| !allowed.contains(&k.as_str())) {
             Some((k, _)) => Err(err(Class::Usage, format!("an unknown option {}\n{USAGE}", display(k)))),
             None => Ok(()),
         }
     }
 
-    fn socket(&self) -> Result<PathBuf, Out> {
+    pub(crate) fn socket(&self) -> Result<PathBuf, Out> {
         match (self.get("--socket"), self.get("--state")) {
             (Some(s), _) => Ok(s),
             (None, Some(d)) => Ok(crate::serve::socket_of(&d)),
@@ -117,6 +118,9 @@ pub fn run(args: &[String]) -> Out {
 
 fn run_inner(args: &[String]) -> Result<Out, Out> {
     let Some((cmd, rest)) = args.split_first() else { return Err(err(Class::Usage, USAGE)) };
+    if let Some(o) = crate::help::answer(cmd, rest) {
+        return Ok(o);
+    }
     match cmd.as_str() {
         "--version" | "-V" => Ok(ok(version())),
         "--help" | "-h" => Ok(ok(USAGE.into())),
@@ -146,8 +150,7 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
                 "stop" => Request::Stop,
                 _ => Request::ClearDegraded,
             };
-            let reply = control::call(&o.socket()?, &req)
-                .map_err(|e| err(Class::Unavailable, format!("the control socket: {}", e.kind())))?;
+            let reply = control::call(&o.socket()?, &req).map_err(|e| crate::verbs::no_socket(&o, e))?;
             match reply {
                 Reply::Ok { value } if req == Request::Status && !o.flags.contains(&"--json".into()) => {
                     Ok(ok(human(&value)))
@@ -222,8 +225,9 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
         "pin-sign" => {
             let o = opts(rest)?;
             o.only(&["--config", "--seed-file"])?;
-            let text = std::fs::read_to_string(o.need("--config")?)
-                .map_err(|e| err(Class::Config, format!("the configuration: {}", e.kind())))?;
+            let config = o.need("--config")?;
+            let text = std::fs::read_to_string(&config)
+                .map_err(|e| err(Class::Config, format!("the configuration {}: {}", config.display(), e.kind())))?;
             let pins = podrunner_slots::pins::of_file(&text).map_err(|e| err(Class::Config, e))?;
             let seed = podrunner_slots::pins::read_seed(&o.need("--seed-file")?).map_err(|e| err(Class::Config, e))?;
             let (signer, signature) = podrunner_slots::pins::sign(&pins, &seed);
@@ -231,103 +235,6 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
         }
         other => Err(err(Class::Usage, format!("an unknown command {:?}\n{USAGE}", display(other)))),
     }
-}
-
-/// `stop --wait`: ask for the stop, then wait until no `serve` holds the
-/// lock of the state directory (GitHub #54). A timeout is exit 75.
-fn stop_wait(rest: &[String]) -> Result<Out, Out> {
-    let o = opts(rest)?;
-    o.only(&["--state", "--timeout"])?;
-    let state = o.get("--state").ok_or_else(|| err(Class::Usage, format!("stop --wait needs --state\n{USAGE}")))?;
-    let timeout = match o.get("--timeout") {
-        None => None,
-        Some(t) => Some(std::time::Duration::from_secs(
-            t.to_str()
-                .and_then(|t| t.parse::<u64>().ok())
-                .ok_or_else(|| err(Class::Usage, "--timeout needs a number of seconds"))?,
-        )),
-    };
-    match control::call(&crate::serve::socket_of(&state), &Request::Stop) {
-        Ok(Reply::Ok { .. }) => {}
-        Ok(Reply::Error { code, detail }) => {
-            return Err(err(Class::Refused, format!("{}: {}", display(&code), display(&detail))));
-        }
-        // No socket: serve may be gone already; the lock says.
-        Err(_) => {}
-    }
-    let started = std::time::Instant::now();
-    loop {
-        match crate::lock::is_free(&state) {
-            Ok(true) => return Ok(ok("stopped\n".into())),
-            Ok(false) => {}
-            Err(e) => return Err(err(Class::Unavailable, format!("the lock of the state directory: {}", e.kind()))),
-        }
-        if timeout.is_some_and(|t| started.elapsed() >= t) {
-            return Err(err(Class::Timeout, "serve did not end in time: a job is not final"));
-        }
-        std::thread::sleep(std::time::Duration::from_millis(100));
-    }
-}
-
-/// `audit verify`: walk the chain of an audit file (GitHub #59). A break
-/// is exit 76; the anchor is `SEQ:HASH` from the copy at the source.
-fn audit_verify(rest: &[String]) -> Result<Out, Out> {
-    let o = opts(rest)?;
-    o.only(&["--state", "--file", "--anchor"])?;
-    let file = match (o.get("--file"), o.get("--state")) {
-        (Some(f), _) => f,
-        (None, Some(d)) => d.join("audit.jsonl"),
-        (None, None) => return Err(err(Class::Usage, format!("--state or --file is necessary\n{USAGE}"))),
-    };
-    let anchor = o.get("--anchor").map(|a| a.display().to_string());
-    let anchor = match anchor.as_deref().map(|a| a.split_once(':')) {
-        None => None,
-        Some(Some((seq, hash))) if seq.parse::<u64>().is_ok() && hash.len() == 64 => {
-            Some((seq.parse::<u64>().expect("a number"), hash.to_string()))
-        }
-        Some(_) => return Err(err(Class::Usage, "--anchor is SEQ:HASH, the hash in 64 hex digits")),
-    };
-    let text = std::fs::read(&file).map_err(|e| err(Class::NotFound, format!("the audit file: {}", e.kind())))?;
-    match podrunner_slots::audit::verify(&text, anchor.as_ref().map(|(s, h)| (*s, h.as_str()))) {
-        Ok(seq) => Ok(ok(format!("the chain holds: {seq} lines\n"))),
-        Err(why) => Err(err(Class::Protocol, why)),
-    }
-}
-
-/// The status for a person. Each value from a file or a forge goes through
-/// `display`.
-fn human(v: &Value) -> String {
-    let s = |v: &Value| display(&v.as_str().map(str::to_string).unwrap_or_else(|| v.to_string()));
-    let mut out = format!("host {}  draining {}  degraded {}\n", s(&v["host"]), v["draining"], s(&v["degraded"]));
-    if v["no_tier_served"] == Value::Bool(true) {
-        out.push_str("no-tier-served: no unit kind meets the floor of a source\n");
-    }
-    for src in v["sources"].as_array().into_iter().flatten() {
-        out.push_str(&format!(
-            "source {} tier {} arch {}  jobs {}  refused {}\n",
-            s(&src["name"]),
-            s(&src["tier"]),
-            s(&src["arch"]),
-            src["jobs"],
-            src["refused"]
-        ));
-    }
-    for k in v["kinds"].as_array().into_iter().flatten() {
-        let p = &k["probe"];
-        out.push_str(&format!(
-            "kind {} slots {} busy {}  boundary {} principal {} hold {}\n",
-            s(&k["name"]),
-            k["slots"],
-            k["busy"],
-            s(&p["boundary"]),
-            s(&p["principal"]),
-            s(&p["egress_hold"])
-        ));
-    }
-    for p in v["pins"].as_array().into_iter().flatten() {
-        out.push_str(&format!("pin {} {} age {} s\n", s(&p["arch"]), s(&p["reference"]), p["age_s"]));
-    }
-    out
 }
 
 /// A systemd unit for `serve`. It names paths only: no token, no key.

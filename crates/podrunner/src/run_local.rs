@@ -168,28 +168,7 @@ pub fn run(args: &[String]) -> Out {
         Err(e) => return fail(Class::Unavailable, format!("{}: {e}", a.file.display())),
     };
     if a.validate || a.list || a.graph {
-        return match pod_actions_workflow::parse(&text) {
-            Err(e) => fail(Class::Config, format!("{}: {e}", a.file.display())),
-            Ok(p) => {
-                let mut stdout = String::new();
-                if a.validate {
-                    for w in &p.warnings {
-                        stdout.push_str(&format!("warning: {w}\n"));
-                    }
-                    stdout.push_str(&format!("valid: {}\n", a.file.display()));
-                }
-                if a.list {
-                    stdout.push_str(&inspect::list(&p.workflow));
-                }
-                if a.graph {
-                    match inspect::graph(&p.workflow) {
-                        Ok(g) => stdout.push_str(&g),
-                        Err(e) => return fail(Class::Config, format!("{}: {e}", a.file.display())),
-                    }
-                }
-                Out { code: 0, stdout, stderr: String::new() }
-            }
-        };
+        return inspect::answer(&a, &text);
     }
     // The files of vars, inputs and env, then the flags over them (T-126).
     let (vars, inputs, env) = match files(&a) {
@@ -198,6 +177,11 @@ pub fn run(args: &[String]) -> Out {
     };
     let mut facts = context::facts(&a);
     let parsed = pod_actions_workflow::parse(&text).ok();
+    if let Some(p) = &parsed
+        && let Err(e) = pause::check(&a.breaks, &p.workflow)
+    {
+        return fail(Class::Usage, format!("{}: {e}", a.file.display()));
+    }
     // A workflow whose `on:` does not take the event after its filters does
     // not run on GitHub (T-125); --force-event runs it.
     if !a.force_event
@@ -494,5 +478,7 @@ pub fn run(args: &[String]) -> Out {
     web::hold(web.as_ref(), out)
 }
 
+#[cfg(test)]
+mod flags_tests;
 #[cfg(test)]
 mod tests;

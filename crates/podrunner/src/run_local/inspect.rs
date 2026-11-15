@@ -62,6 +62,36 @@ pub(super) fn graph(w: &Workflow) -> Result<String, String> {
     Ok(out)
 }
 
+/// `--validate`, `--list` and `--graph` of one file. `--validate` checks the
+/// needs as a plan reads them: a need that is not a job, or a cycle (T-209).
+pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
+    let fail = |e: String| super::fail(super::Class::Config, format!("{}: {e}", a.file.display()));
+    let p = match pod_actions_workflow::parse(text) {
+        Ok(p) => p,
+        Err(e) => return fail(e.to_string()),
+    };
+    let mut stdout = String::new();
+    if a.validate {
+        if let Err(e) = Graph::new(&p.workflow) {
+            return fail(e.to_string());
+        }
+        for w in &p.warnings {
+            stdout.push_str(&format!("warning: {w}\n"));
+        }
+        stdout.push_str(&format!("valid: {}\n", a.file.display()));
+    }
+    if a.list {
+        stdout.push_str(&list(&p.workflow));
+    }
+    if a.graph {
+        match graph(&p.workflow) {
+            Ok(g) => stdout.push_str(&g),
+            Err(e) => return fail(e),
+        }
+    }
+    super::Out { code: 0, stdout, stderr: String::new() }
+}
+
 /// The executor of a dry run: each job message is built, and no unit runs.
 pub(super) struct DryRun;
 

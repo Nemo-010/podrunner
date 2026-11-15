@@ -223,7 +223,8 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
             "--actor" => a.actor = Some(value()?),
             "--var" => a.vars.push(pair(&value()?)?),
             "--input" => a.inputs.push(pair(&value()?)?),
-            o if o.starts_with("--") => return Err(format!("an unknown option {o:?}")),
+            // A short option that run does not have is not a file (T-208).
+            o if o.starts_with('-') && o.len() > 1 => return Err(format!("an unknown option {o:?}")),
             f if file.is_none() => file = Some(PathBuf::from(f)),
             f => return Err(format!("a second file {f:?}")),
         }
@@ -252,6 +253,12 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     if a.list || a.graph || a.validate || (a.dry_run && a.runner_dir.is_none() && !kind) {
         return Ok(a);
     }
+    let kind_flag = match &a.guest {
+        Some((true, _)) => "--microvm",
+        Some((false, _)) => "--incus",
+        None => "--podvm",
+    };
+    // --platform maps labels: it does not turn off the checks below (T-206).
     if !a.platforms.is_empty() {
         let host = a.platforms.iter().any(|(_, t)| t == "host");
         let images = a.platforms.iter().any(|(_, t)| t != "host");
@@ -261,12 +268,7 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
         if images && (!kind || a.images.is_none()) {
             return Err("--platform LABEL=IMAGE needs a unit kind (--podvm, --microvm, --incus) and --images".into());
         }
-        if a.image.is_some() && !kind {
-            return Err("--image needs a unit kind".into());
-        }
-        return Ok(a);
     }
-    let unit = [kind, a.images.is_some(), a.image.is_some()];
     // One runner directory runs one job at a time.
     if a.parallel > 1 && (a.runner_dir.is_some() || !kind) {
         return Err("--jobs N needs a unit kind (--podvm, --microvm, --incus) and no --runner-dir".into());
@@ -296,8 +298,26 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     if a.engine.is_some() && !matches!(a.guest, Some((true, _))) {
         return Err("--engine needs --microvm".into());
     }
-    match (a.runner_dir.is_some(), unit) {
-        (true, [false, false, false]) | (false, [true, true, true]) => Ok(a),
-        _ => Err("one of --runner-dir DIR, or a unit kind (--podvm, --microvm, --incus) with --images and --image, is necessary".into()),
+    // The executor: name the flag that is missing or that clashes (T-207).
+    let store = a.images.is_some();
+    if kind && !store {
+        return Err(format!("{kind_flag} needs --images STORE"));
+    }
+    if (store || a.image.is_some()) && !kind {
+        return Err("--images and --image need a unit kind (--podvm, --microvm, --incus)".into());
+    }
+    if !a.platforms.is_empty() {
+        return Ok(a);
+    }
+    match (a.runner_dir.is_some(), kind, a.image.is_some()) {
+        (true, true, _) => Err(format!(
+            "--runner-dir and {kind_flag} are two executors: give one, or map labels to each with --platform"
+        )),
+        (true, false, _) | (false, true, true) => Ok(a),
+        (false, true, false) => Err(format!("{kind_flag} needs --image NAME@sha256:HEX")),
+        (false, false, _) => Err(
+            "one of --runner-dir DIR, or a unit kind (--podvm, --microvm, --incus) with --images and --image, is necessary"
+                .into(),
+        ),
     }
 }

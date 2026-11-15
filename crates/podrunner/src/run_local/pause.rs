@@ -41,6 +41,24 @@ pub(super) fn parse(v: &str) -> Result<(String, String), String> {
     }
 }
 
+/// Each `--break` names a job of `w` and a step of that job, by number or
+/// by id, as `--job` names a job (T-210).
+pub(super) fn check(b: &Breaks, w: &pod_actions_workflow::Workflow) -> Result<(), String> {
+    for (job, step) in &b.at {
+        let Some(j) = w.job(job) else {
+            let ids: Vec<&str> = w.jobs.iter().map(|j| j.id.as_str()).collect();
+            return Err(format!("--break {job}:{step}: the workflow has no such job (its jobs: {ids:?})"));
+        };
+        let n = j.steps.len();
+        let by_number = step.parse::<usize>().is_ok_and(|i| (1..=n).contains(&i));
+        if !by_number && !j.steps.iter().any(|s| s.id.as_deref() == Some(step.as_str())) {
+            let ids: Vec<&str> = j.steps.iter().filter_map(|s| s.id.as_deref()).collect();
+            return Err(format!("--break {job}:{step}: the job has no such step (steps 1 to {n}; their ids: {ids:?})"));
+        }
+    }
+    Ok(())
+}
+
 /// The pause step of the cell `cell`, run when `condition` holds.
 fn pause_step(cell: &str, n: usize, condition: &str, what: &str) -> Value {
     let url = format!("${{{{ github.api_url }}}}{}{cell}", hold::PATH.trim_start_matches('/'));

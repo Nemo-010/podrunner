@@ -154,6 +154,18 @@ numbers. `TODO/RULES.md` gives the rules.
 | #152 | COORD-055: podrunner takes podcrates v0.51.0 at 800f6d4 (the answer to PodUtils/podcrates#172) (to podcrates) | open | T-118 |
 | #153 | LIVE-3: a user agent of the local mode: run real workflows with `podrunner run` and report (T-199) | open (waits for the report of a user agent) | T-199 |
 | #154 | [gh action] requested | open (the gate, runner-image and level2 on `2f56267`, then the release of `v0.1.0-beta.7`) | T-162, T-169, T-198, T-200, T-201 |
+| #155 | Local mode 2026-11-15: --platform turns off every later flag check, so nine refusals run and two executors can be given at once | open (fixed on `main`; closes with the next beta) | T-206 |
+| #156 | Local mode 2026-11-15: doctor answers a missing --podvm or --incus binary with a podvm version bump, which cannot fix a wrong path | open (fixed on `main`; closes with the next beta) | T-212 |
+| #157 | Local mode 2026-11-15: "one of --runner-dir DIR, or a unit kind ... is necessary" is printed while --runner-dir is given | open (fixed on `main`; closes with the next beta) | T-207 |
+| #158 | Local mode 2026-11-15: no subcommand has help, `run --help` is an unknown option, and an unhandled short option becomes a file | open (fixed on `main`; closes with the next beta) | T-208 |
+| #159 | Local mode 2026-11-15: --validate says valid for a dangling needs and a needs cycle that --graph and --dry-run refuse | open (fixed on `main`; closes with the next beta) | T-209 |
+| #160 | Local mode 2026-11-15: --break takes a job that the workflow does not have, a step that does not exist, and an id that is not a step | open (fixed on `main`; closes with the next beta) | T-210 |
+| #161 | Local mode 2026-11-15: --local-repository still opens the fetch relay, so a run with no forge fails unless --offline is also given | open (fixed on `main`; closes with the next beta) | T-211 |
+| #162 | Local mode 2026-11-15: a loopback bind failure is a raw os error, and doctor preflights neither the bind nor the read of the hierarchy above the runner directory | open (fixed on `main`; closes with the next beta) | T-213 |
+| #163 | Local mode 2026-11-15: status, drain, stop, check and audit verify do not name the path that is missing | open (fixed on `main`; closes with the next beta) | T-214 |
+| #164 | Local mode 2026-11-15: stop --wait prints stopped and exits 0 for a state directory that does not exist, while stop exits 69 | open (fixed on `main`; closes with the next beta) | T-215 |
+| #165 | Local mode 2026-11-15: mint-serve reports a TOML type error at host for a run configuration, and check calls the same file usable | open (fixed on `main`; closes with the next beta) | T-216 |
+| #166 | Live run 2026-11-15: the published runner-x86_64 artifact cannot be imported by the pinned podvm, and it carries no ref name | open (fixed on `main`; holds from the next runner-image run and beta) | T-217 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

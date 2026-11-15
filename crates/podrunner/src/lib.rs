@@ -5,6 +5,7 @@
 pub mod cli;
 pub mod control;
 pub mod doctor;
+pub mod help;
 pub mod hooks;
 pub mod image;
 pub mod incus_kind;
@@ -21,3 +22,4 @@ pub mod run_local;
 pub mod serve;
 pub mod text;
 pub mod tiers;
+pub mod verbs;
