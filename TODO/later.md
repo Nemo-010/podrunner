@@ -3836,6 +3836,9 @@ The owner, 2026-11-15: the labs are shared crates or scripts, so that each proje
 
 2026-11-15: podcrates and podvm: `pod-lab` (the profiles, `podlab check`, `podlab run`, a step of Actions), COORD-061 (GitHub #180). The scripts of podrunner can go first.
 
+State (2026-11-15): podvm answered on PodUtils/podvm#424 (PodUtils/podvm@T-1916): the machine tier takes the knobs of a profile (`--podvm-lab PROFILE`), and with no KVM and no root podvm holds `inherited-fds`, `small-tmp`, `userns-off`, a seccomp filter of chosen calls (`bind-denied`, `getsockname-denied`) as `podvm lab run PROFILE -- CMD`; `root-unreadable` and `nonroot-nocaps` need a user namespace or a guest. podvm adds `chroot-denied`, `userns-mount-denied`, `cgroup-v1`, `landlock-old`, `proc-masked`, `noexec-tmp` and `wsl2`. podrunner asked for `bind-denied` with `getsockname-denied`, `userns-off`, `small-tmp` with `noexec-tmp`, and `inherited-fds` first (#180). Next: the answer of podcrates (the crate), and `podvm lab run` in a release.
+
+
 # T-245: The command line as a contract
 
 **Source:** the owner, 2026-11-15: "why did podrunner not survive a contact with real users"
