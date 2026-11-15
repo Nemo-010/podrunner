@@ -26,6 +26,16 @@ pub fn on_docker_hub(name: &str) -> bool {
     }
 }
 
+/// `NAME@sha256:HEX` of Docker Hub in the cache of Google
+/// (`mirror.gcr.io`), which serves the same content by the same digest.
+pub fn hub_cache(pinned: &str) -> String {
+    let name = pinned.strip_prefix("docker.io/").or_else(|| pinned.strip_prefix("index.docker.io/")).unwrap_or(pinned);
+    match name.split_once('/') {
+        Some(_) => format!("mirror.gcr.io/{name}"),
+        None => format!("mirror.gcr.io/library/{name}"),
+    }
+}
+
 /// Unpack the OCI layout of `tar` into `dir`; give the digest of its
 /// first manifest (`index.json`).
 fn unpack(tar: &Path, dir: &Path) -> Result<String, String> {
@@ -136,8 +146,13 @@ pub fn fill(
         let _ = std::fs::remove_dir_all(&one.store);
         std::fs::create_dir_all(&one.store).map_err(|e| format!("{}: {e}", one.store.display()))?;
         let tar = dir.join("save.tar");
-        let saved = podvm(&one, &["pull", "-q", "--platform", &one.platform, &pinned])
-            .and_then(|()| podvm(&one, &["save", "-o", &tar.to_string_lossy(), &pinned]));
+        // The cache of Docker Hub first: Docker Hub limits the pulls of a
+        // host with no login (HTTP 429). The digest names the same bytes.
+        let save = |r: &str| {
+            podvm(&one, &["pull", "-q", "--platform", &one.platform, r])
+                .and_then(|()| podvm(&one, &["save", "-o", &tar.to_string_lossy(), r]))
+        };
+        let saved = save(&hub_cache(&pinned)).or_else(|_| save(&pinned));
         let manifest = saved.and_then(|()| unpack(&tar, dir));
         let _ = std::fs::remove_file(&tar);
         let _ = std::fs::remove_dir_all(&one.store);
@@ -149,6 +164,14 @@ pub fn fill(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_image_of_docker_hub_comes_from_its_cache() {
+        let d = format!("@sha256:{}", "a".repeat(64));
+        assert_eq!(hub_cache(&format!("busybox{d}")), format!("mirror.gcr.io/library/busybox{d}"));
+        assert_eq!(hub_cache(&format!("bitnami/redis{d}")), format!("mirror.gcr.io/bitnami/redis{d}"));
+        assert_eq!(hub_cache(&format!("docker.io/library/nginx{d}")), format!("mirror.gcr.io/library/nginx{d}"));
+    }
 
     #[test]
     fn the_names_of_docker_hub() {

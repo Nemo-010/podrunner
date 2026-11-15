@@ -2364,6 +2364,11 @@ State (2026-11-14, later): runner-image runs 43614533662 (`0750948`) and 4361535
 
 State (2026-11-14, later): runner-image run 43621400822 (`dcbc53f`): `podvm save` has no `--platform` (exit 125), although its message names it; the podvm driver failed each unit start with it. The driver has `save` with no platform again. The mirror pulls each image into a private store of one platform and saves it from there. COORD-044 (GitHub #104) asks podvm for `save --platform`. Next: the green run.
 
+
+## Correction
+
+2026-11-15: runner-image runs 43657352190 (`c3b5744`) and 43658370121 (`v0.1.0-beta.5`) failed: Docker Hub refused the pulls of the host and of the guests with HTTP 429 (its limit for a host with no login), and the second pull of the mirror into its private store adds to it. The mirror now pulls each image of Docker Hub through `mirror.gcr.io` (the same digest), and through Docker Hub only when that fails. T-163 removes the second pull.
+
 ## Done
 
 2026-11-14, `94fddee`: runner-image run 43623211536: the step "The images of a guest engine from the store" passes. 04 (`services:`) and 05 (a job container and a Docker step) run in a microvm guest with an engine and no `--allow`: the guest reaches no registry, so the engine took each image from the mirror of the broker. A Dockerfile action still pulls its base image through the egress policy, and another registry than Docker Hub too.
