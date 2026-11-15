@@ -200,6 +200,7 @@ impl Slots {
                 mounts: Vec::new(),
             })
         });
+        let driver = kind.driver.clone();
         match started {
             Ok(()) => {
                 if let Some(j) = self.jobs.get_mut(key) {
@@ -207,8 +208,13 @@ impl Slots {
                 }
                 self.set(key, State::Started, now);
             }
-            Err(_) => {
-                let _ = kind.driver.destroy(&unit);
+            Err(e) => {
+                // The cause for the operator (T-176): the report has the
+                // code only. `give_up` releases the minted runner.
+                let why = format!("start: {:?}: {}", e.code, e.detail);
+                eprintln!("podrunner: {unit}: {why}");
+                self.audit(audit::Kind::Refuse, key.0, &key.1, None, Some(why));
+                let _ = driver.destroy(&unit);
                 self.close_sockets(&unit);
                 self.give_up(key, RefusalCode::UnitStartFailed, now);
             }

@@ -883,7 +883,7 @@ State (2026-11-15): step 2 is in. Measured on the official runner v2.338.2 with 
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -900,6 +900,8 @@ Start (or prepare) the unit before the mint where the driver allows it, and mint
 ## Prove
 
 A test of slots with a driver whose start fails: the source gets `release` of the minted job, and the log of `serve` names the cause.
+
+State (2026-11-15): `give_up` already sends `release` after a failed start, and the sidecar removes the minted runner, so the credential cannot be used again. The cause of the driver now goes to the stderr of `serve` and to the audit (`start: CODE: DETAIL`); `tests::start::a_failed_start_releases_the_job_and_names_the_cause` fails without it. The mint stays before the start: the JIT files are in the unit at its start. Next: the job that stays assigned at GitHub goes back with the mechanism of T-169.
 
 # T-177: `serve` does not pull an image that a digest pins: a `container:` job fails with no cause in the log
 
