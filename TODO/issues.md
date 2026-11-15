@@ -151,6 +151,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #149 | Live run 2026-11-15: on an emulated aarch64 host, start_s (120 s) kills the first unit, and nothing names the deadline | open | T-197 |
 | #150 | [gh action] requested | closed (gate 43704598372, level2 43704604467, runner-image 43704601731 green on `88cc4d7`; release 43708786078 of `v0.1.0-beta.6`) | T-162, T-169, T-198 |
 | #151 | COORD-054: githome and podrunner after the live run: the beta.6 changes and the next pair run (to githome) | open (githome runs the pair on beta.6) | T-162, T-178, T-189, T-190, T-191, T-193, T-198 |
+| #152 | COORD-055: podrunner takes podcrates v0.51.0 at 800f6d4 (the answer to PodUtils/podcrates#172) (to podcrates) | open | T-118 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

@@ -16,7 +16,8 @@ is done.
   official runner v2.338.2 (`images/runner/runner.toml`). Last beta of
   podrunner: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`).
 - The record: `cargo todo check` gives the counts. The last green
-  `runner-image.yml` run is 43663327458 (`c695295`): the podvm suites,
+  `runner-image.yml` run is 43704601731 (`88cc4d7`, the tag
+  `v0.1.0-beta.6`): the podvm suites,
   the held tests, the local suite on each kind, the parity suite in
   guests with an engine, the microvm kind on real guests, and the incus
   suite on real instances.
@@ -115,8 +116,9 @@ is done.
   no count of processes: ...`). Conformance test 26 prints it on purpose.
   Read it at the next real failure.
 - The live gates: GitHub #74 (LIVE-1, the remote mint and the App key)
-  and #75 (LIVE-2, the unit host and the test jobs) name `v0.1.0-beta.5`
-  and the runner-image run 43658370121 of its tag. Read their comments;
+  and #75 (LIVE-2, the unit host and the test jobs) name `v0.1.0-beta.6`
+  and the runner-image run 43704601731 of its tag; the App needs
+  "Actions: read and write" (Q7). Read their comments;
   fix each defect they find.
 - The account of this session starts no GitHub Actions run: neither a
   push nor a dispatch. Ask the local agent with an issue `[gh action]
