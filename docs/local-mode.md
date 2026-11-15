@@ -94,6 +94,8 @@ runner directory in `runner-image.yml`.
 - `services:` and Dockerfile actions need the `microvm` kind with an
   engine (KVM and QEMU, or podvm's own QEMU).
 - A job of another architecture fails by name (T-151).
+- No user has run the local mode on the real workflows of other projects
+  yet. GitHub #153 asks a user agent for that run (T-199).
 
 ## Where podrunner exceeds them
 

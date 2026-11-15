@@ -2605,3 +2605,32 @@ The red corpus was the first full run on this pin: on a push, `level2.yml` runs 
 
 2026-11-15: `LIVE` of `scripts/corpus.py`; `crates/podrunner-broker-fake/corpus/podcrates.json` is the output of the script at podcrates `59bca1f` (the check of `level2.yml` diffs it). The proof of two days is the next runs of `level2.yml` (the schedule takes `all`).
 
+
+# T-199: The local mode is not tried by a user on real workflows
+
+**Source:** the owner (2026-11-15), GitHub #153
+**Category:** chore
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+The live gates of `serve` (#74, #75) found 16 defects that CI did not find. The local mode (`podrunner run`) has CI proof only: the parity suite, the local suite on each kind and the level2 corpus. No user ran it on the real workflows of other projects.
+
+## Premise
+
+A user agent on another machine can run `podrunner run` on public projects with no forge, no App and no token.
+
+## Approach
+
+GitHub #153 (LIVE-3) gives the steps: the host, the binaries of `v0.1.0-beta.6`, the runner images, `doctor --run`, three or more real projects on each executor of the host, the features of `run`, the egress hold, and a comparison with act. Each fault becomes an entry.
+
+## Prove
+
+The report of #153: each step has a result, and each fault has an entry `T-NNN` that is done.
+
+## Blocker
+
+2026-11-15: waits for the report of a user agent on GitHub #153.
