@@ -340,6 +340,10 @@ class Lane:
                 text = job.read_text(errors="replace").splitlines()
                 print(f"---- {job.parent.name}/job.log (the last {min(400, len(text))} lines)")
                 print("\n".join(text[-400:]))
+        if not lines:
+            # A refusal before the first job is on stderr only (T-253).
+            err = (self.out / "logs" / f"{log}.err").read_text(errors="replace").splitlines()
+            lines = [line for line in err if line.startswith("podrunner:")][-2:]
         return ok, f"podrunner run: exit {rc}: " + "; ".join(lines[-5:])
 
     def hello(self, executor: str) -> str:
@@ -398,13 +402,20 @@ class Lane:
     def wants(self, r: dict) -> bool:
         return r["executor"] in self.executors and (r["lanes"] == "*" or self.name in r["lanes"].split(","))
 
+    def token_flags(self) -> list[str]:
+        """The token of the gate for the jobs of the corpus, when the lane has
+        one: the actions of real projects call the API of GitHub, and with no
+        token the shared address of a hosted runner meets its rate limit
+        (T-253). The token reads only the contents of podrunner."""
+        return ["--github-token-env", "PODRUNNER_GATE_TOKEN"] if os.environ.get("PODRUNNER_GATE_TOKEN") else []
+
     def corpus_row(self, r: dict):
         src = self.clone(r["repo"], r["sha"])
         args = [r["workflow"], "--checkout", ".", "--job", r["job"]]
         for kv in [] if r["matrix"] == "-" else r["matrix"].split(";"):
             args += ["--matrix", kv]
         args += [] if r["flags"] == "-" else r["flags"].split()
-        args += self.flags(r["executor"])
+        args += self.flags(r["executor"]) + self.token_flags()
         ok, detail = self.podrunner(args, src, f"{r['id']}-{r['executor']}", r["expect"] == "ok", ROW_TIMEOUT)
         if r["expect"] == "ok":
             if not ok:

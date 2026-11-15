@@ -229,6 +229,10 @@ jobs:
           LAB: ${{ matrix.lab }}
           EXECUTORS: ${{ matrix.executors }}
           PODVM_LAB: ${{ matrix.podvm_lab }}
+          # The jobs of the corpus call the API of GitHub (setup-node, the
+          # releases of tools): the token of this run (contents: read) keeps
+          # them under the rate limit of a shared address (T-253).
+          PODRUNNER_GATE_TOKEN: ${{ github.token }}
         run: |
           set -eu
           # shellcheck disable=SC2086 # LAB is a command with its words.

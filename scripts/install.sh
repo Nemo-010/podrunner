@@ -16,6 +16,10 @@
 # run checks what exists and downloads only what is missing or wrong. A
 # file goes to its place only after its SHA-256 agrees with its pin.
 set -eu
+# The directories and files of the install are not writable by the group
+# or others, whatever the umask of the user: podrunner refuses a binary in a
+# directory that others can write (the user-path gate, T-253).
+umask 022
 
 # BEGIN PINS (scripts/install-pins.py writes this block; do not edit it)
 PODRUNNER_VERSION=""

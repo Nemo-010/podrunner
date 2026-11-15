@@ -73,3 +73,23 @@ fn with_git_the_tree_has_a_git_directory_of_head() {
     let _ = std::fs::remove_dir_all(&scratch);
     let _ = std::fs::remove_dir_all(&plain);
 }
+
+/// T-253: a link comes after the file it names, also when its name sorts
+/// first (`HomebrewFormula` of ripgrep): a tar with the link first fails on
+/// the userland rung of podvm before 0.2.0-beta.24.
+#[test]
+fn a_link_comes_after_the_other_files() {
+    let dir = repo("links");
+    std::os::unix::fs::symlink("z-target", dir.join("a-link")).unwrap();
+    std::fs::write(dir.join("z-target"), "target").unwrap();
+    let out = tarball(&dir, &dir.join(".scratch"), Options::default()).unwrap();
+    let gz = flate2::read::GzDecoder::new(std::fs::File::open(&out).unwrap());
+    let names: Vec<String> = tar::Archive::new(gz)
+        .entries()
+        .unwrap()
+        .map(|e| e.unwrap().path().unwrap().to_string_lossy().into_owned())
+        .collect();
+    let at = |n: &str| names.iter().position(|x| x == n).unwrap_or_else(|| panic!("{n}: {names:?}"));
+    assert!(at("z-target") < at("a-link"), "{names:?}");
+    let _ = std::fs::remove_dir_all(&dir);
+}

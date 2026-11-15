@@ -46,9 +46,11 @@ pub struct Job {
     pub id_token: Option<Map<String, Value>>,
 }
 
-/// The made-up token of `github.token` (T-122): a call with it to a real
-/// forge fails.
-pub const TOKEN: &str = "podrunner-local-made-up-token";
+/// The default of `github.token` (T-122, T-254): empty. A made-up token
+/// made each action that calls the API of a real forge (`setup-node` for its
+/// manifest) fail with "Bad credentials"; with no token, the action reads the
+/// public API with no credential, as it would with no token on GitHub.
+pub const TOKEN: &str = "";
 
 impl Job {
     /// A job of plain scripts, one step for each.

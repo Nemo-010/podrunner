@@ -3807,6 +3807,9 @@ A workflow `user-gate.yml`, on the commit of a release candidate: build the asse
 
 State (2026-11-15, the first draft): `.github/workflows/user-gate.yml` (dispatch; the inputs `images_run` and `version`): `build` and `assets` make the files with `scripts/release-assets.sh`, which `release.yml` now calls too (the binaries, the image archives of the green `runner-image.yml` run of the commit, the installer with its pins, the bundles); `lanes` runs `scripts/user-gate.py lane` as a user with no root on each host class of T-244; `summary` writes one table, check x lane. A lane runs the quick start of `docs/install.md` as it is written (online, from a local HTTP server with the paths of the release), the bundle with no network (`--bundle`, then the block of "The offline bundle", then `--full`), `doctor --run` and `hello.yml` on each executor (`--microvm` in `plain`), and the corpus `scripts/corpus/user-gate.tsv`: ripgrep (rustfmt, docs), click (tests, Python 3.13), express (lint, Node.js 22), rq (lint; valkey-test with `services:` as xfail, T-260, T-124, T-218) at pinned commits, on `--podvm` and `--runner-dir` (rustfmt on `--microvm` too), against the result of github.com. `release.yml` refuses a version with no green `user-gate.yml` run on its commit; the input `no_user_gate` overrides it, and the notes must then say `user-path gate: not run`. Found and fixed in the same work: the job `check` of `release.yml` had no `actions: read` for the runs that it reads; it checked the notes after the push of the tag, so a release with no notes left a tag that never moves; a dry run gave the installer a version (`-dry`) that the binaries did not have. Measured in this sandbox: `sh scripts/test-install.sh` 13 passed (new: the assets from `release-assets.sh`, an install from a local HTTP server, a lane on fake assets with the quick start and the bundle, and a lane with no larger image that fails); a lane with the corpus on fake binaries clones each project at its commit; the real `podrunner` of this commit plans each corpus row on `--runner-dir` with `--dry-run`, and refuses rq-valkey (T-260); actionlint 1.7.7 with shellcheck 0.11.0 passes both workflows. Not run: `user-gate.yml` itself. A run must prove the lab scripts on a hosted runner, the installs and the corpus as the lab user, the expected results on each executor, the KVM step for `--microvm`, the disk room, and the times (the lane has 240 minutes); then the planted defect of the Prove.
 
+State (2026-11-15, the first run): user-gate 43743490768 on `f0fd5f2` (podvm beta.22): in each of the four lanes the install from the bundle and from a mirror, the quick start, `doctor --run` and `hello` on podvm and on a runner directory passed. The corpus failed: the links of tar on podvm (T-232, T-253), the made-up token (T-254), the rate limit of the API (T-253), and express on `--runner-dir` (T-255); `--microvm` refused the binary of the install (T-253). Next: the run on the fixes and podvm beta.24.
+
+
 # T-244: The host lanes of the user-path gate
 
 **Source:** the owner, 2026-11-15: "why did podrunner not survive a contact with real users"
@@ -4089,3 +4092,90 @@ A pinned actionlint (by its SHA-256, as `scripts/shellcheck.sh` pins ShellCheck)
 ## Prove
 
 `sh scripts/agent/check.sh`: a step `actionlint` that fails on a planted fault of a workflow.
+
+# T-253: The faults of the first run of the user-path gate
+
+**Source:** the first run of the user-path gate, user-gate 43743490768 on `f0fd5f2` (2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The first run of the gate passed the install and the quick start in each lane, and failed the corpus: the tar of the checkout had the link `HomebrewFormula` of ripgrep before its target, which podvm `0.2.0-beta.22` refuses (T-232); the installer made its directories writable by the group under the umask of the lab user, so `--microvm` refused its binary; the jobs of the corpus called the API of GitHub with no token and met the rate limit of a shared address; and a run refused before its first job showed an empty detail in the summary.
+
+## Premise
+
+The summary and the logs of the lanes of run 43743490768, read on 2026-11-15.
+
+## Approach
+
+Each symbolic link after the other files in the tarball of a tree (`tree::links_last`), on top of podvm `0.2.0-beta.24`; `umask 022` in the installer; the token of the gate run for the jobs of the corpus (`PODRUNNER_GATE_TOKEN`, contents: read); the last `podrunner:` lines of stderr as the detail of a refusal.
+
+## Prove
+
+`cargo test -p podrunner-local --lib a_link_comes_after_the_other_files`; the next run of `user-gate.yml`.
+
+## Done
+
+2026-11-15: `crates/podrunner-local/src/tree.rs` (`links_last`, also in `localrepo.rs`), `scripts/install.sh` (`umask 022`), `scripts/user-gate.py` (`token_flags`, the detail of a refusal), `scripts/lab/nonroot.sh` and `user-gate.yml` (the token). The proof of the gate is its next run.
+
+# T-254: The made-up `github.token` fails each action that calls the API of a real forge
+
+**Source:** the first run of the user-path gate, user-gate 43743490768 on `f0fd5f2` (2026-11-15): express lint, `setup-node` "Bad credentials"
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The local mode gave each job `github.token = podrunner-local-made-up-token` (T-122). An action that calls the API of GitHub with it (`actions/setup-node` reads its manifest so) gets "Bad credentials" and fails the job, where GitHub gives a real token.
+
+## Premise
+
+The log of the job `lint` of expressjs/express in run 43743490768.
+
+## Approach
+
+`podrunner_broker_fake::message::TOKEN` is empty; the documents say so.
+
+## Decision
+
+The call of 2026-11-15: `github.token` and `secrets.GITHUB_TOKEN` are empty by default. An action with an empty token calls the public API with no credential, as on a host with no token; `--github-token-env NAME` gives a real one. An action that needs a token at all (`actions/github-script`) fails by its own message, as it would with a made-up token.
+
+## Prove
+
+`cargo test -p podrunner-local --lib message::`; the express row of the next run of the gate.
+
+## Done
+
+2026-11-15: `TOKEN` is `""`; `docs/cli.md`, `docs/local-mode.md`.
+
+# T-255: On `--runner-dir`, the tests of express miss headers and hang
+
+**Source:** the first run of the user-path gate, user-gate 43743490768 on `f0fd5f2` (2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The job `test` (Node.js 22) of expressjs/express at `43fca52d` passes on `--podvm` and on GitHub, and on `--runner-dir` its tests of `sendfile` fail ("expected Content-Disposition header field", "expected Accept-Ranges", "NotFoundError") and the run hangs until the timeout of the row.
+
+## Premise
+
+The log `express-node22-runner-dir/test.4/job.log` of the lane `plain` of run 43743490768. Not reproduced here.
+
+## Approach
+
+Run the job on a runner directory here; compare the environment of the job on `--runner-dir` and in a podvm unit (the user, `HOME`, `TMPDIR`, the umask, the proxy variables, the path of the work directory); fix the cause; the corpus row (`scripts/corpus/user-gate.tsv`, an xfail now) back to `ok`.
+
+## Prove
+
+The row `express-node22` on `runner-dir` of the gate passes.

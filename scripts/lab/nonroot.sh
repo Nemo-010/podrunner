@@ -9,4 +9,4 @@ id "$user" >/dev/null 2>&1 || sudo useradd -m -s /bin/sh "$user"
 caps=$(sudo -u "$user" sh -c 'grep CapEff /proc/self/status' | awk '{print $2}')
 [ "$caps" = "0000000000000000" ] || { echo "lab nonroot: $user has CapEff $caps" >&2; exit 70; }
 echo "lab nonroot: as $user, CapEff 0" >&2
-exec sudo -u "$user" --preserve-env=PATH,TMPDIR -- "$@"
+exec sudo -u "$user" --preserve-env=PATH,TMPDIR,PODRUNNER_GATE_TOKEN -- "$@"

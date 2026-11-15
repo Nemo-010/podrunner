@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**253 entries: 20 open, 18 partial, 11 blocked, 204 done.**
+**256 entries: 21 open, 18 partial, 11 blocked, 206 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 8 | 2 | 45 | 57 |
-| P2 | 13 | 7 | 6 | 86 | 112 |
+| P1 | 2 | 8 | 2 | 47 | 59 |
+| P2 | 14 | 7 | 6 | 86 | 113 |
 | P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 20 | 18 | 11 | 204 | 253 |
+| **All** | 21 | 18 | 11 | 206 | 256 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -300,4 +300,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-250](later.md) | P2 | S | later | chore | blocked | The state of each issue comes from the record by a tool |
 | [T-251](later.md) | P1 | S | later | defect | done | The gate and the host of an agent run shellcheck of other versions |
 | [T-252](later.md) | P2 | S | later | chore | open | No workflow is linted before it runs |
+| [T-253](later.md) | P1 | S | later | defect | done | The faults of the first run of the user-path gate |
+| [T-254](later.md) | P1 | S | later | defect | done | The made-up `github.token` fails each action that calls the API of a real forge |
+| [T-255](later.md) | P2 | S | later | defect | open | On `--runner-dir`, the tests of express miss headers and hang |
 | [T-260](later.md) | P2 | S | later | defect | open | An expression in the image of a service or a job container fails the job |

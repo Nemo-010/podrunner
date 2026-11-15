@@ -50,7 +50,7 @@ fn tar_of(repo: &str, dir: &Path) -> Result<Vec<u8>, String> {
     b.follow_symlinks(false);
     match crate::tree::is_git_tree(dir) {
         true => {
-            for f in crate::tree::files(dir)? {
+            for f in crate::tree::links_last(dir, crate::tree::files(dir)?) {
                 b.append_path_with_name(dir.join(&f), Path::new(&top).join(&f)).map_err(fail)?;
             }
         }

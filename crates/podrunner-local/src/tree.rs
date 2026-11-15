@@ -96,6 +96,16 @@ pub fn stamp(dir: &Path) -> u64 {
     h.finish()
 }
 
+/// `files` of `dir` with each symbolic link after the other files: a tar
+/// that has a link before its target fails on some hosts (`utime` through
+/// the link: podvm before 0.2.0-beta.24, T-232, the user-path gate).
+pub fn links_last(dir: &Path, files: Vec<PathBuf>) -> Vec<PathBuf> {
+    let (links, other): (Vec<PathBuf>, Vec<PathBuf>) = files
+        .into_iter()
+        .partition(|f| std::fs::symlink_metadata(dir.join(f)).is_ok_and(|m| m.file_type().is_symlink()));
+    other.into_iter().chain(links).collect()
+}
+
 /// Write the tarball of the tree `dir` into `scratch`; its path.
 pub fn tarball(dir: &Path, scratch: &Path, o: Options) -> Result<PathBuf, String> {
     std::fs::create_dir_all(scratch).map_err(|e| format!("{}: {e}", scratch.display()))?;
@@ -117,7 +127,7 @@ pub fn tarball(dir: &Path, scratch: &Path, o: Options) -> Result<PathBuf, String
             b.append_data(&mut h, path, &mut entry).map_err(fail)?;
         }
     } else {
-        for f in files(dir)? {
+        for f in links_last(dir, files(dir)?) {
             b.append_path_with_name(dir.join(&f), &f).map_err(|e| format!("{}: {e}", dir.join(&f).display()))?;
         }
     }
