@@ -77,7 +77,16 @@ fn capability(name: &str, u: &podrunner_slots::config::UnitConfig) -> Result<Cap
         "fake" => Ok(fake_capability()),
         "podvm" => {
             let binary = u.binary.as_ref().ok_or("[unit.podvm] names no binary")?;
-            podrunner_podvm::Podvm { binary: binary.into() }.probe().map_err(|e| e.to_string())
+            let podvm = podrunner_podvm::Podvm { binary: binary.into() };
+            // The hold of `podnet pod doctor`, as `serve` reads it (T-181);
+            // the confine layer is proven by the self-test of `serve` only.
+            let Some(podnet) = &u.podnet else { return podvm.probe().map_err(|e| e.to_string()) };
+            let images = std::path::PathBuf::from(u.images.clone().unwrap_or_default());
+            let state = std::env::temp_dir().join("podrunner-doctor");
+            podrunner_podvm::PodvmUnit::new(podvm, &state, &images)
+                .and_then(|unit| unit.with_podnet(std::path::Path::new(podnet)))
+                .and_then(|unit| unit.probe())
+                .map_err(|e| e.to_string())
         }
         // The probe of a guest kind starts no unit and no process (unit
         // test 23). `serve` takes a claim of `guest` only for a kind on
@@ -250,6 +259,18 @@ mod tests {
         let i = capability("incus", &u("")).unwrap();
         assert_eq!((i.kind.as_str(), i.boundary), ("incus", podrunner_schema::Boundary::Confined));
         assert!(capability("incus", &u("podnet = \"/bin/true\"")).unwrap_err().contains("podnet"));
+        // T-181: the podvm kind with podnet gives the hold of `podnet pod
+        // doctor`, as `serve` does; with none, `unknown`.
+        let podnet = dir.join("podnet");
+        std::fs::write(
+            &podnet,
+            "#!/bin/sh\necho '{\"seccomp\":{\"level\":\"advisory\"},\"netns\":{\"level\":\"none\"}}'\n",
+        )
+        .unwrap();
+        std::fs::set_permissions(&podnet, std::fs::Permissions::from_mode(0o755)).unwrap();
+        let held = capability("podvm", &u(&format!("podnet = \"{}\"", podnet.display()))).unwrap();
+        assert_eq!(held.egress_hold, podrunner_schema::EgressHold::Advisory);
+        assert_eq!(capability("podvm", &u("")).unwrap().egress_hold, podrunner_schema::EgressHold::Unknown);
         let _ = std::fs::remove_dir_all(&dir);
     }
 

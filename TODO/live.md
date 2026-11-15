@@ -1054,7 +1054,7 @@ State (2026-11-15): the reaper is in. `tests/pid1.rs` runs `serve` as PID 1 of a
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -1071,6 +1071,8 @@ Find which path the layer denies (`/etc/resolv.conf`, `/etc/hosts`, `/etc/nsswit
 ## Prove
 
 A measure in `runner-image.yml`: name resolution in a confined podvm unit. A test that `doctor` and `serve` give the same boundary and hold for one configuration.
+
+State (2026-11-15): `doctor` reads the hold of the podvm kind from `podnet pod doctor` when `[unit.podvm] podnet` names it, as `serve` does (`capability` of `crates/podrunner/src/doctor.rs`); with no podnet it stays `unknown`. A case of `doctor_knows_the_microvm_and_incus_kinds` fails on the code of before. The boundary `confined` stays a result of the self-test of `serve`. Next: the name resolution in a unit under `--podvm-confine`: a measure in `runner-image.yml` (`getent hosts github.com` and `strace -f` of it in a confined unit), then the policy fix or a COORD issue to podvm.
 
 # T-182: A podvm unit has the host name of the host: the job log of GitHub shows it
 
