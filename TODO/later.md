@@ -3946,3 +3946,31 @@ The ruling "Discipline" (`docs/decisions.md`, 2026-11-15). Take `pod-manual` whe
 ## Blocker
 
 2026-11-15: podcrates: `pod-manual` in the first tag after part 1 of `pod-lab` (PodUtils/podcrates#181), with the needs of COORD-062 (GitHub #181).
+
+# T-249: The installer on each host class, and the shared core of podcrates
+
+**Source:** the ruling "Installer" of the owner (2026-11-15, PodUtils/podcrates#182); COORD-064 (GitHub #183)
+**Category:** feature
+**Milestone:** later
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+The installer of T-202 ran only in dash, on hosts that allow each operation. It does not check the free space of a target before a download or a load, it has no test of a run cut in the middle, of busybox `sh` or of aarch64, and its downloads of the image need the proxy of the environment in each case (T-233, T-234).
+
+## Premise
+
+The ruling "Installer" (`docs/decisions.md`): one POSIX installer for each project, hermetic, idempotent and fast, run in the labs; podcrates writes a shared core (PodUtils/podcrates@T-702).
+
+## Approach
+
+1. Check the free space of the prefix, the store and `TMPDIR` before each download and load, and name the knob that fixes it.
+2. Read the proxy of the environment for each download, and write it into no file.
+3. Test the installer in `dash`, `busybox sh` and `bash --posix`, with `shellcheck --shell=sh`, a second run that changes nothing, and a run cut in the middle, in each lab of T-244, with a limit of time.
+4. Take the shared core of podcrates when it is out, and keep only the files and the setup steps of podrunner.
+
+## Prove
+
+`sh scripts/test-install.sh` runs each shell and the cut run; `user-gate.yml` (T-243) runs the installer in each lab with a limit of time.
