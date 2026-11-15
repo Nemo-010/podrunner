@@ -294,6 +294,23 @@ jobs:
           grep -qx 'ok      tagged' "$RUNNER_TEMP/tags.txt"
           grep -q '^docker://busybox:1.37.0-musl sha256:' "$RUNNER_TEMP/tags/podrunner-actions.lock"
           grep -qx 'ok      static' "$RUNNER_TEMP/tags.txt"
+      # T-232: GNU tar in a podvm unit extracts a link before its target and
+      # a dangling link (PodUtils/podvm#423, podvm 0.2.0-beta.24).
+      - name: The links of tar in a podvm unit
+        if: ${{ !cancelled() }}
+        run: |
+          set -eu
+          d="$RUNNER_TEMP/tarprobe" && mkdir -p "$d/src" && cd "$d/src"
+          echo target > target && ln -s target link && ln -s none dangling && ln target hard
+          tar czf ../linkfirst.tar.gz link target
+          tar czf ../targetfirst.tar.gz target link
+          tar czf ../dangling.tar.gz dangling
+          tar czf ../hardfirst.tar.gz target hard
+          cd "$d"
+          PODVM_STORE="$PODRUNNER_PODVM_IMAGES" "$PODRUNNER_PODVM" run --rm -v "$d:/probe:ro" "$PODRUNNER_RUNNER_IMAGE" \
+            /bin/sh -c 'for f in linkfirst targetfirst dangling hardfirst; do mkdir -p /tmp/x/$f && tar xzf /probe/$f.tar.gz -C /tmp/x/$f || { echo "tar $f: exit $?"; exit 1; }; done; test -L /tmp/x/linkfirst/link && echo tar-links-ok' \
+            | tee "$d/out.txt"
+          grep -qx tar-links-ok "$d/out.txt"
       # T-138: the work directory of the runner in a podvm unit is a host
       # directory; the workspace of the job goes to DIR/JOB. A measure.
       - name: The export of a workspace from a podvm unit (a measure)

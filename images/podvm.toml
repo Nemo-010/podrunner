@@ -24,9 +24,11 @@
 # chroot is denied (T-158, PodUtils/podvm#391); beta.22 `--hostname` of
 # `run` (T-182, PodUtils/podvm#402), name resolution under `--podvm-confine`
 # (T-181, PodUtils/podvm#396) and an attestation of each binary (GitHub
-# #168).
-version = "0.2.0-beta.22"
+# #168); beta.24 the memo descriptor 17 under a supervisor (T-227,
+# PodUtils/podvm#421), the links of tar on the userland rung (T-232,
+# PodUtils/podvm#423) and `podvm lab run` (T-244, PodUtils/podvm#430).
+version = "0.2.0-beta.24"
 
 [sha256]
-x86_64 = "94a3f37c96bb461ea3277419713f8f913c5513107ab3e6b1acee3d17032f1de9"
-aarch64 = "3d83b127d0a794f18b909d0bafe10c7be40cad3789acf90d37e17fada02f47bf"
+x86_64 = "2134373b49554f1688ea8e5d778cab1f0d3ab5a142ec9826bc535798f2795cb2"
+aarch64 = "d0c970b4472c8fc0a382525007c65629f32fe5675e58586857123b18a7a7bdde"

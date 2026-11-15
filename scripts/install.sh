@@ -19,13 +19,13 @@ set -eu
 
 # BEGIN PINS (scripts/install-pins.py writes this block; do not edit it)
 PODRUNNER_VERSION=""
-PODVM_VERSION="0.2.0-beta.22"
+PODVM_VERSION="0.2.0-beta.24"
 PODNET_VERSION="0.4.0-beta.8"
 RUNNER_VERSION="2.338.2"
 SUM_podrunner_x86_64=""
 SUM_podrunner_aarch64=""
-SUM_podvm_x86_64="94a3f37c96bb461ea3277419713f8f913c5513107ab3e6b1acee3d17032f1de9"
-SUM_podvm_aarch64="3d83b127d0a794f18b909d0bafe10c7be40cad3789acf90d37e17fada02f47bf"
+SUM_podvm_x86_64="2134373b49554f1688ea8e5d778cab1f0d3ab5a142ec9826bc535798f2795cb2"
+SUM_podvm_aarch64="d0c970b4472c8fc0a382525007c65629f32fe5675e58586857123b18a7a7bdde"
 SUM_podnet_x86_64="ce6c18b1f6b1fb76b8af2a810d27c1aece876b57726900a8d81b830b8967f45a"
 SUM_podnet_aarch64="937ed6369c9042985cb367fa7a533faab02a316a34d50961feca200e36d466d7"
 SUM_runner_x86_64="baebf204307bac6193480852732f0aba2ae97b6c5597c244f4d5558390147c40"

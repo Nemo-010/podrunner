@@ -3369,7 +3369,7 @@ One line at the start of a run (`podrunner: the egress hold: ...`) and a row `ho
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** blocked
+**Status:** partial
 
 ## Problem
 
@@ -3387,9 +3387,8 @@ Ask podvm by COORD-059 (GitHub #177) how `run -d` numbers its descriptors and to
 
 A run under `podnet pod --egress direct` starts its unit (a measure on a host of the class of #167).
 
-## Blocker
 
-2026-11-15: podvm `0.2.0-beta.24` (PodUtils/podvm#421, COORD-059, GitHub #177): podvm passes its memo on descriptor 17, and its root landed on 17 when the parent left descriptors 3 to 15 open; PodUtils/podvm@T-1914 holds 17 from its start. When it is out: pin it, then a run under `podnet pod`.
+State (2026-11-15): podvm `0.2.0-beta.24` (pinned) holds descriptor 17 from its start. The lane `inherited-fds` of `user-gate.yml` runs podvm units with descriptors 3 to 15 open (the class of #176). Next: that lane green, and a run under `podnet pod` on a host of the class of #167.
 
 # T-228: A listener of the loopback needs `getsockname`, which `podnet pod` refuses
 
@@ -3510,7 +3509,7 @@ By hand: `podrunner run FILE --schedule --runner-dir DIR`, Ctrl-C in the wait, `
 **Milestone:** later
 **Priority:** P1
 **Effort:** S
-**Status:** blocked
+**Status:** partial
 
 ## Problem
 
@@ -3528,9 +3527,8 @@ A COORD issue to podvm with the probe of four tars; then pin the podvm that fixe
 
 `tar -x` of each tar of the probe in a podvm unit exits 0 (a test of `runner-image.yml`).
 
-## Blocker
 
-2026-11-15: podvm `0.2.0-beta.24` (PodUtils/podvm#423, COORD-060, GitHub #178): podvm confirmed it; the interposer followed the last link in `utimensat` and `fchmodat` with `AT_SYMLINK_NOFOLLOW`; PodUtils/podvm@T-1915 fixes it, with the fix of COORD-059. When it is out: pin it, and a test of the four orders in `runner-image.yml`.
+State (2026-11-15): podvm `0.2.0-beta.24` (pinned) has the fix. `runner-image.yml` extracts four tars (a link first, the target first, a dangling link, a hard link first) in a podvm unit of the runner image (step "The links of tar in a podvm unit"). Next: that step green.
 
 # T-233: The egress of a job ignores the proxy of the host
 
@@ -3850,6 +3848,7 @@ State (2026-11-15, the first scripts): `scripts/lab/` has `small-tmp.sh`, `usern
 
 State (2026-11-15, the lanes): `user-gate.yml` (T-243) has the lanes `plain` (`nonroot.sh`), `small-tmp` (`small-tmp.sh`, then `nonroot.sh`), `userns-off` (`userns-off.sh`, then `nonroot.sh`) and `inherited-fds` (`nonroot.sh`, then `inherited-fds.sh`; `scripts/user-gate.py` keeps the descriptors open in each command), each a job of its own on `ubuntu-24.04` x86_64 with the checks of T-243. The matrix of the job `lanes` has the place of `bind-denied` and `proxy-only` in a comment; a lane is one matrix row with its lab command. `small-tmp.sh` uses `[:lower:]` and `[:upper:]` for shellcheck, and `scripts/test-install.sh` runs shellcheck on `scripts/lab/`. Not run: the lanes on a hosted runner; aarch64 has no lane yet.
 
+State (2026-11-15, podvm beta.24): podvm `0.2.0-beta.24` has `podvm lab run`, `lab check` and `lab profiles` (PodUtils/podvm#430) and is pinned. The lane `bind-denied` of `user-gate.yml` installs as a user with no root, then runs `podvm lab check bind-denied,getsockname-denied`, `doctor --run` (it must say `FAIL loopback` with a fix) and `podrunner run` (it must fail and name the bind and its fix; an xfail of T-220, which fails the lane when the run passes) in that lab (`scripts/user-gate.py --podvm-lab`). Measured here with podvm beta.24 and a build of this tree: each part of the lab holds, and doctor and the run give those lines. Next: the first run of the gate; `userns-off`, `small-tmp` and `inherited-fds` from `podvm lab run` in place of the scripts; `proxy-only` (podnet).
 
 # T-245: The command line as a contract
 
@@ -4065,3 +4064,28 @@ One pinned version of ShellCheck, by its SHA-256, in CI and on the host of an ag
 ## Done
 
 2026-11-15: `scripts/shellcheck.sh` (ShellCheck 0.11.0, SHA-256 pinned, into `.work/tools`); `scripts/test-install.sh` case 13; `gate.yml` takes no shellcheck of the image; `scripts/install.sh` and `scripts/test-install.sh` have no `A && B || C`.
+
+# T-252: No workflow is linted before it runs
+
+**Source:** the release run of `v0.1.0-beta.7` (2026-11-15): a lint of `runner-image.yml` with actionlint here gives findings that no check reads
+**Category:** chore
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The gate lints the Rust code and the scripts, not the workflows. A fault of a workflow (a wrong expression, a wrong input, a shell fault of a `run` block) shows only when the workflow runs, on a release candidate. actionlint 1.7.7 with ShellCheck 0.11.0 gives findings of style and info in `runner-image.yml` today.
+
+## Premise
+
+Measured on 2026-11-15 in this sandbox: actionlint passes `user-gate.yml` and `release.yml`, and gives SC2129, SC2016 and SC2012 in `runner-image.yml`.
+
+## Approach
+
+A pinned actionlint (by its SHA-256, as `scripts/shellcheck.sh` pins ShellCheck) in the gate and in `scripts/agent/check.sh`, on each workflow; fix the findings, or name each one that stays with a reason.
+
+## Prove
+
+`sh scripts/agent/check.sh`: a step `actionlint` that fails on a planted fault of a workflow.

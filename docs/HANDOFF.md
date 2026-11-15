@@ -8,7 +8,7 @@ is done.
 
 ## Where podrunner stands
 
-- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.22`
+- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.24`
   (`images/podvm.toml`; the podvm kind takes `probe::LOWEST` and later,
   the microvm kind `LOWEST_GUEST` (beta.10), the incus kind
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
@@ -107,7 +107,7 @@ is done.
   the runner under `[unit.podvm] mem` (T-162).
 - T-162 (partial, G-12): `[unit.podvm] mem` and `pids` are rlimits;
   `[unit.incus] mem`, `cpus` and `pids` are the keys of the instance
-  (podvm `0.2.0-beta.20` or later, pinned `0.2.0-beta.22`). Next: a
+  (podvm `0.2.0-beta.20` or later, pinned `0.2.0-beta.24`). Next: a
   payload past `pids` and one past `mem` on the podvm and incus kinds.
   `cpus` on the podvm kind waits for the cgroup half
   (PodUtils/podvm@T-1747); COORD-050 (#110) stays open for it.

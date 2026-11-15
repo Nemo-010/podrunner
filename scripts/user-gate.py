@@ -360,6 +360,41 @@ class Lane:
             subprocess.run(["git", "-C", str(d), "checkout", "-q", "--detach", sha], check=True)
         return d
 
+    def in_lab(self, profiles: str, argv, log: str) -> tuple[int, str]:
+        """ARGV in the lab PROFILES of the installed podvm (`podvm lab run`,
+        PodUtils/podvm#430): stdout and stderr together."""
+        podvm = self.data / "bin" / "podvm"
+        rc, out = self.run([podvm, "lab", "run", profiles, "--", *argv], self.env(self.home), self.work, log)
+        return rc, out + (self.out / "logs" / f"{log}.err").read_text(errors="replace")
+
+    def lab_check(self, profiles: str) -> str:
+        rc, out = self.run([self.data / "bin" / "podvm", "lab", "check", profiles], self.env(self.home), self.work, "lab-check")
+        if rc:
+            self.show("lab-check")
+            raise GateError(f"podvm lab check {profiles}: exit {rc}: the host class does not hold")
+        return f"podvm lab check {profiles}: each part holds"
+
+    def doctor_names_the_bind(self, profiles: str) -> str:
+        """T-213: on a host that refuses the bind, doctor --run fails and
+        names the bind with its fix."""
+        rc, out = self.in_lab(profiles, ["podrunner", "doctor", "--run", self.data / "hello.yml"], "lab-doctor")
+        if rc == 0 or "FAIL loopback" not in out or "fix:" not in out:
+            self.show("lab-doctor")
+            raise GateError(f"doctor --run in the lab: exit {rc}, and no `FAIL loopback` with a fix")
+        return "doctor --run says FAIL loopback, with its fix"
+
+    def run_names_the_bind(self, profiles: str):
+        """T-220 is open: a run on a host that refuses the bind cannot start
+        its broker. It must fail and name the bind and a fix (T-213); when it
+        passes, the lane must expect a pass."""
+        rc, out = self.in_lab(profiles, ["podrunner", "run", self.data / "hello.yml"], "lab-run")
+        if rc == 0:
+            raise GateError("the run passes in the lab now (T-220): make the lane expect a pass")
+        if "bind 127.0.0.1:0" not in out or "fix:" not in out:
+            self.show("lab-run")
+            raise GateError(f"the run in the lab failed (exit {rc}) with no bind and no fix named")
+        return "xfail", "T-220: the run fails and names the bind and its fix"
+
     def wants(self, r: dict) -> bool:
         return r["executor"] in self.executors and (r["lanes"] == "*" or self.name in r["lanes"].split(","))
 
@@ -406,6 +441,11 @@ def lane(a) -> int:
                 g.check("install:offline-doc", g.install_offline_doc)
                 # With no larger image, the rows run on the base image.
                 g.check("install:full", g.install_full) or g.check("install:base-image", g.run_toml_image)
+                # A host class that podvm makes around podrunner (T-244).
+                if a.podvm_lab:
+                    if g.check("lab:check", functools.partial(g.lab_check, a.podvm_lab)):
+                        g.check("lab:doctor", functools.partial(g.doctor_names_the_bind, a.podvm_lab))
+                        g.check("lab:run", functools.partial(g.run_names_the_bind, a.podvm_lab))
                 for e in g.executors:
                     g.check(f"hello:{e}", functools.partial(g.hello, e))
                 for r in rows:
@@ -486,6 +526,7 @@ def main() -> int:
     ln.add_argument("--work")
     ln.add_argument("--executors", default="podvm,runner-dir")
     ln.add_argument("--no-corpus", action="store_true")
+    ln.add_argument("--podvm-lab", default="", metavar="PROFILES")
     s = sub.add_parser("summary")
     s.add_argument("--lanes", default="")
     s.add_argument("dir")

@@ -179,6 +179,13 @@ jobs:
           - lane: inherited-fds
             lab: sh scripts/lab/nonroot.sh -- bash scripts/lab/inherited-fds.sh --
             executors: podvm,runner-dir
+          # podvm 0.2.0-beta.24 makes the class around podrunner only (the
+          # local server of the lane binds): the install, then doctor and a
+          # run in `podvm lab run` (T-213, T-220 open).
+          - lane: bind-denied
+            lab: sh scripts/lab/nonroot.sh --
+            executors: ""
+            podvm_lab: bind-denied,getsockname-denied
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -221,11 +228,12 @@ jobs:
           LANE: ${{ matrix.lane }}
           LAB: ${{ matrix.lab }}
           EXECUTORS: ${{ matrix.executors }}
+          PODVM_LAB: ${{ matrix.podvm_lab }}
         run: |
           set -eu
           # shellcheck disable=SC2086 # LAB is a command with its words.
           $LAB python3 -I scripts/user-gate.py lane --lane "$LANE" --assets /opt/user-gate/assets \
-            --out /opt/user-gate/out --executors "$EXECUTORS"
+            --out /opt/user-gate/out --executors "$EXECUTORS" --podvm-lab "${PODVM_LAB:-}"
       - name: The results can be read
         if: always()
         run: sudo chmod -R a+rX /opt/user-gate/out
@@ -254,7 +262,7 @@ jobs:
           set +e
           # The lanes of the matrix of the job lanes: a lane with no results
           # fails the gate.
-          python3 -I scripts/user-gate.py summary --lanes plain,small-tmp,userns-off,inherited-fds results > table.md
+          python3 -I scripts/user-gate.py summary --lanes plain,small-tmp,userns-off,inherited-fds,bind-denied results > table.md
           rc=$?
           cat table.md | tee -a "$GITHUB_STEP_SUMMARY"
           exit "$rc"

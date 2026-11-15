@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**252 entries: 19 open, 16 partial, 13 blocked, 204 done.**
+**253 entries: 20 open, 18 partial, 11 blocked, 204 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 7 | 3 | 45 | 57 |
-| P2 | 12 | 6 | 7 | 86 | 111 |
+| P1 | 2 | 8 | 2 | 45 | 57 |
+| P2 | 13 | 7 | 6 | 86 | 112 |
 | P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 19 | 16 | 13 | 204 | 252 |
+| **All** | 20 | 18 | 11 | 204 | 253 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -274,12 +274,12 @@ acceptance, later The crate dependencies later than v1.
 | [T-224](later.md) | P2 | M | later | feature | open | A run that hangs prints nothing until it ends |
 | [T-225](later.md) | P2 | S | later | defect | done | A unit that has no room says `PODVM_STORE`, which podrunner sets itself |
 | [T-226](later.md) | P2 | S | later | defect | done | A run does not say what egress hold its units have |
-| [T-227](later.md) | P2 | S | later | defect | blocked | `podvm run -d` refuses a passed descriptor when podrunner runs under `podnet pod` |
+| [T-227](later.md) | P2 | S | later | defect | partial | `podvm run -d` refuses a passed descriptor when podrunner runs under `podnet pod` |
 | [T-228](later.md) | P2 | S | later | defect | done | A listener of the loopback needs `getsockname`, which `podnet pod` refuses |
 | [T-229](later.md) | P2 | M | later | feature | open | The run should pick its transport, its stores and its hold, and say so |
 | [T-230](later.md) | P1 | S | later | defect | done | With no `--platform`, a job of Windows, macOS or another architecture runs on the host |
 | [T-231](later.md) | P3 | S | later | defect | done | Ctrl-C in the wait of `--schedule` exits 0 |
-| [T-232](later.md) | P1 | S | later | defect | blocked | A tar with a link before its target fails in a podvm unit |
+| [T-232](later.md) | P1 | S | later | defect | partial | A tar with a link before its target fails in a podvm unit |
 | [T-233](later.md) | P2 | S | later | defect | open | The egress of a job ignores the proxy of the host |
 | [T-234](later.md) | P2 | S | later | defect | open | A job on `--runner-dir` drops the proxy of the host |
 | [T-235](later.md) | P3 | S | later | defect | open | Each log line of a job comes two times, with a BOM |
@@ -299,4 +299,5 @@ acceptance, later The crate dependencies later than v1.
 | [T-249](later.md) | P1 | M | later | feature | open | The installer on each host class, and the shared core of podcrates |
 | [T-250](later.md) | P2 | S | later | chore | blocked | The state of each issue comes from the record by a tool |
 | [T-251](later.md) | P1 | S | later | defect | done | The gate and the host of an agent run shellcheck of other versions |
+| [T-252](later.md) | P2 | S | later | chore | open | No workflow is linted before it runs |
 | [T-260](later.md) | P2 | S | later | defect | open | An expression in the image of a service or a job container fails the job |
