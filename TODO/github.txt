@@ -111,4 +111,4 @@
 105 issue closed
 106 issue closed
 107 issue open
-108 issue open
+108 issue closed
