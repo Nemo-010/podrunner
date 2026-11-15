@@ -14,7 +14,7 @@ is done.
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
   beta.14, T-112); podnet `v0.4.0-beta.8` (`images/podnet.toml`); the
   official runner v2.338.2 (`images/runner/runner.toml`). Last beta of
-  podrunner: `v0.1.0-beta.4` (release run 43506335609, `d796a94`).
+  podrunner: `v0.1.0-beta.5` (release run 43656918895, `34d56b5`).
 - The record: `cargo todo check` gives the counts. The last green
   `runner-image.yml` run is 43632726810 (`7530b2c`): the podvm suites,
   the held tests, the local suite on each kind, the parity suite in
