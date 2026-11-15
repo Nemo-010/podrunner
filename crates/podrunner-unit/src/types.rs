@@ -110,6 +110,9 @@ pub struct StartSpec {
     /// read-only; another is read-write. A driver that cannot mount refuses
     /// a start with one.
     pub mounts: Vec<(std::path::PathBuf, String)>,
+    /// The limits of the offer of this job (T-198): a driver applies the
+    /// lesser of each and the limit of its kind. None: the kind's own.
+    pub limits: crate::limits::Limits,
 }
 
 /// The signals that the core sends.

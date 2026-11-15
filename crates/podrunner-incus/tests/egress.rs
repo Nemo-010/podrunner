@@ -64,6 +64,7 @@ fn an_instance_reaches_the_egress_socket_and_nothing_else() {
         credential: Credential { files: vec![] },
         sockets: Some(sockets.clone()),
         mounts: Vec::new(),
+        limits: Default::default(),
     };
     unit.start(&spec).unwrap();
     // The payload stays up after its checks, so a command can enter it.

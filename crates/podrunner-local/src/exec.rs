@@ -358,6 +358,7 @@ impl Executor for InUnit {
             credential: Credential { files },
             sockets: sockets.clone(),
             mounts,
+            limits: Default::default(),
         };
         let started = self.driver.start(&spec).map_err(|e| format!("start {id}: {e}"));
         if let Err(e) = started {

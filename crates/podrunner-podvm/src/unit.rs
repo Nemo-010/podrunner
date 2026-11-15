@@ -83,7 +83,12 @@ impl PodvmUnit {
     /// A driver with its units under `state_dir` and the pinned images in
     /// the podvm store `images`. It runs `podvm probe` once.
     pub fn new(podvm: Podvm, state_dir: &Path, images: &Path) -> Result<PodvmUnit, UnitError> {
-        let capability = podvm.probe()?;
+        let mut capability = podvm.probe()?;
+        // rlimits of the payload: the kind applies the memory and the
+        // processes that an offer or its configuration names (T-198).
+        for name in ["memory", "pids"] {
+            capability.limits.insert(name.into(), podrunner_schema::LimitMode::Enforced);
+        }
         let platform = if capability.arch == "aarch64" { "linux/arm64" } else { "linux/amd64" }.to_string();
         Ok(PodvmUnit {
             podvm,
@@ -254,7 +259,9 @@ impl UnitDriver for PodvmUnit {
         env.insert(TAG_VAR.into(), tag.clone());
         // The .NET runner dies at start under a small RLIMIT_FSIZE with W^X on.
         env.insert("DOTNET_EnableWriteXorExecute".into(), "0".into());
-        args.extend(limits::ulimit_args(&self.limits, &mut env));
+        // The lesser of the kind and the offer (T-198); podvm holds no CPU limit.
+        let held = podrunner_unit::limits::Limits { cpus: None, ..self.limits.lesser(&spec.limits) };
+        args.extend(limits::ulimit_args(&held, &mut env));
         for (k, v) in &env {
             args.push("-e".into());
             args.push(format!("{k}={v}"));
@@ -439,6 +446,7 @@ impl PodvmUnit {
             credential: Default::default(),
             sockets: held.as_ref().map(|h| h.dir.clone()),
             mounts: Vec::new(),
+            limits: Default::default(),
         };
         self.start(&spec)?;
         let tag = procs::tag_of(&self.state_dir, unit.as_str());

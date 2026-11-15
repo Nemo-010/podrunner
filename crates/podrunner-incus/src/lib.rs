@@ -182,7 +182,9 @@ impl UnitDriver for IncusUnit {
             egress_hold: EgressHold::Enforced,
             kvm: Fact::Unknown,
         };
-        self.limits.record(&mut cap);
+        // The keys of an instance: the kind applies each limit that an offer
+        // or its configuration names (T-198).
+        podrunner_unit::limits::Limits { memory_bytes: Some(1), cpus: Some(1), pids: Some(1) }.record(&mut cap);
         Ok(cap)
     }
 
@@ -242,7 +244,7 @@ impl UnitDriver for IncusUnit {
                 work: &work,
                 egress: egress.as_deref(),
                 runner_root: &self.cred_root,
-                limits: &self.limits,
+                limits: &self.limits.lesser(&spec.limits),
             },
             &spec.env,
             &spec.argv,

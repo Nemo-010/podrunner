@@ -67,6 +67,7 @@ fn spec(unit: &str) -> StartSpec {
         credential: canary_credential(),
         sockets: None,
         mounts: Vec::new(),
+        limits: Default::default(),
     }
 }
 

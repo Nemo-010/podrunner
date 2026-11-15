@@ -133,6 +133,7 @@ fn a_held_runner_reaches_an_allowed_host_and_not_a_denied_one() {
         credential: Credential { files },
         sockets: Some(sockets.clone()),
         mounts: Vec::new(),
+        limits: Default::default(),
     };
     unit.start(&spec).unwrap();
     let _ = unit.wait(&id, Duration::from_secs(300)).unwrap();

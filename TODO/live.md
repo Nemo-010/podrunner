@@ -1542,3 +1542,32 @@ The issue of the owner, read on 2026-11-15; `crates/podrunner-slots/src/run.rs` 
 `cargo test -p podrunner-slots start_deadline`: a unit that `start_s` ends names the deadline in the audit. A test of `doctor` with a slow fake payload warns.
 
 State (2026-11-15): step 1 is in: the log of `serve` and the audit say "the runner did not take the job in [deadlines] start_s (N s): a slow host needs a larger start_s" (`tests::start::the_start_deadline_names_itself`, which fails on the code of before). `docs/configuration.md` gives `start_s = 900` for an emulated host. Next: steps 2 and 3.
+
+# T-198: A unit applies the limits of its offer
+
+**Source:** the ruling of the owner on the size of a job (2026-11-15, `docs/decisions.md`)
+**Category:** feature
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+A unit kind held the limits of its own configuration (T-162) and did not apply the values of the offer. A forge with runner sizes (githome: `large` 4 vCPU and 12 GiB, `medium`, `small`, `tiny`) then needs a host or a kind for each size (GitHub #151).
+
+## Premise
+
+The owner ruled "Apply offer values" on 2026-11-15. pod-job takes `memory` in bytes, `cpu` in milli-cores and `pids` as a count.
+
+## Approach
+
+`StartSpec` carries the limits of the offer; each driver applies the lesser of each and the limit of its kind. The podvm kind and the incus kind say `enforced` for each limit that they can apply, whatever their configuration.
+
+## Prove
+
+`cargo test -p podrunner-unit lesser`: the lesser of the kind and the job, and the units of the offer.
+
+## Done
+
+2026-11-15: `StartSpec::limits`; `Limits::of_offer` and `Limits::lesser` (`crates/podrunner-unit/src/limits.rs`, `the_lesser_of_the_kind_and_the_job`); slots fills the field from the offer; the podvm driver applies it as rlimits (with no CPU limit), the incus driver as the keys of the instance. The podvm kind says `memory` and `pids` `enforced`, the incus kind `memory`, `cpu` and `pids`. `docs/configuration.md`, "The limits of a unit". The microvm kind keeps the size of its guest from its configuration.

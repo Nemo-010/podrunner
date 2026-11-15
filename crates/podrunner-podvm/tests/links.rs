@@ -41,6 +41,7 @@ fn an_absolute_link_resolves_in_the_rootfs_of_the_unit() {
         credential: Default::default(),
         sockets: None,
         mounts: Vec::new(),
+        limits: Default::default(),
     };
     unit.start(&spec).unwrap();
     let work = unit.observe(&id).unwrap().unit_root.unwrap();

@@ -88,6 +88,7 @@ fn spec(fx: &dyn Fixture, id: UnitId, behaviour: Behaviour) -> Result<StartSpec,
         credential: canary_credential(),
         sockets: None,
         mounts: Vec::new(),
+        limits: Default::default(),
     })
 }
 

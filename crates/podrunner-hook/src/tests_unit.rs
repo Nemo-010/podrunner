@@ -60,6 +60,7 @@ fn each_command_reaches_the_fake_unit() {
         credential: Default::default(),
         sockets: None,
         mounts: Vec::new(),
+        limits: Default::default(),
     };
     fake.start(&spec).unwrap();
     let policy = Policy {
@@ -144,6 +145,7 @@ fn the_socket_of_one_unit_reaches_no_container_of_another() {
             credential: Default::default(),
             sockets: None,
             mounts: Vec::new(),
+            limits: Default::default(),
         })
         .unwrap();
         units.push((id.clone(), HookUnit::new(fake.clone(), id, policy(), Some(dir.join("runner")), dir.clone())));

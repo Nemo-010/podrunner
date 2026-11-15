@@ -127,6 +127,7 @@ impl PodvmUnit {
             credential: Default::default(),
             sockets: held.as_ref().map(|h| h.dir.clone()),
             mounts: Vec::new(),
+            limits: Default::default(),
         };
         if self.start(&spec).is_err() {
             return Ok(None);

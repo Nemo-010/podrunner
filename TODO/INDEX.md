@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**197 entries: 0 open, 15 partial, 7 blocked, 175 done.**
+**198 entries: 0 open, 15 partial, 7 blocked, 176 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 5 | 0 | 40 | 45 |
-| P2 | 0 | 7 | 4 | 74 | 85 |
+| P2 | 0 | 7 | 4 | 75 | 86 |
 | P3 | 0 | 3 | 3 | 61 | 67 |
-| **All** | 0 | 15 | 7 | 175 | 197 |
+| **All** | 0 | 15 | 7 | 176 | 198 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -245,3 +245,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-195](live.md) | P3 | S | M-C | defect | done | Issue #75 names the expiry of the artifacts without the time, and not `runner-full-x86_64` |
 | [T-196](later.md) | P2 | S | later | defect | done | The level2 corpus fails on podcrates jobs that read live state |
 | [T-197](live.md) | P2 | S | M-C | defect | partial | A unit that `start_s` ends names no cause, and a slow host needs a larger `start_s` |
+| [T-198](live.md) | P2 | S | M-C | feature | done | A unit applies the limits of its offer |

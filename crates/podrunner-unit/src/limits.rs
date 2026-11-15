@@ -29,6 +29,32 @@ impl Limits {
     pub fn is_empty(&self) -> bool {
         *self == Limits::default()
     }
+
+    /// The lesser of each limit of `self` (the kind) and of `job` (the
+    /// offer, T-198); a limit that one side has alone is kept.
+    pub fn lesser(&self, job: &Limits) -> Limits {
+        fn min<T: Ord + Copy>(a: Option<T>, b: Option<T>) -> Option<T> {
+            match (a, b) {
+                (Some(x), Some(y)) => Some(x.min(y)),
+                (x, y) => x.or(y),
+            }
+        }
+        Limits {
+            memory_bytes: min(self.memory_bytes, job.memory_bytes),
+            cpus: min(self.cpus, job.cpus),
+            pids: min(self.pids, job.pids),
+        }
+    }
+
+    /// The limits of an offer (`memory` in bytes, `cpu` in milli-cores,
+    /// `pids`): a CPU count rounds up.
+    pub fn of_offer(limits: &std::collections::BTreeMap<String, u64>) -> Limits {
+        Limits {
+            memory_bytes: limits.get("memory").copied().filter(|v| *v > 0),
+            cpus: limits.get("cpu").copied().filter(|v| *v > 0).map(|m| m.div_ceil(1000) as u32),
+            pids: limits.get("pids").copied().filter(|v| *v > 0).map(|p| p.min(u32::MAX.into()) as u32),
+        }
+    }
 }
 
 /// A size: whole bytes, or a number with `K`, `M`, `G` or `T` (powers of
@@ -59,6 +85,17 @@ pub fn size_bytes(text: &str) -> Result<u64, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_lesser_of_the_kind_and_the_job() {
+        let kind = Limits { memory_bytes: Some(8 << 30), cpus: Some(4), pids: None };
+        let offer: std::collections::BTreeMap<String, u64> =
+            [("memory".into(), 12u64 << 30), ("cpu".into(), 1500), ("pids".into(), 512)].into();
+        let job = Limits::of_offer(&offer);
+        assert_eq!(job, Limits { memory_bytes: Some(12 << 30), cpus: Some(2), pids: Some(512) });
+        assert_eq!(kind.lesser(&job), Limits { memory_bytes: Some(8 << 30), cpus: Some(2), pids: Some(512) });
+        assert_eq!(kind.lesser(&Limits::default()), kind);
+    }
 
     #[test]
     fn a_size_takes_bytes_and_the_binary_units() {

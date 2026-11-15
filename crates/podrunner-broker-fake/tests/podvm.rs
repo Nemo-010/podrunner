@@ -65,6 +65,7 @@ fn the_runner_in_a_podvm_unit_runs_a_canned_job() {
         credential: Credential { files },
         sockets: None,
         mounts: Vec::new(),
+        limits: Default::default(),
     };
     unit.start(&spec).unwrap();
     let exit = unit.wait(&id, Duration::from_secs(300)).unwrap();
@@ -160,6 +161,7 @@ fn a_container_job_runs_through_the_hooks_of_a_podvm_unit() {
         credential: Credential { files },
         sockets: Some(sockets.clone()),
         mounts: Vec::new(),
+        limits: Default::default(),
     };
     unit.start(&spec).unwrap();
     let exit = unit.wait(&id, Duration::from_secs(300)).unwrap();
@@ -206,6 +208,7 @@ fn a_foreign_job_ends_before_its_first_step_in_a_podvm_unit() {
         credential: Credential { files },
         sockets: None,
         mounts: Vec::new(),
+        limits: Default::default(),
     };
     unit.start(&spec).unwrap();
     let _ = unit.wait(&id, Duration::from_secs(300)).unwrap();
@@ -253,6 +256,7 @@ fn the_runner_runs_under_the_limits_of_the_unit() {
         credential: Credential { files },
         sockets: None,
         mounts: Vec::new(),
+        limits: Default::default(),
     };
     unit.start(&spec).unwrap();
     let _ = unit.wait(&id, Duration::from_secs(300)).unwrap();

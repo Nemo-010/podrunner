@@ -187,6 +187,13 @@ impl Slots {
             }
         }
         let kind = &self.kinds[p.kind];
+        // The limits of the offer: the driver applies the lesser of each and
+        // the limit of its kind (T-198, the owner, 2026-11-15).
+        let job_limits = self.jobs[key]
+            .offer
+            .as_ref()
+            .map(|o| podrunner_unit::limits::Limits::of_offer(&o.limits))
+            .unwrap_or_default();
         let started = kind.driver.prepare(&p.payload, &format!("linux/{arch}"), false).and_then(|image| {
             kind.driver.start(&StartSpec {
                 unit: unit.clone(),
@@ -198,6 +205,7 @@ impl Slots {
                 // its egress socket into the guest (T-107).
                 sockets: Some(dir.clone()),
                 mounts: Vec::new(),
+                limits: job_limits,
             })
         });
         let driver = kind.driver.clone();

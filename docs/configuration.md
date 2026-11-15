@@ -174,10 +174,13 @@ pids = 4096                              # its processes (limits.processes)
 
 ## The limits of a unit (G-12)
 
-Each kind holds the limits of its own keys on each unit, and says
-`enforced` for them; placement refuses an offer that needs a limit that no
-kind holds (`limit-not-enforceable`). A kind holds its own value, not the
-value of the offer.
+Each unit gets the lesser of the value of the offer (`memory` in bytes,
+`cpu` in milli-cores, rounded up to whole CPUs, `pids`) and the value of
+its kind (the keys below); a value that one side has alone holds (the
+owner, 2026-11-15, T-198). The `podvm` kind enforces `memory` and `pids`,
+the `incus` kind `memory`, `cpu` and `pids`, and the `microvm` kind the
+`memory` and `cpu` of its guest; placement refuses an offer that needs a
+limit that no kind enforces (`limit-not-enforceable`).
 
 | Kind | `mem` | `cpus` | `pids` |
 | --- | --- | --- | --- |
