@@ -120,8 +120,8 @@ is done.
   fix each defect they find.
 - The account of this session starts no GitHub Actions run: neither a
   push nor a dispatch. Ask the local agent with an issue `[gh action]
-  requested` (`docs/maintenance.md`, "A run of a workflow"). #114 asks
-  for the gate, secrets, `runner-image.yml` and `level2.yml` of `4fe27da`.
+  requested` (`docs/maintenance.md`, "A run of a workflow"). #148 asks
+  for the gate, secrets, `runner-image.yml` and `level2.yml` of `04ff34f`.
 - podvm answers COORD issues `(to podvm)` in its repository with
   `(to podrunner)`. podssh is on break.
 - The x86_64 job of `runner-image.yml` takes up to 120 minutes; it has
