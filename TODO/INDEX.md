@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**200 entries: 0 open, 15 partial, 7 blocked, 178 done.**
+**201 entries: 0 open, 15 partial, 7 blocked, 179 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 5 | 0 | 40 | 45 |
 | P2 | 0 | 7 | 5 | 76 | 88 |
-| P3 | 0 | 3 | 2 | 62 | 67 |
-| **All** | 0 | 15 | 7 | 178 | 200 |
+| P3 | 0 | 3 | 2 | 63 | 68 |
+| **All** | 0 | 15 | 7 | 179 | 201 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -248,3 +248,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-198](live.md) | P2 | S | M-C | feature | done | A unit applies the limits of its offer |
 | [T-199](later.md) | P2 | S | later | chore | blocked | The local mode is not tried by a user on real workflows |
 | [T-200](live.md) | P2 | S | M-C | defect | done | A refused claim gets `release` before its report, so the source cannot tell a refusal from a give-back |
+| [T-201](live.md) | P3 | S | M-C | defect | done | A job that the job-started hook ends has no annotation of its cause |

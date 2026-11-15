@@ -101,6 +101,13 @@ fn a_job_started_hook_ends_a_foreign_job_before_its_first_step() {
         let done = broker.completions();
         assert_eq!(done[0].conclusion, if ok { "succeeded" } else { "failed" }, "{want:?}: {done:?}");
         assert_eq!(dir.join("_work/app/app/marker.txt").exists(), ok, "{want:?}: the step ran or not");
+        // T-201: an annotation of the job names the cause of a foreign job.
+        assert_eq!(
+            broker.logs().contains("##[error]podrunner: this runner was placed"),
+            !ok,
+            "{want:?}: {}",
+            broker.logs()
+        );
     }
     let _ = std::fs::remove_file(&job);
 }

@@ -11,5 +11,9 @@ want_file="$(dirname "$0")/../.podrunner-job"
 want=$(tr 'A-Z' 'a-z' < "$want_file")
 got=$(printf '%s %s\n' "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" | tr 'A-Z' 'a-z')
 [ "$got" = "$want" ] && exit 0
-echo "podrunner: this runner was placed for another job: the job ends before its first step" >&2
+# An annotation names the cause in the summary of the job, not only in
+# the log of the hook. It names this job, not the placed one (T-201).
+msg="podrunner: this runner was placed for another job: the job ends before its first step (this job: $got)"
+echo "::error title=podrunner::$msg"
+echo "$msg" >&2
 exit 1

@@ -222,6 +222,8 @@ fn a_foreign_job_ends_before_its_first_step_in_a_podvm_unit() {
     assert_eq!(done.len(), 1, "{:?}\n{logs}", broker.seen());
     assert_eq!(done[0].conclusion, "failed", "{logs}");
     assert!(!logs.contains("podrunner-foreign-42"), "a step of the foreign job ran: {logs}");
+    // T-201: an annotation names the cause.
+    assert!(logs.contains("##[error]podrunner: this runner was placed"), "no annotation names the cause: {logs}");
     assert!(residue.is_clean(), "{residue:?}");
 }
 

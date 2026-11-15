@@ -1600,3 +1600,32 @@ Send the report before the `release` on each path. Say in the source contract ho
 ## Done
 
 2026-11-15: `give_up` and the restart send the report, then `release`. `docs/contracts/source-driver.md`, "How a job ends at the source". `tests::start::a_refused_claim_is_reported_before_its_release` fails on the code of before and passes now.
+
+# T-201: A job that the job-started hook ends has no annotation of its cause
+
+**Source:** githome's note on GitHub #151 (COORD-054, 2026-11-15)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The job-started hook of the runner image (T-175) wrote its reason to stderr only. The runner puts that line in the log of the hook, but githome's view of the job showed no line of it, and a user saw only skipped steps.
+
+## Premise
+
+Measured on 2026-11-15 with the runner v2.338.2 against the fake broker: the line of stderr is in the job log; a `::error` line of stdout gives a second line `##[error]...`, an annotation of the job.
+
+## Approach
+
+The hook writes an `::error title=podrunner::` line that names this job (not the placed job), and the line on stderr.
+
+## Prove
+
+`PODRUNNER_RUNNER_DIR=DIR cargo test -p podrunner-broker-fake --test runner a_job_started_hook -- --ignored`: a foreign job has the annotation in its log, the own job has none. It fails on the hook of before.
+
+## Done
+
+2026-11-15: `images/runner/podrunner-job-started.sh` writes the annotation. `a_job_started_hook_ends_a_foreign_job_before_its_first_step` (runner directory) and `a_foreign_job_ends_before_its_first_step_in_a_podvm_unit` (the runner image, `runner-image.yml`) check it; the first fails on the hook of before and passes now.
