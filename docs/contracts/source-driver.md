@@ -41,6 +41,26 @@ The order of one job: `offer` (an event of `next`), `ack`, `claim`,
 `mint`, then `report` and `release`. `withdraw` ends an offer that
 podrunner does not claim (a `wait` refusal at `wait_deadline_s`).
 
+How a job ends at the source (T-200):
+
+* `withdraw` with a reason ends an offer that podrunner does not claim.
+  The reason is a refusal code (`tier-mismatch`, for example), or
+  `wait-deadline` (no slot came free in time), `cancelled` (the forge
+  cancelled the job) or `conformance` (a test of `source-conformance`
+  gives the job back). Only a refusal code says that this host must not
+  take the job; a source can offer the job of another reason again, also
+  to the same host.
+* `release` carries no code, and follows the `report` of the job (a
+  report that the source refuses goes to the spool and comes later). The
+  report says how the job ended: a `refusal_code` says that podrunner
+  refused the claimed job (`unit-start-failed`, for example), so this
+  host must not take it again; `exit_reason` `lost` with no
+  `refusal_code` says that a restart lost the job, and the source can
+  offer it again; else the job ran.
+* A `release` with no `report` gives the job back: only a test of
+  `source-conformance` sends it. A source can offer the job again, also
+  to the same host.
+
 podrunner writes and syncs the `claimed` line of its journal before it
 sends `claim` (GitHub #55). After a death between the two, the restart
 sends `release` for a job that it may not hold. `release` names no

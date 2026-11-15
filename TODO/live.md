@@ -1571,3 +1571,32 @@ The owner ruled "Apply offer values" on 2026-11-15. pod-job takes `memory` in by
 ## Done
 
 2026-11-15: `StartSpec::limits`; `Limits::of_offer` and `Limits::lesser` (`crates/podrunner-unit/src/limits.rs`, `the_lesser_of_the_kind_and_the_job`); slots fills the field from the offer; the podvm driver applies it as rlimits (with no CPU limit), the incus driver as the keys of the instance. The podvm kind says `memory` and `pids` `enforced`, the incus kind `memory`, `cpu` and `pids`. `docs/configuration.md`, "The limits of a unit". The microvm kind keeps the size of its guest from its configuration.
+
+# T-200: A refused claim gets `release` before its report, so the source cannot tell a refusal from a give-back
+
+**Source:** githome's question on GitHub #151 (COORD-054, 2026-11-15)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+githome holds a job that a host withdrew or released away from that host for 600 s, so `source-conformance` needs one job for each test against githome. githome asked which `release` carries a refusal. `release` carries no code, and a claimed job that could not start (`unit-start-failed`), and a job that a restart lost, got `release` before their report: at the `release`, the source could not tell a refusal from a give-back.
+
+## Premise
+
+Read `crates/podrunner-slots/src/run.rs` (`give_up`), `crates/podrunner-slots/src/lib.rs` (the restart) and `docs/contracts/source-driver.md` on 2026-11-15.
+
+## Approach
+
+Send the report before the `release` on each path. Say in the source contract how a job ends: the reasons of `withdraw`, the `release` after the report, and the `release` with no report of `source-conformance`, which a source can offer again to the same host.
+
+## Prove
+
+`cargo test -p podrunner-slots a_refused_claim_is_reported_before_its_release`: a job whose unit cannot start gives `report`, then `release` (it fails on the code of before).
+
+## Done
+
+2026-11-15: `give_up` and the restart send the report, then `release`. `docs/contracts/source-driver.md`, "How a job ends at the source". `tests::start::a_refused_claim_is_reported_before_its_release` fails on the code of before and passes now.

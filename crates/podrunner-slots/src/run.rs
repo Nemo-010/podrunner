@@ -229,9 +229,9 @@ impl Slots {
         }
     }
 
-    /// End a claimed job with no unit: release it and report the refusal.
+    /// End a claimed job with no unit: report the refusal, then release
+    /// it, so that the source knows the refusal at the release (T-200).
     fn give_up(&mut self, key: &Key, code: RefusalCode, now: u64) {
-        let _ = self.sources[key.0].source.release(&key.1);
         if let Some(j) = self.jobs.get_mut(key) {
             j.refusal = Some(code);
             j.reason = Some(ExitReason::Refused);
@@ -240,6 +240,7 @@ impl Slots {
         }
         self.audit(audit::Kind::Refuse, key.0, &key.1, Some(code), None);
         self.report(key);
+        let _ = self.sources[key.0].source.release(&key.1);
         self.set(key, State::Failed, now);
     }
 

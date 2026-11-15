@@ -97,7 +97,6 @@ impl Slots {
             if let Some(s) = s
                 && line.state.is_claimed()
             {
-                let _ = self.sources[s].source.release(&job_id);
                 let report = podrunner_schema::RunReport {
                     schema: podrunner_schema::SCHEMA,
                     job_id: job_id.clone(),
@@ -122,6 +121,8 @@ impl Slots {
                 if let Ok(serde_json::Value::Object(m)) = value {
                     self.send_report(s, &job_id, m);
                 }
+                // The report first: at the release the source knows the job is lost (T-200).
+                let _ = self.sources[s].source.release(&job_id);
                 forget::keep(&mut self.reports, report);
             }
             let lost = Line { t_ms: now, state: State::Lost, reason: Some(ExitReason::Lost), ..line };
