@@ -139,6 +139,28 @@ fn the_mint_computes_the_tier_and_withdraws_a_fork_on_the_trusted_set() {
     assert_eq!(h1.claim(&job("fork"), "r").unwrap_err().code, SourceCode::UnknownJob);
     let audit = std::fs::read_to_string(d.join("audit.jsonl")).unwrap();
     assert!(audit.lines().any(|l| l.contains("\"op\":\"next\"") && l.contains("\"host\":\"h1\"")), "{audit}");
+    // T-170: the withdrawal has its audit line with the code.
+    assert!(
+        audit.lines().any(|l| l.contains("\"op\":\"withdraw\"")
+            && l.contains("\"job_id\":\"fork\"")
+            && l.contains("tier-mismatch")),
+        "{audit}"
+    );
+}
+
+/// T-188: an offer that does not parse is withdrawn as `bad-request` with
+/// the text of the parser, not as a refused event.
+#[test]
+fn a_bad_offer_is_withdrawn_as_bad_request() {
+    let d = dir();
+    let bad = offer("bad", false).replace("\"head_is_fork\":\"no\"", "\"head_is_fork\":false");
+    assert!(bad.contains("\"head_is_fork\":false"));
+    let g = Arc::new(std::sync::Mutex::new(gate(&[bad, offer("member", false)], &[("h1", 5)], &d)));
+    let mut h1 = host(&g, "h1");
+    assert_eq!(offers(&h1.next(5, Duration::ZERO).unwrap()), ["member"]);
+    let audit = std::fs::read_to_string(d.join("audit.jsonl")).unwrap();
+    let line = audit.lines().find(|l| l.contains("\"op\":\"withdraw\"")).expect("a withdraw line");
+    assert!(line.contains("bad-request") && !line.contains("event-not-allowed"), "{line}");
 }
 
 /// A credential with no start in time is an alert; a third one revokes the

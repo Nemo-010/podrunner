@@ -213,11 +213,23 @@ impl Gate {
             Event::Offer { offer } => {
                 let mut fields = offer.fields.clone();
                 fields.insert("job_id".into(), Value::String(offer.job_id.as_str().into()));
-                let tier = serde_json::from_value::<JobOffer>(Value::Object(fields))
-                    .map_err(|_| podrunner_schema::RefusalCode::EventNotAllowed)
-                    .and_then(|o| podrunner_tier::intake(&o.trust_inputs, &self.trust, self.set));
-                if let Err(code) = tier {
-                    let _ = self.source.withdraw(&offer.job_id, code.as_str());
+                // A bad offer is `bad-request` with the text of the parser,
+                // not the code of a refused event (T-188).
+                let refused = match serde_json::from_value::<JobOffer>(Value::Object(fields)) {
+                    Err(e) => Some(("bad-request", e.to_string())),
+                    Ok(o) => podrunner_tier::intake(&o.trust_inputs, &self.trust, self.set)
+                        .err()
+                        .map(|c| (c.as_str(), String::new())),
+                };
+                if let Some((code, detail)) = refused {
+                    // Each withdrawal leaves a trace (T-170).
+                    let line = serde_json::json!({
+                        "t_s": (self.now)(), "host": host, "op": "withdraw", "job_id": offer.job_id,
+                        "code": code, "detail": detail,
+                    });
+                    let _ = writeln!(self.audit, "{line}");
+                    eprintln!("podrunner: mint: withdraw {} for {host}: {code} {detail}", offer.job_id);
+                    let _ = self.source.withdraw(&offer.job_id, code);
                     return Ok(());
                 }
                 self.ledger.offer(host, &offer.job_id).map_err(Self::disk)?;

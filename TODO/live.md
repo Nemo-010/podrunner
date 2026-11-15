@@ -737,7 +737,7 @@ The owner: Q7 of `TODO/PROGRESS.md` (the App permission "Actions: read and write
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -754,6 +754,10 @@ Write an audit line `withdraw` with the job id and the refusal code, and a log l
 ## Prove
 
 A Rust test: a refused offer gives one audit line `withdraw` with its code; it fails on the code before the fix.
+
+## Done
+
+2026-11-15 in `route` of `crates/podrunner-remote/src/gate.rs`: each withdrawal writes an audit line (`op` `withdraw`, the job, the code, the detail) and a line on stderr. `the_mint_computes_the_tier_and_withdraws_a_fork_on_the_trusted_set` checks the line and fails on the code of before.
 
 # T-171: No command checks a mint file before `mint-serve`
 
@@ -1197,7 +1201,7 @@ Let `podrunner run --podvm` take the netns hold where `podnet pod doctor` gives 
 **Milestone:** M-C
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -1214,6 +1218,10 @@ Map a parse failure to `bad-request` with the name of the field. The design copy
 ## Prove
 
 A test of the gate: an offer with a bad field gets `bad-request` and the name of the field.
+
+## Done
+
+2026-11-15: an offer that does not parse is withdrawn with `bad-request` and the text of the parser in the audit (`a_bad_offer_is_withdrawn_as_bad_request`, fails on the code of before); `docs/contracts/source-driver.md`, "The form of an offer", gives the form that pod-job parses.
 
 # T-189: A program source re-offers a refused job at the head of each `next`
 

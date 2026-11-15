@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**191 entries: 19 open, 10 partial, 6 blocked, 156 done.**
+**191 entries: 17 open, 10 partial, 6 blocked, 158 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 5 | 1 | 37 | 44 |
-| P2 | 9 | 3 | 3 | 68 | 83 |
-| P3 | 9 | 2 | 2 | 51 | 64 |
-| **All** | 19 | 10 | 6 | 156 | 191 |
+| P2 | 8 | 3 | 3 | 69 | 83 |
+| P3 | 8 | 2 | 2 | 52 | 64 |
+| **All** | 17 | 10 | 6 | 158 | 191 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -217,7 +217,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-167](live.md) | P1 | S | M-C | defect | done | The trust lookup reads `visibility`, which a run gives as null |
 | [T-168](live.md) | P2 | S | M-C | defect | open | The sidecar names each non-HTTP error "no answer", and never closes its message session |
 | [T-169](live.md) | P1 | M | M-C | defect | blocked | A withdrawn job holds the capacity of the scale set |
-| [T-170](live.md) | P2 | S | M-C | defect | open | A withdrawal by the tier rule leaves no trace in the mint |
+| [T-170](live.md) | P2 | S | M-C | defect | done | A withdrawal by the tier rule leaves no trace in the mint |
 | [T-171](live.md) | P2 | S | M-C | defect | open | No command checks a mint file before `mint-serve` |
 | [T-172](live.md) | P3 | S | M-C | defect | open | The audit of `sign` lives only in memory |
 | [T-173](live.md) | P3 | S | M-C | defect | open | `podrunner --version` does not name the beta |
@@ -235,7 +235,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-185](live.md) | P3 | S | M-C | defect | open | `check`, `doctor` and `status` give a capacity that `serve` does not have |
 | [T-186](live.md) | P3 | S | M-C | defect | open | The store of podvm keeps `machine/run-PID-*` after each guest of the microvm kind |
 | [T-187](live.md) | P3 | S | later | defect | open | The local mode refuses the netns hold |
-| [T-188](live.md) | P3 | S | M-C | defect | open | The tier intake names each parse failure of an offer `event-not-allowed`, and the offer schema of the design differs from the parser |
+| [T-188](live.md) | P3 | S | M-C | defect | done | The tier intake names each parse failure of an offer `event-not-allowed`, and the offer schema of the design differs from the parser |
 | [T-189](live.md) | P2 | S | M-C | defect | open | A program source re-offers a refused job at the head of each `next` |
 | [T-190](live.md) | P3 | S | later | defect | open | `source-conformance` needs two offers on the first `next` of each test, and its claims stay |
 | [T-191](live.md) | P3 | S | later | defect | open | The tier rule takes only an organization as the owner of a trusted repository |

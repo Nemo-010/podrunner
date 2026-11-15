@@ -64,6 +64,23 @@ nothing (T-166). Each later message of a job (`JobAssigned`,
 `started` check above is the only proof that a runner took its own job
 (T-175).
 
+## The form of an offer
+
+The parser of `job-offer.v1` is `pod_job::JobOffer` of podcrates. The
+design copy (`docs/design/schemas`) stays as written (call C17); where it
+differs, the parser is the contract (T-188):
+
+| Field | The parser takes |
+| --- | --- |
+| `trust_inputs.head_is_fork` | `yes`, `no` or `unknown` (not a boolean) |
+| `trust_inputs.actor_class` | `member`, `outside` or `unknown` (not `external`) |
+| `trust_inputs.run_id` | a number |
+| `limits`, `limits_required` | the names `wall`, `cpu`, `memory`, `pids`, `disk` |
+| `policy` | `{}`, or a policy of `broker-policy.v1` with `schema: 1` |
+
+The mint withdraws an offer that does not parse with the reason
+`bad-request` and writes the text of the parser to its audit.
+
 ## Events
 
 | Event | Fields | Meaning |

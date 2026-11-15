@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 191 entries: 19 open, 10 partial, 6 blocked, 156 done.
+`TODO/INDEX.md` holds 191 entries: 17 open, 10 partial, 6 blocked, 158 done.
 
 ## State
 
@@ -33,9 +33,7 @@ then take the next one.
 
 The queue, most valuable first:
 
-1. T-175 (P1, partial) and the P1 entries of the LIVE-2 report (GitHub #75): T-176 (a failed start spends the credential), T-177 (`serve` pulls no image by digest), T-178 (`HOME=/root` on incus and microvm), T-179 (H0: the seccomp hold and the egress module time out). Then the P2 entries T-180 to T-184, T-189.
-
-   The LIVE-1 report:: the blockers of the mint from the LIVE-1 report (GitHub #74, 2026-11-15). With the release binaries the mint served no job. Then T-168, T-170, T-171 (P2), T-172, T-173 (P3). T-174 is later. A new beta for LIVE-1 and LIVE-2 follows the P1 fixes.
+1. The live reports (GitHub #74, #75): T-179 (P1: H0, the seccomp hold and the egress module time out), then T-180 to T-184, T-189, T-168, T-171 (P2), T-172, T-173, T-185, T-186, T-190, T-191 (P3). The partial entries T-158, T-162, T-175, T-176, T-177, T-178 wait for a `runner-image.yml` run with their measures. A new beta for LIVE-1 and LIVE-2 follows.
 
 
 3. T-162 (M, open): G-12 limits: `--ulimit nproc=` and `as=` hold on podvm `run -d` now (PodUtils/podvm#382); the incus keys come with the next podvm release.
