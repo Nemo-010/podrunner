@@ -134,13 +134,13 @@ numbers. `TODO/RULES.md` gives the rules.
 | #132 | Live run 2026-11-15: no PAT path for a github-scaleset source, although the spec allows one | open (T-174 is open) | T-174 |
 | #133 | Live run 2026-11-15: issue #75 names the expiry of the runner image a day early, and not runner-full-x86_64 | closed (T-195 is done) | T-195 |
 | #134 | Live run 2026-11-15: the design copy of job-offer.v1 differs from the parser, and a parse failure reads as event-not-allowed | closed (T-188 is done) | T-188 |
-| #135 | Live run 2026-11-15: serve does not pull a digest-pinned container image, and the hook hides the cause | open (T-177 is partial) | T-177 |
+| #135 | Live run 2026-11-15: serve does not pull a digest-pinned container image, and the hook hides the cause | closed (T-177 is done) | T-177 |
 | #136 | Live run 2026-11-15: a redirect host can serve one repository only, so the G-01 pair cannot run on it | open (T-193 is open) | T-193 |
 | #137 | Live run 2026-11-15: a podvm host runs one unit at a time while status says slots 2 | closed (T-185 is done) | T-185 |
 | #138 | Live run 2026-11-15: local mode refuses the netns hold of podnet | open (T-187 is open) | T-187 |
 | #139 | Live run 2026-11-15: the tier rule trusts an organization owner only | closed (T-191 is done) | T-191 |
-| #140 | Live run 2026-11-15: the JIT configuration is minted before the unit starts, and a failed start leaves the job assigned | open (T-176 is partial) | T-176 |
-| #141 | Live run 2026-11-15: on incus and microvm units the runner is not root and HOME is /root | open (T-178 is partial) | T-178 |
+| #140 | Live run 2026-11-15: the JIT configuration is minted before the unit starts, and a failed start leaves the job assigned | open (T-176 is done; the job that stays assigned is T-169, Q7) | T-176, T-169 |
+| #141 | Live run 2026-11-15: on incus and microvm units the runner is not root and HOME is /root | closed (T-178 is done) | T-178 |
 | #142 | Live run 2026-11-15: on H0 the runner times out reaching github.com under the seccomp hold | open (T-179 is open) | T-179 |
 | #143 | Live run 2026-11-15: podrunner as PID 1 does not reap the processes of a unit, and its supervisor stops | open (T-180 is partial) | T-180 |
 | #144 | Live run 2026-11-15: serve stops after a unit ends unit-failed | open (T-192 is open) | T-192 |

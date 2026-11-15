@@ -221,3 +221,53 @@ fn a_foreign_job_ends_before_its_first_step_in_a_podvm_unit() {
     assert!(!logs.contains("podrunner-foreign-42"), "a step of the foreign job ran: {logs}");
     assert!(residue.is_clean(), "{residue:?}");
 }
+
+/// T-162: the runner starts and ends a canned job under the limits of
+/// `[unit.podvm] mem` and `pids` (`RLIMIT_AS`, with the heap limit of .NET
+/// at three quarters; `RLIMIT_NPROC`).
+#[test]
+#[ignore]
+fn the_runner_runs_under_the_limits_of_the_unit() {
+    let state = std::env::temp_dir().join(format!("podrunner-podvm-limits-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&state);
+    let podvm = Podvm { binary: PathBuf::from(env("PODRUNNER_PODVM")) };
+    let limits = podrunner_unit::limits::Limits { memory_bytes: Some(16 << 30), cpus: None, pids: Some(4096) };
+    let unit = PodvmUnit::new(podvm, &state, &PathBuf::from(env("PODRUNNER_PODVM_IMAGES")))
+        .unwrap()
+        .with_limits(limits)
+        .unwrap();
+    let platform = if std::env::consts::ARCH == "aarch64" { "linux/arm64" } else { "linux/amd64" };
+    let prepared = unit.prepare(&env("PODRUNNER_RUNNER_IMAGE"), platform, false).unwrap();
+    let broker = Broker::start().unwrap();
+    broker.queue(Job::scripts("limits", &["ulimit -v; ulimit -u; echo podrunner-limits-$((6*7))"]));
+    let files: Vec<CredentialFile> = runner_files(&broker.base, "runner-u-3", &common::rsaparams())
+        .into_iter()
+        .map(|(name, text)| CredentialFile { name, content: Secret::new(text) })
+        .collect();
+    let id = UnitId::parse("u-3").unwrap();
+    let spec = StartSpec {
+        unit: id.clone(),
+        image: prepared,
+        argv: vec!["/home/runner/run.sh".into()],
+        env: Default::default(),
+        credential: Credential { files },
+        sockets: None,
+        mounts: Vec::new(),
+    };
+    unit.start(&spec).unwrap();
+    let _ = unit.wait(&id, Duration::from_secs(300)).unwrap();
+    let t = Instant::now();
+    while broker.completions().is_empty() && t.elapsed() < Duration::from_secs(5) {
+        std::thread::sleep(Duration::from_millis(100));
+    }
+    let (done, logs) = (broker.completions(), broker.logs());
+    let residue = unit.destroy(&id).unwrap();
+    let _ = std::fs::remove_dir_all(&state);
+    println!("limits log:\n{logs}");
+    assert_eq!(done.len(), 1, "{:?}\n{logs}", broker.seen());
+    assert_eq!(done[0].conclusion, "succeeded", "{logs}");
+    assert!(logs.contains("podrunner-limits-42"), "{logs}");
+    // `ulimit -v` is in KiB: 16 GiB.
+    assert!(logs.contains("16777216"), "the address space limit is not seen: {logs}");
+    assert!(residue.is_clean(), "{residue:?}");
+}

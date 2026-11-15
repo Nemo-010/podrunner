@@ -138,13 +138,13 @@
 132 issue open
 133 issue closed
 134 issue closed
-135 issue open
+135 issue closed
 136 issue open
 137 issue closed
 138 issue open
 139 issue closed
 140 issue open
-141 issue open
+141 issue closed
 142 issue open
 143 issue open
 144 issue open
