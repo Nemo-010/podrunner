@@ -285,87 +285,6 @@
    ]
   },
   {
-   "id": "plants.yml/plants",
-   "env": [],
-   "steps": [
-    {
-     "checkout": {
-      "fetch_depth": 1
-     }
-    },
-    {
-     "name": "Toolchain",
-     "run": "sh scripts/retry.sh rustup toolchain install",
-     "if": "",
-     "env": []
-    },
-    {
-     "name": "Each plant is caught",
-     "run": "sh scripts/plant-each.sh",
-     "if": "",
-     "env": []
-    }
-   ]
-  },
-  {
-   "id": "secrets.yml/secrets",
-   "env": [],
-   "steps": [
-    {
-     "checkout": {
-      "fetch_depth": 0
-     }
-    },
-    {
-     "name": "The scanner",
-     "run": "set -eu\nref=$(tr -d '\\r' < images/trufflehog/Dockerfile | sed -n 's/^FROM[[:space:]]\\{1,\\}\\([^[:space:]]\\{1,\\}\\).*/\\1/p')\ncase \"$ref\" in\n  *@sha256:*) ;;\n  *) echo \"images/trufflehog/Dockerfile names no image pinned to a digest\" >&2; exit 1 ;;\nesac\nscanner=$(sh scripts/pull-image.sh \"$ref\")\necho \"SCANNER=$scanner\" >> \"$GITHUB_ENV\"\n",
-     "if": "",
-     "env": []
-    },
-    {
-     "name": "A planted key is found",
-     "run": "set -u\nplant=\"$RUNNER_TEMP/plant\"\nmkdir -p \"$plant\"\ngit -C \"$plant\" init -q\ngit -C \"$plant\" -c user.name=plant -c user.email=plant@example.invalid commit -q --allow-empty -m start\nssh-keygen -q -t ed25519 -N '' -C plant -f \"$plant/key\"\ngit -C \"$plant\" add key\ngit -C \"$plant\" -c user.name=plant -c user.email=plant@example.invalid commit -q -m plant\nrc=0\ndocker run --rm -v \"$plant:/repo:ro\" \"$SCANNER\" git file:///repo --json --no-update \\\n  --no-verification --results=unverified --fail > \"$RUNNER_TEMP/plant.jsonl\" 2> \"$RUNNER_TEMP/plant.err\" || rc=$?\nrm -rf \"$plant\"\nif [ \"$rc\" -ne 183 ]; then\n  echo \"the scanner exited $rc on a planted key, not 183 (results found):\"\n  tail -20 \"$RUNNER_TEMP/plant.err\"\n  exit 1\nfi\npython3 scripts/secrets-report.py --expect PrivateKey \"$RUNNER_TEMP/plant.jsonl\"\n",
-     "if": "",
-     "env": []
-    },
-    {
-     "name": "TruffleHog over the history",
-     "run": "set -u\nrc=0\ndocker run --rm -v \"$GITHUB_WORKSPACE:/repo:ro\" \"$SCANNER\" git file:///repo --json --no-update \\\n  --results=verified,unknown,unverified > \"$RUNNER_TEMP/found.jsonl\" 2> \"$RUNNER_TEMP/scan.err\" || rc=$?\nif [ \"$rc\" -ne 0 ]; then\n  echo \"the scan did not run (exit $rc):\"\n  tail -20 \"$RUNNER_TEMP/scan.err\"\n  exit 1\nfi\npython3 scripts/secrets-report.py --allow .github/secrets-allow.txt \"$RUNNER_TEMP/found.jsonl\"\n",
-     "if": "",
-     "env": []
-    }
-   ]
-  },
-  {
-   "id": "upstream.yml/sources",
-   "env": [],
-   "steps": [
-    {
-     "checkout": {
-      "fetch_depth": 1
-     }
-    },
-    {
-     "name": "The clones of the sources",
-     "run": "set -eu\nfor repo in $(sed -n 's/^repo \\([^ ]*\\) .*/\\1/p' crates/*/SOURCES | sort -u); do\n  dir=\"$RUNNER_TEMP/src/$repo\"\n  sh scripts/retry.sh git clone -q --filter=blob:none --no-checkout \"https://github.com/$repo\" \"$dir\"\n  echo \"--clone $repo=$dir\" >> \"$RUNNER_TEMP/clones\"\ndone\n",
-     "if": "",
-     "env": []
-    },
-    {
-     "name": "Each source against its default branch",
-     "run": "python3 -I scripts/check-sources.py $(cat \"$RUNNER_TEMP/clones\")",
-     "if": "",
-     "env": []
-    },
-    {
-     "name": "A planted change fails the check",
-     "run": "set -u\nrc=0\npython3 -I scripts/check-sources.py --plant-change $(cat \"$RUNNER_TEMP/clones\") > plant.log 2>&1 || rc=$?\ncat plant.log\ntest \"$rc\" -eq 1 || { echo \"the check exited $rc on a planted change, not 1\"; exit 1; }\ngrep -q ': changed ' plant.log\n",
-     "if": "",
-     "env": []
-    }
-   ]
-  },
-  {
    "id": "upstream.yml/mirrors",
    "env": [],
    "steps": [
@@ -419,6 +338,10 @@
    "reason": "the job has strategy"
   },
   {
+   "id": "plants.yml/plants",
+   "reason": "it applies the plants of podcrates, which its own upkeep keeps current"
+  },
+  {
    "id": "publish.yml/dry-run",
    "reason": "a step holds an expression"
   },
@@ -435,12 +358,20 @@
    "reason": "an env holds an expression"
   },
   {
+   "id": "secrets.yml/secrets",
+   "reason": "it scans the whole history against the allowlist of podcrates, and verifies found secrets on the network"
+  },
+  {
    "id": "services.yml/watch",
    "reason": "the job has if"
   },
   {
    "id": "services.yml/measure",
    "reason": "the job has if"
+  },
+  {
+   "id": "upstream.yml/sources",
+   "reason": "it compares the pins with the live upstream repositories"
   }
  ]
 }

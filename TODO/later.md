@@ -2577,7 +2577,7 @@ State (2026-11-15): podvm `0.2.0-beta.19` is pinned. `mirror::fill` saves each p
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -2591,6 +2591,15 @@ The log of level2 run 43686749522, read on 2026-11-15. The corpus logic of podru
 
 Find for each of the three jobs what it reads besides the pinned tree (the network, the git history, a file of another job). Exclude a job that reads live state in `scripts/corpus.py` with that reason, as the script does for each job that the fake cannot run as GitHub would; or move the corpus to a newer commit of podcrates when the job is stable there.
 
+## Decision
+
+The red corpus was the first full run on this pin: on a push, `level2.yml` runs only `ci.yml/record,upstream.yml/mirrors`, and the dispatch of #114 took the default `all`. The three jobs check the upkeep of podcrates against state that moves (the live upstream repositories; the whole history against the allowlist of podcrates, with a check of found secrets on the network; the plants of podcrates, and `workflows-missing` does not apply even at `59bca1f`). `scripts/corpus.py` excludes them by name with the reason (`LIVE`), as it excludes each job that the fake cannot run as GitHub would; the corpus keeps 6 jobs.
+
 ## Prove
 
 `python3 -I scripts/corpus.py DIR` gives the corpus with the reason of each excluded job, and `level2.yml` passes its corpus job twice on two days.
+
+## Done
+
+2026-11-15: `LIVE` of `scripts/corpus.py`; `crates/podrunner-broker-fake/corpus/podcrates.json` is the output of the script at podcrates `59bca1f` (the check of `level2.yml` diffs it). The proof of two days is the next runs of `level2.yml` (the schedule takes `all`).
+

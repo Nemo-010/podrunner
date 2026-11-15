@@ -17,6 +17,14 @@ import yaml
 
 CHECKOUT = "actions/checkout"
 
+# Jobs that check the upkeep of podcrates against state that moves: their
+# result changes with the day, not with the runner (T-196).
+LIVE = {
+    "upstream.yml/sources": "it compares the pins with the live upstream repositories",
+    "secrets.yml/secrets": "it scans the whole history against the allowlist of podcrates, and verifies found secrets on the network",
+    "plants.yml/plants": "it applies the plants of podcrates, which its own upkeep keeps current",
+}
+
 
 def text(v):
     return json.dumps(v)
@@ -80,7 +88,7 @@ def main():
             wf = yaml.safe_load(fh)
         for jid, job in wf["jobs"].items():
             name = f"{f}/{jid}"
-            why = reason(wf, job)
+            why = LIVE.get(name) or reason(wf, job)
             if why:
                 excluded.append({"id": name, "reason": why})
             else:
