@@ -12,7 +12,7 @@ use crate::text::display;
 
 /// The version line: the version of the crate and the commit of the tree.
 pub fn version() -> String {
-    format!("podrunner {} ({})\n", env!("CARGO_PKG_VERSION"), env!("PODRUNNER_COMMIT"))
+    format!("podrunner {} ({})\n", env!("PODRUNNER_VERSION"), env!("PODRUNNER_COMMIT"))
 }
 
 pub const USAGE: &str = "usage: podrunner COMMAND [OPTION...]
@@ -367,7 +367,8 @@ mod tests {
     fn version_names_the_version_and_a_commit() {
         let o = run(&args(&["--version"]));
         assert_eq!(o.code, 0);
-        assert!(o.stdout.starts_with(&format!("podrunner {} (", env!("CARGO_PKG_VERSION"))), "{}", o.stdout);
+        assert!(o.stdout.starts_with(&format!("podrunner {} (", env!("PODRUNNER_VERSION"))), "{}", o.stdout);
+        assert!(env!("PODRUNNER_VERSION").starts_with(env!("CARGO_PKG_VERSION")));
     }
 
     #[test]

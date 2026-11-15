@@ -1,4 +1,5 @@
-//! Give the binary the commit of its tree, for `--version`.
+//! Give the binary the commit of its tree and the version of its release,
+//! for `--version`.
 
 use std::process::Command;
 
@@ -11,6 +12,16 @@ fn main() {
     });
     println!("cargo:rustc-env=PODRUNNER_COMMIT={}", commit.unwrap_or_else(|| "unknown".into()));
     println!("cargo:rerun-if-env-changed=PODRUNNER_COMMIT");
+    // The release sets PODRUNNER_VERSION to the version of its tag
+    // (`0.1.0-beta.6`); it must name the version of Cargo.toml (T-173).
+    let pkg = std::env::var("CARGO_PKG_VERSION").unwrap_or_default();
+    let version = match std::env::var("PODRUNNER_VERSION").ok().filter(|v| !v.is_empty()) {
+        Some(v) if v == pkg || v.starts_with(&format!("{pkg}-")) => v,
+        Some(v) => panic!("PODRUNNER_VERSION {v} does not name the version {pkg} of Cargo.toml"),
+        None => pkg,
+    };
+    println!("cargo:rustc-env=PODRUNNER_VERSION={version}");
+    println!("cargo:rerun-if-env-changed=PODRUNNER_VERSION");
     println!("cargo:rerun-if-changed=../../.git/HEAD");
     println!("cargo:rerun-if-changed=../../.git/refs/heads");
 }

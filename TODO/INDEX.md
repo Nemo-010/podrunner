@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**191 entries: 15 open, 10 partial, 6 blocked, 160 done.**
+**191 entries: 14 open, 10 partial, 6 blocked, 161 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 5 | 1 | 37 | 44 |
 | P2 | 6 | 3 | 3 | 71 | 83 |
-| P3 | 8 | 2 | 2 | 52 | 64 |
-| **All** | 15 | 10 | 6 | 160 | 191 |
+| P3 | 7 | 2 | 2 | 53 | 64 |
+| **All** | 14 | 10 | 6 | 161 | 191 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -220,7 +220,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-170](live.md) | P2 | S | M-C | defect | done | A withdrawal by the tier rule leaves no trace in the mint |
 | [T-171](live.md) | P2 | S | M-C | defect | open | No command checks a mint file before `mint-serve` |
 | [T-172](live.md) | P3 | S | M-C | defect | open | The audit of `sign` lives only in memory |
-| [T-173](live.md) | P3 | S | M-C | defect | open | `podrunner --version` does not name the beta |
+| [T-173](live.md) | P3 | S | M-C | defect | done | `podrunner --version` does not name the beta |
 | [T-174](live.md) | P3 | S | later | defect | open | A trusted source cannot use a fine-grained organization PAT |
 | [T-175](live.md) | P1 | M | M-C | defect | partial | A runner of the scale set is not bound to its job: a foreign job is found only at `started` |
 | [T-176](live.md) | P1 | M | M-C | defect | partial | The JIT configuration is minted before the unit starts: a failed start spends it and leaves the job assigned |

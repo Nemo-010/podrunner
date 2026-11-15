@@ -820,7 +820,7 @@ A Rust test: each `sign` gives one line in the audit file, and the memory list s
 **Milestone:** M-C
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -837,6 +837,10 @@ Take the version string from the release tag in the release build (an environmen
 ## Prove
 
 A test of the release script: a build with the tag `v0.1.0-beta.9` prints `podrunner 0.1.0-beta.9 (...)`.
+
+## Done
+
+2026-11-15: `build.rs` of `crates/podrunner` reads `PODRUNNER_VERSION`, which must name the version of `Cargo.toml` (`0.1.0` or `0.1.0-SUFFIX`; another value stops the build), and `--version` prints it; `release.yml` sets it to the version of the release. Checked: `PODRUNNER_VERSION=0.1.0-beta.9` gives `podrunner 0.1.0-beta.9 (COMMIT)`, no value gives `podrunner 0.1.0 (COMMIT)`, and `9.9.9` stops the build. The test of `--version` in `cli.rs` reads the same variable.
 
 # T-174: A trusted source cannot use a fine-grained organization PAT
 

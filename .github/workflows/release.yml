@@ -85,7 +85,7 @@ jobs:
       - name: Build, check that it is static, and name it
         run: |
           set -eu
-          PODRUNNER_COMMIT=$(git rev-parse --short=12 HEAD) cargo zigbuild --locked --release --target ${{ matrix.target }} -p podrunner
+          PODRUNNER_VERSION="${{ inputs.version }}" PODRUNNER_COMMIT=$(git rev-parse --short=12 HEAD) cargo zigbuild --locked --release --target ${{ matrix.target }} -p podrunner
           mkdir -p dist
           name="podrunner-${{ matrix.target }}"
           cp "target/${{ matrix.target }}/release/podrunner" "dist/$name"
