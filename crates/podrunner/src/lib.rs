@@ -19,3 +19,4 @@ pub mod run_config;
 pub mod run_local;
 pub mod serve;
 pub mod text;
+pub mod tiers;

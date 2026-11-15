@@ -224,3 +224,20 @@ fn the_status_shows_the_age_of_each_credential_and_of_the_key() {
     assert!((60..=61).contains(&age), "{age}");
     assert_eq!(crate::status::key_age_s("/nonexistent/key", now), None);
 }
+
+/// T-185: a kind with a shared principal runs one unit at a time, and
+/// `status` says 1 slot, not the slots of the file.
+#[test]
+fn a_shared_principal_has_one_slot_in_the_status() {
+    let cap = capability(
+        podrunner_schema::Boundary::Confined,
+        podrunner_schema::Principal::Shared,
+        podrunner_schema::EgressHold::Advisory,
+    );
+    let bed = Bed::new(
+        config(""),
+        vec![("a", "trusted", None, vec![])],
+        vec![KindSpec { name: "fake", slots: 2, capability: cap, command: sh("exit 0") }],
+    );
+    assert_eq!(bed.slots.status().kinds[0].slots, 1);
+}

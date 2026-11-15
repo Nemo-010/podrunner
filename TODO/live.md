@@ -1168,7 +1168,7 @@ A test of `serve` with a source whose `next` takes 10 s: `status` answers in its
 **Milestone:** M-C
 **Priority:** P3
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -1182,9 +1182,17 @@ The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user nam
 
 `check` runs the tier check of `serve` and exits 78 on `no-tier-served`. `status` gives the slots that the principal rule allows. The incus probe of `doctor` makes and removes one instance.
 
+## Decision
+
+`check` has no side effect: it starts no unit, so it cannot run the self-tests that give a podvm kind `confined`. It counts each kind at the best boundary that it can claim (podvm `confined` with `confine`, else `redirect`; incus `confined`; microvm `guest`; the fake kind its record), so it refuses only a file that `serve` can never serve, and `serve` refuses the same file with the same text. The probe of incus that makes and removes an instance stays out of `doctor` for the same reason; a start that fails names its cause in the log of `serve` (T-176).
+
 ## Prove
 
 Tests of `check` and `status` for the two cases, and a probe test of the incus kind with a fake incus that refuses to make an instance.
+
+## Done
+
+2026-11-15: `tiers::served` (`crates/podrunner/src/tiers.rs`), called by `plan`: `check` and `serve` exit 78 with `no-tier-served` when no kind can meet the floor of a source (a case of `check_and_serve_refuse_a_bad_file_with_one_text`; it fails on the code of before). `status` gives 1 slot for a kind with a shared principal and no `same_principal_ok` (`a_shared_principal_has_one_slot_in_the_status`, fails on the code of before).
 
 # T-186: The store of podvm keeps `machine/run-PID-*` after each guest of the microvm kind
 

@@ -76,6 +76,17 @@ fn check_and_serve_refuse_a_bad_file_with_one_text() {
             format!("{head}[unit.incus]\nslots = 1\nbinary = \"/bin/true\"\nimages = \"/\"\nmem = \"4X\"\n{pin}"),
             "[unit.incus] mem",
         ),
+        // T-185: a trusted source (floor `confined`) and a podvm kind with no
+        // confine layer (at best `redirect`): no kind serves it.
+        (
+            format!(
+                "host = \"h\"\nallow_fake = true\n[trust]\norganizations = [{{ login = \"o\" }}]\n\
+                 [[source]]\nname = \"s\"\nkind = \"fake\"\ntier = \"trusted\"\narch = \"{}\"\n\
+                 [unit.podvm]\nslots = 1\nbinary = \"/bin/true\"\nimages = \"/\"\n{pin}",
+                std::env::consts::ARCH
+            ),
+            "no-tier-served",
+        ),
         // T-162: a guest holds no limit of processes.
         (format!("{head}[unit.microvm]\nslots = 1\nbinary = \"/bin/true\"\nimages = \"/\"\npids = 9\n{pin}"), "pids"),
         // T-111: a key of the podvm kind that the incus kind does not read.

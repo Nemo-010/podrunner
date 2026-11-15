@@ -192,6 +192,7 @@ pub fn plan(cfg: &Config) -> Result<(), Failure> {
             }
         }
     }
+    crate::tiers::served(cfg)?;
     Ok(())
 }
 

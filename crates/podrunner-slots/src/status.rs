@@ -133,7 +133,14 @@ impl Slots {
             .zip(&views)
             .map(|(k, v)| KindStatus {
                 name: k.name.clone(),
-                slots: k.cfg.slots,
+                // A shared principal runs one unit at a time unless
+                // `same_principal_ok` (placement): the slots that it has
+                // (T-185).
+                slots: if k.capability.principal == podrunner_schema::Principal::Shared && !self.cfg.same_principal_ok {
+                    k.cfg.slots.min(1)
+                } else {
+                    k.cfg.slots
+                },
                 busy: v.running,
                 probe: k.capability.clone(),
             })
