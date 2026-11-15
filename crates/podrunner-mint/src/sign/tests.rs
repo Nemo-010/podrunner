@@ -127,3 +127,33 @@ fn the_key_and_the_token_reach_no_output() {
     };
     assert!(!why.contains("not*base64"));
 }
+
+/// T-172: each audit line goes to the sink as one JSON line with no token,
+/// and the memory keeps the last `AUDIT_KEEP` lines.
+#[test]
+fn each_audit_line_goes_to_the_sink_and_the_memory_is_bounded() {
+    #[derive(Clone, Default)]
+    struct Sink(Arc<std::sync::Mutex<Vec<u8>>>);
+    impl std::io::Write for Sink {
+        fn write(&mut self, b: &[u8]) -> std::io::Result<usize> {
+            self.0.lock().unwrap().extend_from_slice(b);
+            Ok(b.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    let sink = Sink::default();
+    let clock = ManualClock::default();
+    let mut s = signer(&clock).with_sink(Box::new(sink.clone()));
+    let token = s.sign("a", &claims(json!({ "iat": NOW, "exp": NOW + 600, "iss": "12345" }))).unwrap();
+    let bad = claims(json!({ "iat": NOW, "exp": NOW + 60, "iss": "999" }));
+    for _ in 0..AUDIT_KEEP + 10 {
+        let _ = s.sign("a", &bad);
+    }
+    assert_eq!(s.audit.len(), AUDIT_KEEP);
+    let text = String::from_utf8(sink.0.lock().unwrap().clone()).unwrap();
+    assert_eq!(text.lines().count(), AUDIT_KEEP + 11);
+    assert!(text.lines().next().unwrap().contains("\"outcome\":\"signed\""), "{text}");
+    assert!(!text.contains(&token[token.len() - 40..]), "the sink holds the token");
+}

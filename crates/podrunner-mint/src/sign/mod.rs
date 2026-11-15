@@ -7,6 +7,7 @@
 //! Another shape is refused and audited. The signature comes from `ring`,
 //! not from the private-key path of `rsa` 0.9 (RUSTSEC-2023-0071).
 
+use std::io::Write;
 use std::sync::Arc;
 
 use base64::Engine;
@@ -23,6 +24,9 @@ pub const MAX_LIFE_S: u64 = 600;
 pub const MIN_GAP_MS: u64 = 60_000;
 /// The least life left of a token that is given again.
 pub const REUSE_MIN_S: u64 = 120;
+/// The audit lines that the signer keeps in memory, for `status` and the
+/// tests; each line also goes to its sink (T-172).
+pub const AUDIT_KEEP: usize = 256;
 
 /// Why `sign` refused.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -57,7 +61,10 @@ pub struct Signer {
     last_ms: Option<u64>,
     /// The last token and its `exp`.
     last: Option<(String, u64)>,
+    /// The last `AUDIT_KEEP` audit lines.
     pub audit: Vec<Audit>,
+    /// Where each audit line goes as one JSON line: the log of the process.
+    sink: Option<Box<dyn std::io::Write + Send>>,
 }
 
 impl std::fmt::Debug for Signer {
@@ -90,7 +97,13 @@ impl Signer {
         clock: Arc<dyn Clock>,
         now_unix: Box<dyn Fn() -> u64 + Send + Sync>,
     ) -> Signer {
-        Signer { key, iss: iss.into(), clock, now_unix, last_ms: None, last: None, audit: Vec::new() }
+        Signer { key, iss: iss.into(), clock, now_unix, last_ms: None, last: None, audit: Vec::new(), sink: None }
+    }
+
+    /// Write each audit line as one JSON line to `sink` (T-172).
+    pub fn with_sink(mut self, sink: Box<dyn std::io::Write + Send>) -> Signer {
+        self.sink = Some(sink);
+        self
     }
 
     /// The public key, for a verifier.
@@ -124,7 +137,14 @@ impl Signer {
             Err(Refusal::Rate) => "refused-rate",
             Err(Refusal::Key(_)) => "refused-key",
         };
-        self.audit.push(Audit { t_ms: now_ms, caller: caller.chars().take(64).collect(), iss, exp, outcome });
+        let line = Audit { t_ms: now_ms, caller: caller.chars().take(64).collect(), iss, exp, outcome };
+        if let Some(sink) = &mut self.sink {
+            let _ = writeln!(sink, "{}", serde_json::json!({ "sign": &line }));
+        }
+        self.audit.push(line);
+        if self.audit.len() > AUDIT_KEEP {
+            self.audit.drain(..self.audit.len() - AUDIT_KEEP);
+        }
         if let Ok(token) = &result
             && !reused
         {

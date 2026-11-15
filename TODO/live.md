@@ -795,7 +795,7 @@ A test of the CLI: `podrunner check` exits 0 on the example mint file and 78 on 
 **Milestone:** M-C
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -809,9 +809,17 @@ The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. T
 
 Write each `sign` audit line to the audit file of the mint, and keep no unbounded list in memory.
 
+## Decision
+
+The signer is made in `source_of`, which `serve` and `mint-serve` share; the audit file of the mint is not known there. So each line of `sign` goes as one JSON line (`{"sign": {...}}`, with no token) to the stderr of the process, which is the log of both roles.
+
 ## Prove
 
 A Rust test: each `sign` gives one line in the audit file, and the memory list stays bounded after many calls.
+
+## Done
+
+2026-11-15: `Signer::with_sink`; `serve.rs` gives it stderr; the memory keeps the last `AUDIT_KEEP` (256) lines. `each_audit_line_goes_to_the_sink_and_the_memory_is_bounded` checks the count, the order and that no token reaches the sink.
 
 # T-173: `podrunner --version` does not name the beta
 

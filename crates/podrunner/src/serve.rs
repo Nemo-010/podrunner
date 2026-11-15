@@ -107,7 +107,9 @@ pub(crate) fn scaleset(
         .map_err(|e| fail(Class::Config, format!("{}: the key file: {}", s.name, e.kind())))?;
     let key = podrunner_mint::sign::key_from_pem(&pem)
         .map_err(|_| fail(Class::Config, format!("{}: the key file holds no PKCS#1 key", s.name)))?;
-    let signer = podrunner_mint::sign::Signer::new(key, &get(&s.app_id), clock, Box::new(now_unix));
+    // Each request of `sign` is a line of the log of the process (T-172).
+    let signer = podrunner_mint::sign::Signer::new(key, &get(&s.app_id), clock, Box::new(now_unix))
+        .with_sink(Box::new(std::io::stderr()));
     let mut args = vec![
         "-config-url".to_string(),
         get(&s.config_url),
