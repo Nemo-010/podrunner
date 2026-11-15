@@ -91,7 +91,7 @@ is done.
 
 - **First:** the LIVE-1 report (GitHub #74, 2026-11-15): with the
   release binaries of `v0.1.0-beta.5`, the mint served no job. The
-  defects are T-164 to T-174; T-164 and T-165 are done; T-166, T-167 and T-169 block the live
+  defects are T-164 to T-174; T-164, T-165 and T-167 are done; T-166 and T-169 block the live
   gates. LIVE-1 ran the gates with a local build of the sidecar that fixed
   defects 1 to 4; LIVE-2 (#75) reports the gates next. Fix the P1 entries,
   then release a beta and point #74 and #75 at it.

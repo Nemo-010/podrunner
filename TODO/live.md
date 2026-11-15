@@ -638,7 +638,7 @@ A Go test: a stub session that gives one `JobAssigned` gives one offer `a-JOBID`
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -652,9 +652,17 @@ The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. T
 
 When `visibility` is absent or null, read `private`: `true` gives `private`, `false` gives `public`. Do not guess `internal`: it stays `unknown` unless `GET /repos/O/R` names it. Prefer one `GET /repos/O/R` when the run gives no `visibility`.
 
+## Decision
+
+No second lookup (`GET /repos/O/R`): the tier rule treats `private` and `internal` the same, and an internal repository has `private: true`. So `private: true` gives `private`, and `private: false` gives `public` (the strict path of the rule). The fake scale set now gives the repository of a run as github.com does (`visibility: null`, `private`), so its suite holds this.
+
 ## Prove
 
 A Go test with the JSON of a minimal repository (`private: true`, `visibility: null`) gives `private`; it fails on the code before the fix.
+
+## Done
+
+2026-11-15: `TestTheVisibilityOfAMinimalRepository` (7 cases) passes, and fails on a plant that reads `visibility` only. With the fake that gives `visibility: null`, the sidecar of before the fix fails `a_fork_is_withdrawn_and_a_member_job_runs`, and the fixed sidecar passes it (and the other suites on the fake: 2 and 2).
 
 # T-168: The sidecar names each non-HTTP error "no answer", and never closes its message session
 

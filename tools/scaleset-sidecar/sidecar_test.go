@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -113,5 +114,27 @@ func TestARevocationEndsTheSidecarWith78(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), "source-revoked") {
 		t.Fatalf("no revoked reply: %q", out.String())
+	}
+}
+
+// T-167: the repository of a run gives `visibility: null` and `private`.
+func TestTheVisibilityOfAMinimalRepository(t *testing.T) {
+	cases := map[string]string{
+		`{"private":true,"visibility":null}`:       "private",
+		`{"private":false,"visibility":null}`:      "public",
+		`{"private":true}`:                         "private",
+		`{"private":true,"visibility":"internal"}`: "internal",
+		`{"private":false,"visibility":"public"}`:  "public",
+		`{"visibility":null}`:                      "unknown",
+		`{"private":"yes"}`:                        "unknown",
+	}
+	for in, want := range cases {
+		var rp map[string]any
+		if err := json.Unmarshal([]byte(in), &rp); err != nil {
+			t.Fatal(err)
+		}
+		if got := visibilityOf(rp); got != want {
+			t.Errorf("%s: %s, want %s", in, got, want)
+		}
 	}
 }

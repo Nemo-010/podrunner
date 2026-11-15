@@ -132,10 +132,7 @@ func (t *trust) lookup(owner, repo string, run int64, messageEvent string) (trus
 		}
 	}
 	if rp, ok := r["repository"].(map[string]any); ok {
-		switch v, _ := rp["visibility"].(string); v {
-		case "private", "internal", "public":
-			out.visibility = v
-		}
+		out.visibility = visibilityOf(rp)
 	}
 	actor := ""
 	if a, ok := r["actor"].(map[string]any); ok {
@@ -169,4 +166,22 @@ func (t *trust) organization(owner string) error {
 	default:
 		return fmt.Errorf("the organization %s: HTTP %d", owner, code)
 	}
+}
+
+// visibilityOf reads the visibility of a repository. The repository of a
+// run is a minimal one: `visibility` is null, and only `private` is given
+// (T-167). The tier rule treats private and internal the same, and an
+// internal repository is private, so `private` alone is enough.
+func visibilityOf(rp map[string]any) string {
+	switch v, _ := rp["visibility"].(string); v {
+	case "private", "internal", "public":
+		return v
+	}
+	switch p, ok := rp["private"].(bool); {
+	case ok && p:
+		return "private"
+	case ok:
+		return "public"
+	}
+	return "unknown"
 }

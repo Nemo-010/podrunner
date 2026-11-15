@@ -355,7 +355,9 @@ func (s *server) workflowRun(w http.ResponseWriter, p string) {
 	reply(w, http.StatusOK, map[string]any{
 		"id": run, "event": j.Event, "actor": map[string]any{"login": j.Actor},
 		"head_repository": map[string]any{"fork": j.HeadIsFork},
-		"repository":      map[string]any{"name": j.Repo, "owner": map[string]any{"login": j.Owner}, "visibility": j.Visibility, "private": j.Visibility != "public"},
+		// The repository of a run is a minimal one on github.com:
+		// `visibility` is null, and only `private` tells it (T-167).
+		"repository": map[string]any{"name": j.Repo, "owner": map[string]any{"login": j.Owner}, "visibility": nil, "private": j.Visibility != "public"},
 	})
 }
 
