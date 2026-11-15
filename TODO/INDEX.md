@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**247 entries: 18 open, 16 partial, 11 blocked, 202 done.**
+**248 entries: 18 open, 16 partial, 12 blocked, 202 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 2 | 6 | 2 | 44 | 54 |
 | P2 | 11 | 7 | 6 | 85 | 109 |
-| P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 18 | 16 | 11 | 202 | 247 |
+| P3 | 5 | 3 | 4 | 73 | 85 |
+| **All** | 18 | 16 | 12 | 202 | 248 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -295,3 +295,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |
 | [T-246](later.md) | P1 | S | later | release | open | An adversarial QA before each release |
 | [T-247](later.md) | P2 | S | later | release | open | The notes of a release name the level of the proof of each claim |
+| [T-248](later.md) | P3 | M | later | feature | blocked | The help and the manual of podrunner from the shared crate of PodUtils |

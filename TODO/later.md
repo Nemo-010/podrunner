@@ -3834,9 +3834,11 @@ The owner, 2026-11-15: the labs are shared crates or scripts, so that each proje
 
 ## Blocker
 
-2026-11-15: podcrates and podvm: `pod-lab` (the profiles, `podlab check`, `podlab run`, a step of Actions), COORD-061 (GitHub #180). The scripts of podrunner can go first.
+2026-11-15: podcrates: part 1 of `pod-lab` in the tag after `v0.53.0` (PodUtils/podcrates#180), and podvm's `podvm lab run` (PodUtils/podvm#424); COORD-061 (GitHub #180). The scripts of podrunner can go first.
 
 State (2026-11-15): podvm answered on PodUtils/podvm#424 (PodUtils/podvm@T-1916): the machine tier takes the knobs of a profile (`--podvm-lab PROFILE`), and with no KVM and no root podvm holds `inherited-fds`, `small-tmp`, `userns-off`, a seccomp filter of chosen calls (`bind-denied`, `getsockname-denied`) as `podvm lab run PROFILE -- CMD`; `root-unreadable` and `nonroot-nocaps` need a user namespace or a guest. podvm adds `chroot-denied`, `userns-mount-denied`, `cgroup-v1`, `landlock-old`, `proc-masked`, `noexec-tmp` and `wsl2`. podrunner asked for `bind-denied` with `getsockname-denied`, `userns-off`, `small-tmp` with `noexec-tmp`, and `inherited-fds` first (#180). Next: the answer of podcrates (the crate), and `podvm lab run` in a release.
+
+State (2026-11-15, podcrates): podcrates takes `pod-lab` (PodUtils/podcrates#180, PodUtils/podcrates@T-692, P1). Part 1 in the tag after `v0.53.0`: the profiles as data, `check` against `pod-hostprobe`, `run` of the parts that a host with no root holds, and a static `podlab`. Part 2: the step of Actions, the machine-tier form (podvm), the network profiles (podnet). The scripts of podrunner are the first draft of the profiles.
 
 
 # T-245: The command line as a contract
@@ -3913,3 +3915,32 @@ Each claim of the notes names its level: CI on GitHub-hosted runners, a lane of 
 ## Prove
 
 `sh scripts/agent/check.sh`: a note of a release with no level of proof fails the check.
+
+# T-248: The help and the manual of podrunner from the shared crate of PodUtils
+
+**Source:** the ruling of the owner of 2026-11-15 (one crate for the help and the manual of each command line), PodUtils/podnet#584 (COORD-090)
+**Category:** feature
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** blocked
+
+## Problem
+
+podrunner writes its usage, its help of each command (T-208) and its rules between options by hand, apart from its parser; the first user run found eleven defects there. The other projects of PodUtils share one crate for the help and the manual.
+
+## Premise
+
+podnet's `src/manual/` (a model of `clap`, roff, text, JSON, a pager, a table of variables and exit codes) is the source of the crate. podrunner has no `clap`.
+
+## Approach
+
+Take the crate when podcrates gives it, with a model that podrunner fills from one table of its options (the needs of COORD-062, GitHub #181): the parser, `--help`, the man page, the keys of `run.toml` and the contract tests of T-245 come from that table.
+
+## Prove
+
+`cargo test -p podrunner --lib the_help_comes_from_the_table`: the help of each command and the man page come from the table, and a change of the table changes both.
+
+## Blocker
+
+2026-11-15: podcrates: the crate (PodUtils/podnet#584, COORD-090), with the needs of COORD-062 (GitHub #181).
