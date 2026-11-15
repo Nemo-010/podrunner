@@ -250,6 +250,10 @@ impl UnitDriver for PodvmUnit {
         let tag = procs::tag_of(&self.state_dir, spec.unit.as_str());
         let mut args: Vec<String> =
             ["run", "-d", "--name", spec.unit.as_str(), "-w", WORKDIR].map(String::from).to_vec();
+        // The machine name that the runner gives GitHub is the unit, not the
+        // host (T-182): `--hostname` of podvm 0.2.0-beta.22 or later.
+        let name = format!("podrunner-{}", spec.unit);
+        args.extend(["--hostname".into(), name.clone()]);
         args.extend(labels::label_args(spec.unit.as_str()));
         args.extend(["--report".into(), dir.join(labels::REPORT).display().to_string()]);
         let guest = spec.sockets.as_ref().and(self.socket_mount());
@@ -281,7 +285,18 @@ impl UnitDriver for PodvmUnit {
         args.extend(spec.argv.iter().cloned());
         let argv: Vec<&str> = args.iter().map(String::as_str).collect();
         let egress = self.egress_of(spec)?;
-        self.podvm_held(&store, &argv, Some(&tag), egress.as_deref())?;
+        match self.podvm_held(&store, &argv, Some(&tag), egress.as_deref()) {
+            // A rung (or an older podvm) that refuses the name: start again
+            // with no name, and say so.
+            Err(e) if e.detail.contains("hostname") => {
+                eprintln!("podrunner: {}: {e}: the unit starts with the host name of the host", spec.unit);
+                let argv: Vec<&str> = labels::no_hostname(&argv, &name);
+                self.podvm_held(&store, &argv, Some(&tag), egress.as_deref())?;
+            }
+            r => {
+                r?;
+            }
+        }
         // The tree of the running unit (T-067): the copy of a later podvm.
         let names: Vec<&str> = spec.credential.files.iter().map(|f| f.name.as_str()).collect();
         let rootfs = root::root_of_unit(&rootfs, self.inspected_root(&store, spec.unit.as_str()), &names)?;

@@ -1,13 +1,13 @@
 # Progress
 
-`TODO/INDEX.md` holds 221 entries: 4 open, 15 partial, 8 blocked, 194 done.
+`TODO/INDEX.md` holds 221 entries: 3 open, 16 partial, 7 blocked, 195 done.
 
 ## State
 
 - The plan is GitHub #1; one entry for each issue. The owner answered
   DR-1 to DR-7 and GitHub #8 (`docs/decisions.md`); DR-7 is yes
   (2026-11-13): the live gates run on GitHub #74 and #75.
-- Pins: podcrates `v0.52.0`, podvm `v0.2.0-beta.21`, podnet
+- Pins: podcrates `v0.52.0`, podvm `v0.2.0-beta.22`, podnet
   `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`; its runner image is the archive of runner-image run 43704601731). Last green
   `runner-image.yml`: 43704601731 (`88cc4d7`, the tag `v0.1.0-beta.6`). `main` has T-169 (the cancel of a refused run) and T-198 (the limits of an offer) after the tag: the next beta carries them.
 - M-A and M-B hold. M-C: T-027 to T-030 done; the gate T-032 waits for
@@ -36,7 +36,7 @@ The queue, most valuable first:
 
 2. The onboarding of the local mode: T-205 (P1, partial: a `runner-image.yml` run and a dry run of `release.yml` prove the assets; then the next release), T-203 (P2: a local checkout with no `--checkout`), T-204 (P3: the packages of the image archives).
 
-3. T-220 (M, open): the local mode on a host that refuses each AF_INET bind (GitHub #167): the broker on a unix socket, then a COORD issue to podnet for the podvm kind. T-219 (S, open): the order of the event checks.
+3. T-220 (M, open): the local mode on a host that refuses each AF_INET bind (GitHub #167): the broker on a unix socket, then a COORD issue to podnet for the podvm kind.
 4. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.
 5. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 

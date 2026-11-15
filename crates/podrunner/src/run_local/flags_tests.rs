@@ -152,3 +152,14 @@ fn the_nits_of_the_user_run() {
     assert!(out.stdout.contains("failure db:") && out.stdout.contains("needs containers"), "{}", out.stdout);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-219: an event that GitHub does not have, and a missing payload file,
+/// each fail with their own text, before the filter of `on:`.
+#[test]
+fn an_unknown_event_and_a_missing_payload_fail_first() {
+    let e = parse(&args(&["w.yml", "--runner-dir", "/r", "--event", "notanevent"])).unwrap_err();
+    assert!(e.contains("--event notanevent: GitHub has no such event"), "{e}");
+    let e = parse(&args(&["w.yml", "--runner-dir", "/r", "--event-path", "/nonexistent/e.json"])).unwrap_err();
+    assert!(e.contains("--event-path /nonexistent/e.json: not a file"), "{e}");
+    assert!(parse(&args(&["w.yml", "--runner-dir", "/r", "--event", "workflow_dispatch"])).is_ok());
+}

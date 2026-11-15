@@ -21,9 +21,12 @@
 # (T-163, PodUtils/podvm#375); beta.20 the limits of an incus instance
 # (`--memory`, `--cpus`, `--pids-limit`, T-162, PodUtils/podvm#382);
 # beta.21 a `:ro` volume on the detached run of a static image where
-# chroot is denied (T-158, PodUtils/podvm#391).
-version = "0.2.0-beta.21"
+# chroot is denied (T-158, PodUtils/podvm#391); beta.22 `--hostname` of
+# `run` (T-182, PodUtils/podvm#402), name resolution under `--podvm-confine`
+# (T-181, PodUtils/podvm#396) and an attestation of each binary (GitHub
+# #168).
+version = "0.2.0-beta.22"
 
 [sha256]
-x86_64 = "30e238adc71394dfe962efb2cab2387495ed2d391f96a9e90ea2326404cc4a93"
-aarch64 = "d8727f010feed5406a2701e68dcb73c98b1a260d6de780a447e3b0a271062a21"
+x86_64 = "94a3f37c96bb461ea3277419713f8f913c5513107ab3e6b1acee3d17032f1de9"
+aarch64 = "3d83b127d0a794f18b909d0bafe10c7be40cad3789acf90d37e17fada02f47bf"

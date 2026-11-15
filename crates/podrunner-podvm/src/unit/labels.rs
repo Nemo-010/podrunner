@@ -62,3 +62,27 @@ impl PodvmUnit {
         ids.len()
     }
 }
+
+/// `argv` with no `--hostname NAME`.
+pub(super) fn no_hostname<'a>(argv: &[&'a str], name: &str) -> Vec<&'a str> {
+    let mut out = Vec::with_capacity(argv.len());
+    let mut it = argv.iter().peekable();
+    while let Some(a) = it.next() {
+        if *a == "--hostname" && it.peek().is_some_and(|n| **n == name) {
+            it.next();
+            continue;
+        }
+        out.push(*a);
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    /// T-182: the start with no name drops `--hostname NAME` only.
+    #[test]
+    fn the_start_with_no_name_drops_the_name_only() {
+        let argv = ["run", "-d", "--hostname", "podrunner-u-1", "-e", "A=--hostname", "img"];
+        assert_eq!(super::no_hostname(&argv, "podrunner-u-1"), ["run", "-d", "-e", "A=--hostname", "img"]);
+    }
+}

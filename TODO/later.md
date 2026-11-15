@@ -3157,7 +3157,7 @@ Refuse two views at once and a name of `--input` or `--var` given two times; giv
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -3174,6 +3174,11 @@ Read `--event-path` before the filter. Refuse an event name that is not an event
 ## Prove
 
 A test of `run`: an unknown event and a missing payload file each fail with their own text before the filter.
+
+## Done
+
+2026-11-15: `parse` of `run` refuses an event that `pod_actions_workflow::event_keys` does not know, and an `--event-path` that is not a file, before the filter. `flags_tests::an_unknown_event_and_a_missing_payload_fail_first`.
+
 
 # T-220: The local mode cannot run on a host that refuses each AF_INET bind
 

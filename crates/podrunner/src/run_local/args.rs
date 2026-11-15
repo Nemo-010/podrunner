@@ -253,6 +253,14 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
             return Err(format!("{flag} {n}: given two times"));
         }
     }
+    // An event that GitHub has, and its payload file, before the filter of
+    // `on:` reads them (T-219).
+    if pod_actions_workflow::event_keys(&a.event).is_none() {
+        return Err(format!("--event {}: GitHub has no such event", a.event));
+    }
+    if let Some(p) = a.event_path.as_ref().filter(|p| !p.is_file()) {
+        return Err(format!("--event-path {}: not a file", p.display()));
+    }
     if a.offline && a.frozen {
         return Err("--offline and --frozen exclude each other".into());
     }

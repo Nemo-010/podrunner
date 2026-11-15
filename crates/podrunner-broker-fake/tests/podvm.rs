@@ -89,6 +89,8 @@ fn the_runner_in_a_podvm_unit_runs_a_canned_job() {
     assert_eq!(done.len(), 1, "{:?}\n{logs}", broker.seen());
     assert_eq!(done[0].conclusion, "succeeded", "{logs}");
     assert!(logs.contains("podrunner-podvm-42"), "{logs}");
+    // T-182: the machine name that the runner gives is the unit's.
+    assert!(logs.contains("Machine name: 'podrunner-u-1'"), "{logs}");
     assert!(residue.is_clean(), "{residue:?}");
 }
 
