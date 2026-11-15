@@ -90,6 +90,7 @@ C13 to C16 are rulings since 2026-11-11 ("Confirm, keep swappable").
 | 2026-11-14 | `--keep-failed` (T-138) | `--keep-failed` is `--break-on-failure`: the job pauses after its failed step, the unit keeps running, and the user enters it with a shell from the pause. The entry asked to keep the unit after the job and to remove it at the next run. After its payload ends, a podvm unit is stopped, so no command can enter it; and a unit kept across runs keeps a state directory that the end of the run removes. |
 | 2026-11-15 | The first alternate payload (T-161) | Measure an existing third-party runner against the fake broker of the local mode before a native runner: it costs least, and its failures name the calls that a native runner must speak (`docs/alternate-payload.md`). |
 | 2026-11-15 | beta.6 | Release `v0.1.0-beta.6` under the ruling of 2026-11-09 when the gate and `runner-image.yml` of `main` are green: the fixes of the first live run (GitHub #74, #75, #116 to #147) need a live run on a release, and LIVE-1 and LIVE-2 point at it, as for beta.5. Its notes say what is not proven: T-169 (Q7) and T-179. |
+| 2026-11-15 | beta.7 | Release `v0.1.0-beta.7` under the ruling of 2026-11-09 when the gate and `runner-image.yml` of `main` are green: T-169 (the cancel of a refused run, Q7) and T-198 (the limits of an offer) are on `main` after the tag of beta.6, and the live runs (GitHub #74, #75, #151) need them in a release. |
 
 ## Questions for the owner
 
