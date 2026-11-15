@@ -138,7 +138,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #136 | Live run 2026-11-15: a redirect host can serve one repository only, so the G-01 pair cannot run on it | open (T-193 is open) | T-193 |
 | #137 | Live run 2026-11-15: a podvm host runs one unit at a time while status says slots 2 | closed (T-185 is done) | T-185 |
 | #138 | Live run 2026-11-15: local mode refuses the netns hold of podnet | open (T-187 is open) | T-187 |
-| #139 | Live run 2026-11-15: the tier rule trusts an organization owner only | open (T-191 is open) | T-191 |
+| #139 | Live run 2026-11-15: the tier rule trusts an organization owner only | closed (T-191 is done) | T-191 |
 | #140 | Live run 2026-11-15: the JIT configuration is minted before the unit starts, and a failed start leaves the job assigned | open (T-176 is partial) | T-176 |
 | #141 | Live run 2026-11-15: on incus and microvm units the runner is not root and HOME is /root | open (T-178 is partial) | T-178 |
 | #142 | Live run 2026-11-15: on H0 the runner times out reaching github.com under the seccomp hold | open (T-179 is open) | T-179 |
