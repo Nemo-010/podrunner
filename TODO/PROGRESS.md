@@ -7,17 +7,18 @@
 - The plan is GitHub #1; one entry for each issue. The owner answered
   DR-1 to DR-7 and GitHub #8 (`docs/decisions.md`); DR-7 is yes
   (2026-11-13): the live gates run on GitHub #74 and #75.
-- Pins: podcrates `v0.41.0`, podvm `v0.2.0-beta.14`, podnet
-  `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.4` (release
-  run 43506335609, `d796a94`). Last green `runner-image.yml`: 43541714659 (`9f15901`).
+- Pins: podcrates `v0.48.0`, podvm `v0.2.0-beta.18`, podnet
+  `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.5` (release
+  run 43656918895, `34d56b5`; it pins podcrates `v0.47.0`). Last green
+  `runner-image.yml`: 43652953452 (`eea3401`).
 - M-A and M-B hold. M-C: T-027 to T-030 done; the gate T-032 waits for
   the live gates (GitHub #74, #75). M-D: T-031 and T-045 done; the gate
   T-033 waits for the live gates. L2 holds: T-034 to T-039 done
   (GitHub #39 is closed).
 - The `microvm` kind (no NIC, one channel, a mount check before each job,
   an optional engine) and the `incus` kind (no NIC, one channel, hold
-  `enforced`) pass on real guests and instances. T-103 has the engine in a
-  guest, and its capability `container: engine` (podcrates `v0.42.0`).
+  `enforced`) pass on real guests and instances. A guest with an engine runs
+  `services:`, a job container and Docker actions (T-103, T-124, T-157).
 - Each project gets COORD issues only (no direct message, the owner,
   2026-11-12); podnet and podvm answer; podssh is on break. An entry that
   needs a change of another project is `blocked`, and the session takes
