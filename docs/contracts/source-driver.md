@@ -28,7 +28,7 @@ source is the trait `JobSource` of `crates/podrunner-source/src/lib.rs`;
 | Operation | Request fields | Reply |
 | --- | --- | --- |
 | `hello` | `client`, `version` | `hello`: `source`, `operator_controlled` |
-| `next` | `capacity`, `wait_s` (a long poll) | `events`: a list of events |
+| `next` | `capacity`, `wait_s` (the longest wait of the reply, in seconds; a source with a slower poll keeps it in the background) | `events`: a list of events |
 | `ack` | `job_id` | `done` |
 | `claim` | `job_id`, `runner_name` | `done` |
 | `mint` | `job_id`, `runner_name` | `credential`: `files` (`name`, `content`) |

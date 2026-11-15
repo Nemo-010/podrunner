@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/actions/scaleset"
@@ -37,11 +38,11 @@ type sidecar struct {
 	ctx     context.Context
 	client  *scaleset.Client
 	session *scaleset.MessageSessionClient
+	poll    *poller
 	trust   *trust
 	jobs    map[string]*job
 	// The offers that wait for capacity, in order.
-	queue  []map[string]any
-	lastID int
+	queue []map[string]any
 	// The counts of status.
 	TrustLookupFailed int
 }
@@ -73,7 +74,9 @@ func newSidecar(ctx context.Context, o options, signer *signer) (*sidecar, error
 	if err := t.organization(owner); err != nil {
 		return nil, err
 	}
-	return &sidecar{o: o, ctx: ctx, client: client, session: session, trust: t, jobs: map[string]*job{}}, nil
+	p := newPoller(session)
+	go p.run(ctx)
+	return &sidecar{o: o, ctx: ctx, client: client, session: session, poll: p, trust: t, jobs: map[string]*job{}}, nil
 }
 
 var statusPattern = regexp.MustCompile(`status="(\d{3})`)
@@ -159,7 +162,8 @@ func (s *sidecar) handle(line []byte) map[string]any {
 		return map[string]any{"reply": "hello", "source": s.o.source, "operator_controlled": s.o.operatorControlled}
 	case "next":
 		capacity, _ := req["capacity"].(float64)
-		return s.next(int(capacity))
+		wait, _ := req["wait_s"].(float64)
+		return s.next(int(capacity), time.Duration(wait*float64(time.Second)))
 	case "ack":
 		return s.move(jobID, offered, acked)
 	case "claim":
@@ -271,13 +275,15 @@ func decodeJIT(encoded string) ([]map[string]string, error) {
 	return files, nil
 }
 
-func (s *sidecar) next(capacity int) map[string]any {
+// next gives the events of the messages that the poller found, and at
+// most `capacity` offers. It waits at most `wait` (T-164).
+func (s *sidecar) next(capacity int, wait time.Duration) map[string]any {
 	events := []any{}
-	msg, err := s.session.GetMessage(s.ctx, s.lastID, capacity)
-	if err != nil {
+	msgs, err := s.poll.take(capacity, wait)
+	if err != nil && len(s.queue) == 0 {
 		return errorReply(codeOf(err), statusOf(err))
 	}
-	if msg != nil {
+	for _, msg := range msgs {
 		for _, a := range msg.JobAvailableMessages {
 			id := strconv.FormatInt(a.RunnerRequestID, 10)
 			if s.jobs[id] != nil {
@@ -295,9 +301,6 @@ func (s *sidecar) next(capacity int) map[string]any {
 			} else {
 				events = append(events, map[string]any{"event": "completed", "job_id": id, "result": c.Result})
 			}
-		}
-		if err := s.session.DeleteMessage(s.ctx, msg.MessageID); err == nil {
-			s.lastID = msg.MessageID
 		}
 	}
 	for capacity > 0 && len(s.queue) > 0 {

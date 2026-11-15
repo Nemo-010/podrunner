@@ -547,7 +547,7 @@ A new test target, crates/podrunner/tests/live.rs, on the fake scale set with th
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -561,9 +561,17 @@ The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. T
 
 Bound `GetMessage` in the sidecar by a context of `wait_s` plus a margin, and read its time-out as no message. Make the reply limit of the mint for `next` `wait_s` plus `REPLY_LIMIT`. Let the unit host send a real `wait_s` to a remote source, and keep one connection to the mint between calls.
 
+## Decision
+
+The sidecar holds the long poll of GitHub in a goroutine (`tools/scaleset-sidecar/poll.go`); `next` gives the messages that it found and waits at most `wait_s`. A new capacity cancels the poll in flight. So `next` never holds the gate of the mint for a long poll. The unit host keeps `wait_s = 0`: its engine is one loop, and a wait stops each other step. The 10 calls each second came from the serve loop: after a slow tick, it ran each missed tick at once. Now a late tick is followed by one tick a second later (`next_tick` of `crates/podrunner/src/serve.rs`). One request on each TLS connection stays: one call each second is the rate of the design.
+
 ## Prove
 
 A Go test: `next` with `wait_s = 2` against a stub that holds the long poll returns no message in about 2 s. A Rust test: the mint does not kill a sidecar that answers within `wait_s` plus the limit. A test of the engine: an idle remote source gets no more than one `next` in each `wait_s`. Each fails on the code before the fix.
+
+## Done
+
+2026-11-15: `poll_test.go` (5 tests, `go test -race -count=3` passes): `next` with `wait_s` 1 answers in about 1 s while the long poll holds, a found message is given once after its delete, a new capacity starts a new poll, a message with a failed delete is not given, and a refused poll is the reply of `next`. A planted `take` with no limit fails the first test (a time-out of 20 s), and a planted poll with no cancel fails the third. `serve::tests::a_late_tick_does_not_run_the_missed_ticks` fails on the old rule (`due + 1 s`). The tests of the sidecar on the fake scale set pass (`podrunner-source` 2, `podrunner` scaleset 1, live 2). The live check comes with the next beta (GitHub #74).
 
 # T-165: `sign` refuses each restarted sidecar for 60 s, and the backoff of the sidecar never grows
 

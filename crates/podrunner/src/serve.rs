@@ -427,7 +427,7 @@ pub fn run(config: &Path, state: &Path, socket: &Path) -> Result<(), Failure> {
         }
         if Instant::now() >= next {
             sup.slots.tick();
-            next += Duration::from_secs(1);
+            next = next_tick(next, Instant::now());
         }
         if let Some(w) = watchdog
             && ping.elapsed() >= w
@@ -443,9 +443,30 @@ pub fn run(config: &Path, state: &Path, socket: &Path) -> Result<(), Failure> {
     }
 }
 
+/// The time of the tick after the one due at `due`. A late tick (a slow
+/// call of a source) does not make the missed ticks run back to back: each
+/// one polls the sources, and a burst of polls hits the mint (T-164).
+fn next_tick(due: Instant, now: Instant) -> Instant {
+    let next = due + Duration::from_secs(1);
+    if next <= now { now + Duration::from_secs(1) } else { next }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::time::{Duration, Instant};
+
     use podrunner_schema::EgressHold;
+
+    #[test]
+    fn a_late_tick_does_not_run_the_missed_ticks() {
+        let t0 = Instant::now();
+        // On time: one second after the tick that was due.
+        assert_eq!(super::next_tick(t0, t0 + Duration::from_millis(10)), t0 + Duration::from_secs(1));
+        // Fifteen seconds late: the next tick is one second from now, not at
+        // once.
+        let now = t0 + Duration::from_secs(15);
+        assert_eq!(super::next_tick(t0, now), now + Duration::from_secs(1));
+    }
 
     #[test]
     fn an_upstream_of_names_caps_the_hold_at_advisory() {
