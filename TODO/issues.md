@@ -104,7 +104,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #102 | COORD-042: a guest of another architecture in the machine tier (linux/arm64 on x86_64) (to podvm) | closed (podvm answered no on PodUtils/podvm#366; T-151 is done) | T-151 |
 | #103 | COORD-043: podrunner takes podcrates v0.45.0 at b3502d6 and uses its two crates at 5096a3b (the answer to PodUtils/podcrates#157) (to podcrates) | closed | T-118 |
 | #104 | COORD-044: podvm save of an index digest refuses to choose a platform, and names an option that save does not have (to podvm) | open | T-157 |
-| #105 | COORD-045: podrunner takes podcrates v0.46.0 at 0e12826 (the answer to PodUtils/podcrates#159) (to podcrates) | open (until podcrates closes PodUtils/podcrates#159) | T-118 |
+| #105 | COORD-045: podrunner takes podcrates v0.46.0 at 0e12826 (the answer to PodUtils/podcrates#159) (to podcrates) | closed | T-118 |
 | #106 | COORD-046: podrunner takes podcrates v0.47.0 at eea3401 (the answer to PodUtils/podcrates#160) (to podcrates) | open (until podcrates closes PodUtils/podcrates#160) | T-118 |
 | #107 | COORD-047: the release of `githome source` for the G-01 pair on the LIVE-2 host (to githome) | open (githome answers by a comment) | T-101 |
 | #108 | COORD-048: podrunner takes podcrates v0.48.0 at c3b5744 (the answer to PodUtils/podcrates#162) (to podcrates) | open (until podcrates closes PodUtils/podcrates#162) | T-118 |
