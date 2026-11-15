@@ -1341,3 +1341,107 @@ Add `[trust] users` (a login and an optional id) for a source whose forge allows
 ## Prove
 
 `cargo test -p podrunner-tier users`: a trusted job of a listed user passes on a `program` source and is refused on a `github-scaleset` source.
+
+# T-192: `serve` stops after a unit ends `unit-failed`
+
+**Source:** the owner's issue of the live run, 2026-11-15 (GitHub #144)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+On the full host of LIVE-2, after a job unit ended `unit-failed` (exit -1, no residue), `serve` took no more jobs: `status` answered `busy` for each call. The main thread waited on a futex and one thread in a socket receive (`/proc/PID/task/*/wchan`: `futex_do_wait`, `__skb_wait_for_more_packets`). A restart of `serve` went on (GitHub #144).
+
+## Premise
+
+The issue of the owner, read on 2026-11-15 (podrunner `v0.1.0-beta.5`, podvm `0.2.0-beta.18`, podnet `0.4.0-beta.8`, WSL2 hosts). Not reproduced in this session.
+
+## Approach
+
+Find the lock that the main thread waits for after a failed unit: the locks of the podvm driver (`units`), of the hooks (`Hooks::open` and the lock of each `HookUnit`, which a server thread holds while it reads its socket), and of the egress module. Reproduce with a fake kind whose payload ends at once and a hook socket that a client holds open. Hold no lock across a read of a socket.
+
+## Prove
+
+`cargo test -p podrunner --test serve`: a unit that ends `unit-failed` while a client holds its hook socket open; `status` answers, and the next job runs.
+
+# T-193: A `redirect` host serves one repository only, so it cannot hold two sources
+
+**Source:** the owner's issue of the live run, 2026-11-15 (GitHub #136)
+**Category:** feature
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+With the trusted floor `redirect`, DR-4 needs `repository`, one repository for the whole host. A host that serves the scale set of an organization and a `program` source of a second forge cannot run at `redirect`; the G-01 pair ran on the incus kind (`confined`) (GitHub #136).
+
+## Premise
+
+The issue of the owner, read on 2026-11-15 (podrunner `v0.1.0-beta.5`, podvm `0.2.0-beta.18`, podnet `0.4.0-beta.8`, WSL2 hosts). Not reproduced in this session.
+
+## Approach
+
+Add `repository` to `[[source]]` for the mitigations of DR-4, so that each source keeps its own one repository; the key of the host stays the default for a source with none.
+
+## Prove
+
+`cargo test -p podrunner-slots redirect`: two sources at `redirect`, each with its own repository; a job of another repository of each source is refused.
+
+# T-194: An emulated aarch64 host (QEMU user mode) serves no tier
+
+**Source:** the owner's issue of the live run, 2026-11-15 (GitHub #146)
+**Category:** feature
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+In an arm64 container on an x86_64 host (QEMU user mode), `podrunner doctor` says that no unit kind meets the floor and the hold: Landlock is absent (ENOSYS) and the hold of podnet is `none`. The aarch64 runner image runs there (GitHub #146).
+
+## Premise
+
+The issue of the owner, read on 2026-11-15 (podrunner `v0.1.0-beta.5`, podvm `0.2.0-beta.18`, podnet `0.4.0-beta.8`, WSL2 hosts). Not reproduced in this session.
+
+## Approach
+
+Say in `docs/non-goals.md` and `docs/configuration.md` why such a host serves no trusted tier (no confine layer and no egress hold under QEMU user mode), and name the ways that remain: a real aarch64 host, or the microvm kind with an aarch64 guest where podvm gives one. Give `doctor` the reason in one line.
+
+## Prove
+
+`cargo test -p podrunner doctor`: with no Landlock and no hold, `doctor` names both causes.
+
+# T-195: Issue #75 names the expiry of the artifacts without the time, and not `runner-full-x86_64`
+
+**Source:** the owner's issue of the live run, 2026-11-15 (GitHub #133)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+Issue #75 named the expiry of the artifacts of run 43658370121 as a date with no time, and did not say what `runner-full-x86_64` is (GitHub #133). The report read run 43652953452, another run.
+
+## Premise
+
+The issue of the owner, read on 2026-11-15 (podrunner `v0.1.0-beta.5`, podvm `0.2.0-beta.18`, podnet `0.4.0-beta.8`, WSL2 hosts). Not reproduced in this session.
+
+## Approach
+
+Amend the body of #75: the time of the expiry, and the use of `runner-full-x86_64`.
+
+## Prove
+
+`curl -qfsS "https://forge.web.pkgforge.dev/github/repos/PodUtils/podrunner/issues/75?n=$RANDOM"`: step 3 of the body names the time of the expiry and `runner-full-x86_64`.
+
+## Done
+
+2026-11-15: the body of #75 says "2026-12-15T00:08Z (UTC)" and what `runner-full-x86_64` is (the larger image of T-129; the gates need `runner-x86_64` only).
