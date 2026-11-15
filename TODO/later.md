@@ -3187,7 +3187,7 @@ A test of `run`: an unknown event and a missing payload file each fail with thei
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** blocked
 
 ## Problem
 
@@ -3201,12 +3201,17 @@ The report of GitHub #167, read on 2026-11-15: `podnet net doctor` and a control
 
 1. The fake broker also serves a unix socket in the scratch directory of the job (no bind of AF_INET on the host).
 2. The guest kinds (`microvm`, `incus`): the front of the egress socket connects to that unix socket for `broker.podrunner.test`, not to a TCP port of the host (`crates/podrunner-local/src/front.rs`).
-3. The podvm kind: a unit shares the network of the host, so the runner in it needs a TCP address. Ask podnet by a COORD issue whether its vnet shim can map a TCP port of the payload to a unix socket of the host, for a payload that `podvm run -d` starts; then start the runner of a unit under that shim.
+3. The podvm kind: a unit shares the network of the host, and on such a host a process of a unit can neither bind nor connect on AF_INET (measured on #153 with a dynamic build of podrunner under podnet's shim: the unit started and the runner ran, but its connect to the broker got EACCES). So the runner of a unit runs under podnet's vnet shim, with the library mounted into the unit, and the vnet maps `127.0.0.1:PORT` to the unix socket of the broker (COORD-058, GitHub #170).
 4. `doctor --run` says which executor works on a host that refuses the bind.
 
 ## Prove
 
 A test of the guest kinds with the broker on a unix socket only. On a host that refuses AF_INET bind (a seccomp filter in the test), `run --podvm` with the shim of podnet runs a canned job.
+
+## Blocker
+
+2026-11-15: podnet: a TCP address of the vnet that connects to a unix socket, for a payload in a podvm unit (COORD-058, GitHub #170). Steps 1 and 2 (the unix socket of the broker, and the front of the guest kinds) need no other project.
+
 
 # T-221: `cpus` on the podvm kind
 

@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 222 entries: 3 open, 16 partial, 7 blocked, 196 done.
+`TODO/INDEX.md` holds 222 entries: 2 open, 16 partial, 8 blocked, 196 done.
 
 ## State
 
@@ -36,7 +36,7 @@ The queue, most valuable first:
 
 2. The onboarding of the local mode: T-205 (P1, partial: a `runner-image.yml` run and a dry run of `release.yml` prove the assets; then the next release), T-203 (P2: a local checkout with no `--checkout`), T-204 (P3: the packages of the image archives).
 
-3. T-220 (M, open): the local mode on a host that refuses each AF_INET bind (GitHub #167): the broker on a unix socket, then a COORD issue to podnet for the podvm kind.
+3. T-220 (M, blocked on podnet, COORD-058 #170): the local mode on a host that refuses AF_INET bind and connect (GitHub #167); steps 1 and 2 (the broker on a unix socket, the front of the guest kinds) can go first.
 4. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.
 5. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 

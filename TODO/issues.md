@@ -166,9 +166,10 @@ numbers. `TODO/RULES.md` gives the rules.
 | #164 | Local mode 2026-11-15: stop --wait prints stopped and exits 0 for a state directory that does not exist, while stop exits 69 | open (fixed on `main`; closes with the next beta) | T-215 |
 | #165 | Local mode 2026-11-15: mint-serve reports a TOML type error at host for a run configuration, and check calls the same file usable | open (fixed on `main`; closes with the next beta) | T-216 |
 | #166 | Live run 2026-11-15: the published runner-x86_64 artifact cannot be imported by the pinned podvm, and it carries no ref name | open (fixed on `main`; holds from the next runner-image run and beta) | T-217 |
-| #167 | Local mode 2026-11-15: a host that denies AF_INET bind cannot serve the fake broker, and the static binary keeps podnet's shim out | open (T-220 is open) | T-220 |
+| #167 | Local mode 2026-11-15: a host that denies AF_INET bind cannot serve the fake broker, and the static binary keeps podnet's shim out | open (T-220 waits for podnet, #170) | T-220 |
 | #168 | COORD-056: a store flag of `load` and `images`, and an attestation of each release (to podvm) | open (podvm answered on PodUtils/podvm#417: `--store` in its next beta; attestations since beta.22) | T-218 |
-| #169 | COORD-057: podrunner takes podcrates v0.52.0 at 45bd964 (the answer to PodUtils/podcrates#176) (to podcrates) | open | T-118 |
+| #169 | COORD-057: podrunner takes podcrates v0.52.0 at 45bd964 (the answer to PodUtils/podcrates#176) (to podcrates) | open (podcrates closed PodUtils/podcrates#176) | T-118 |
+| #170 | COORD-058: a TCP address of the vnet that connects to a unix socket, for a payload in a podvm unit (to podnet) | open | T-220 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

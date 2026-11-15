@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**222 entries: 3 open, 16 partial, 7 blocked, 196 done.**
+**222 entries: 2 open, 16 partial, 8 blocked, 196 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 6 | 0 | 43 | 49 |
-| P2 | 2 | 7 | 4 | 81 | 94 |
+| P2 | 1 | 7 | 5 | 81 | 94 |
 | P3 | 1 | 3 | 3 | 72 | 79 |
-| **All** | 3 | 16 | 7 | 196 | 222 |
+| **All** | 2 | 16 | 8 | 196 | 222 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -267,6 +267,6 @@ acceptance, later The crate dependencies later than v1.
 | [T-217](later.md) | P1 | S | later | defect | done | The artifact `runner-ARCH.tar` cannot be loaded by the pinned podvm and has no ref name |
 | [T-218](later.md) | P3 | S | later | defect | done | The nits of the local-mode user run |
 | [T-219](later.md) | P3 | S | later | defect | done | An unknown `--event` gets the text of the `on:` filter, and `--event-path` is read after the filter |
-| [T-220](later.md) | P2 | M | later | feature | open | The local mode cannot run on a host that refuses each AF_INET bind |
+| [T-220](later.md) | P2 | M | later | feature | blocked | The local mode cannot run on a host that refuses each AF_INET bind |
 | [T-221](later.md) | P3 | S | later | feature | blocked | `cpus` on the podvm kind |
 | [T-222](live.md) | P1 | S | M-C | defect | done | A refusal of one source holds the job for each source of the host |
