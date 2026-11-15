@@ -75,8 +75,5 @@ fn a_payload_past_the_pids_limit_gets_an_error() {
     assert_eq!(run(3, FORKS, Limits::default()), Some(Exit::Code(12)), "the control: 1000 forks pass with no limit");
     let held = Limits { pids: Some(256), ..Limits::default() };
     let exit = run(4, FORKS, held);
-    assert!(
-        matches!(exit, Some(Exit::Code(c)) if c != 0 && c != 12),
-        "1000 forks must fail under pids 256: {exit:?}"
-    );
+    assert!(matches!(exit, Some(Exit::Code(c)) if c != 0 && c != 12), "1000 forks must fail under pids 256: {exit:?}");
 }
