@@ -2527,7 +2527,7 @@ The mirror of a guest engine (T-157) pulls each image again into a private store
 
 ## Premise
 
-PodUtils/podvm#375 (2026-11-15): podvm T-1895 keeps one record for each manifest and platform; `podvm save --platform` is on `main` since T-1841. Both go into podvm `0.2.0-beta.19`.
+PodUtils/podvm#375 (2026-11-15): PodUtils/podvm@T-1895 keeps one record for each manifest and platform; `podvm save --platform` is on `main` since PodUtils/podvm@T-1841. Both go into podvm `0.2.0-beta.19`.
 
 ## Approach
 
@@ -2539,4 +2539,4 @@ Pin podvm `0.2.0-beta.19` in `images/podvm.toml`. Save each image of the mirror 
 
 ## Blocker
 
-podvm: the release `0.2.0-beta.19` with T-1895 (PodUtils/podvm#375).
+podvm: the release `0.2.0-beta.19` with PodUtils/podvm@T-1895 (PodUtils/podvm#375).
