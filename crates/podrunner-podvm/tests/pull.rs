@@ -10,6 +10,11 @@ use podrunner_unit::UnitDriver;
 
 const IMAGE: &str = "busybox@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec";
 
+/// The tests write a script and run it: a fork of one test can hold the
+/// script of the other open for writing, and its exec then fails with
+/// ETXTBSY ("executable file busy"). One test at a time.
+static ONE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 /// A fake podvm: `save` fails until a `pull` ran; with `pull_fails`, the
 /// pull fails too. Each call goes to `calls`.
 fn fake(tag: &str, pull_fails: bool) -> (Podvm, PathBuf) {
@@ -37,6 +42,7 @@ fn platform() -> &'static str {
 
 #[test]
 fn a_missing_pinned_image_is_pulled_once_then_saved() {
+    let _one = ONE.lock().unwrap_or_else(|e| e.into_inner());
     let (podvm, d) = fake("ok", false);
     let unit = PodvmUnit::new(podvm, &d.join("state"), &d.join("images")).unwrap();
     unit.prepare(IMAGE, platform(), false).unwrap();
@@ -52,6 +58,7 @@ fn a_missing_pinned_image_is_pulled_once_then_saved() {
 
 #[test]
 fn a_failed_pull_names_both_causes() {
+    let _one = ONE.lock().unwrap_or_else(|e| e.into_inner());
     let (podvm, d) = fake("fails", true);
     let unit = PodvmUnit::new(podvm, &d.join("state"), &d.join("images")).unwrap();
     let e = unit.prepare(IMAGE, platform(), false).unwrap_err();

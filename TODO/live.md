@@ -1168,7 +1168,7 @@ A test of `serve` with a source whose `next` takes 10 s: `status` answers in its
 **Milestone:** M-C
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 

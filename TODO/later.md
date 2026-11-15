@@ -2563,3 +2563,28 @@ State (2026-11-15): podvm `0.2.0-beta.19` is pinned. `mirror::fill` saves each p
 ## Done
 
 2026-11-15, `fa84341`: runner-image run 43669743775: the step "The images of a guest engine from the store" passes with podvm `0.2.0-beta.19`. 04 (`services:`) and 05 (a job container and a Docker step) run in a microvm guest with an engine; `mirror::fill` saves each image from the store of the units with `podvm save --platform`, with no private store and no second pull.
+
+# T-196: The level2 corpus fails on podcrates jobs that read live state
+
+**Source:** level2 run 43686749522 (`9a7fb3c`, GitHub #114)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The corpus of the fake broker (`crates/podrunner-broker-fake/corpus/podcrates.json`, podcrates `59bca1f`) failed on 3 of 9 jobs: `plants.yml/plants` ("STALE workflows-missing: the patch does not apply ... live.yml"), `secrets.yml/secrets` ("the allowed URI ... was not found; the entry may be stale") and `upstream.yml/sources` (it compares the pins with the live upstream repositories). The same corpus passed in run 43669743789 (`fa84341`) that day. The corpus pins the commit of podcrates, but these jobs read state that moves: the upstream repositories, and the history of the clone.
+
+## Premise
+
+The log of level2 run 43686749522, read on 2026-11-15. The corpus logic of podrunner did not change between the two runs.
+
+## Approach
+
+Find for each of the three jobs what it reads besides the pinned tree (the network, the git history, a file of another job). Exclude a job that reads live state in `scripts/corpus.py` with that reason, as the script does for each job that the fake cannot run as GitHub would; or move the corpus to a newer commit of podcrates when the job is stable there.
+
+## Prove
+
+`python3 -I scripts/corpus.py DIR` gives the corpus with the reason of each excluded job, and `level2.yml` passes its corpus job twice on two days.
