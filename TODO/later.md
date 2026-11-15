@@ -3923,7 +3923,7 @@ Each claim of the notes names its level: CI on GitHub-hosted runners, a lane of 
 **Source:** the ruling of the owner of 2026-11-15 (one crate for the help and the manual of each command line), PodUtils/podnet#584 (COORD-090)
 **Category:** feature
 **Milestone:** later
-**Priority:** P3
+**Priority:** P1
 **Effort:** M
 **Status:** blocked
 
@@ -3937,12 +3937,12 @@ podnet's `src/manual/` (a model of `clap`, roff, text, JSON, a pager, a table of
 
 ## Approach
 
-Take the crate when podcrates gives it, with a model that podrunner fills from one table of its options (the needs of COORD-062, GitHub #181): the parser, `--help`, the man page, the keys of `run.toml` and the contract tests of T-245 come from that table.
+The ruling "Discipline" (`docs/decisions.md`, 2026-11-15). Take `pod-manual` when podcrates gives it (PodUtils/podcrates#181, PodUtils/podcrates@T-700), with a model that podrunner fills from one table of its options (the needs of COORD-062, GitHub #181): the parser, `--help`, `podrunner man` (`--no-pager`, `--json`), the man page, the keys of `run.toml` and the contract tests of T-245 come from that table. The environment variables and the exit codes of podrunner become one table of facts. A test fails when a generated file differs from the model, or when the code reads a variable or gives an exit code that has no fact.
 
 ## Prove
 
-`cargo test -p podrunner --lib the_help_comes_from_the_table`: the help of each command and the man page come from the table, and a change of the table changes both.
+`cargo test -p podrunner --lib the_help_comes_from_the_table`: the help of each command and the man page come from the table, and a change of the table changes both; `podrunner man --no-pager` and `podrunner man --json` answer; the test of the facts fails on a variable that has no fact.
 
 ## Blocker
 
-2026-11-15: podcrates: the crate (PodUtils/podnet#584, COORD-090), with the needs of COORD-062 (GitHub #181).
+2026-11-15: podcrates: `pod-manual` in the first tag after part 1 of `pod-lab` (PodUtils/podcrates#181), with the needs of COORD-062 (GitHub #181).

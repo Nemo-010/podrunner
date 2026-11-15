@@ -41,9 +41,9 @@ acceptance, later The crate dependencies later than v1.
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 6 | 2 | 44 | 54 |
+| P1 | 2 | 6 | 3 | 44 | 55 |
 | P2 | 11 | 7 | 6 | 85 | 109 |
-| P3 | 5 | 3 | 4 | 73 | 85 |
+| P3 | 5 | 3 | 3 | 73 | 84 |
 | **All** | 18 | 16 | 12 | 202 | 248 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
@@ -295,4 +295,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |
 | [T-246](later.md) | P1 | S | later | release | open | An adversarial QA before each release |
 | [T-247](later.md) | P2 | S | later | release | open | The notes of a release name the level of the proof of each claim |
-| [T-248](later.md) | P3 | M | later | feature | blocked | The help and the manual of podrunner from the shared crate of PodUtils |
+| [T-248](later.md) | P1 | M | later | feature | blocked | The help and the manual of podrunner from the shared crate of PodUtils |
