@@ -161,7 +161,27 @@ fn report_with(config: Option<&Path>, host: Value) -> Result<Value, Failure> {
                 "source": s.name, "tier": s.tier, "served": served, "floor": floor, "hold": need,
             }));
             if !served {
-                missing.push(format!("[[source]] {}: no unit kind meets the floor and the hold of its tier", s.name));
+                // Why for each kind (T-194): an emulated host, for example,
+                // has no confine layer and no hold.
+                let why: Vec<String> = caps
+                    .iter()
+                    .filter(|c| c.arch == s.arch)
+                    .map(|c| {
+                        let mut w = Vec::new();
+                        if c.boundary < floor {
+                            w.push(format!("boundary {:?} below {floor:?}", c.boundary));
+                        }
+                        if c.egress_hold.effective() < need {
+                            w.push(format!("hold {:?} below {need:?}", c.egress_hold.effective()));
+                        }
+                        format!("{}: {}", c.kind, w.join(", "))
+                    })
+                    .collect();
+                let why = if why.is_empty() { format!("no unit kind of {}", s.arch) } else { why.join("; ") };
+                missing.push(format!(
+                    "[[source]] {}: no unit kind meets the floor and the hold of its tier ({why})",
+                    s.name
+                ));
             }
         }
     } else {
@@ -293,6 +313,9 @@ mod tests {
         // The fake kind is `none`: it serves `local`, never `trusted`.
         assert_eq!(tier_of(&v, "local"), Some((Tier::Local, true)));
         assert_eq!(tier_of(&v, "org"), Some((Tier::Trusted, false)));
+        // T-194: the line names the shortfall of each kind.
+        let missing = v["missing"].to_string();
+        assert!(missing.contains("fake: boundary None below Confined"), "{missing}");
         let t = text(&v);
         assert!(t.contains("kind fake: boundary none"), "{t}");
         assert!(t.contains("source org: tier trusted, not served"), "{t}");

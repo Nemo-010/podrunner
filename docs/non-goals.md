@@ -21,5 +21,6 @@ opens its own issue.
 | The split of `sign`, `egress` and `ctl` into processes of their own uids | A host with distinct uids is the first target. |
 | A hosted runner provider with an airlock | The owner uses a hosted provider and no own hosts. |
 | A wire of JSON lines for the unit seam | The first driver outside the tree exists. |
+| A trusted or untrusted tier on an emulated host (an aarch64 container under QEMU user mode on x86_64) | podvm or podnet gives a confine layer or an egress hold under emulation. Such a host has no Landlock (ENOSYS) and no hold, so no kind meets a floor of a forge tier, and `doctor` names both (T-194). The ways that remain: a real aarch64 host, or a guest of the machine tier when podvm runs an aarch64 guest. |
 
 Triggers that are met: the `forge-contract` source (githome has code: T-101, the `program` source kind), the `incus` kind (T-105), `pod-dockerapi` (T-103), and the local mode (done: T-046).

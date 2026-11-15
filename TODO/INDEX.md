@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**196 entries: 8 open, 15 partial, 7 blocked, 166 done.**
+**196 entries: 7 open, 15 partial, 7 blocked, 167 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 6 | 1 | 37 | 45 |
 | P2 | 1 | 6 | 4 | 73 | 84 |
-| P3 | 6 | 3 | 2 | 56 | 67 |
-| **All** | 8 | 15 | 7 | 166 | 196 |
+| P3 | 5 | 3 | 2 | 57 | 67 |
+| **All** | 7 | 15 | 7 | 167 | 196 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -241,6 +241,6 @@ acceptance, later The crate dependencies later than v1.
 | [T-191](live.md) | P3 | S | later | defect | open | The tier rule takes only an organization as the owner of a trusted repository |
 | [T-192](live.md) | P1 | M | M-C | defect | partial | `serve` stops after a unit ends `unit-failed` |
 | [T-193](live.md) | P3 | M | later | feature | open | A `redirect` host serves one repository only, so it cannot hold two sources |
-| [T-194](live.md) | P3 | S | later | feature | open | An emulated aarch64 host (QEMU user mode) serves no tier |
+| [T-194](live.md) | P3 | S | later | feature | done | An emulated aarch64 host (QEMU user mode) serves no tier |
 | [T-195](live.md) | P3 | S | M-C | defect | done | Issue #75 names the expiry of the artifacts without the time, and not `runner-full-x86_64` |
 | [T-196](later.md) | P2 | S | later | defect | open | The level2 corpus fails on podcrates jobs that read live state |

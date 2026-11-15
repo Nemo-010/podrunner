@@ -1419,7 +1419,7 @@ Add `repository` to `[[source]]` for the mitigations of DR-4, so that each sourc
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -1436,6 +1436,10 @@ Say in `docs/non-goals.md` and `docs/configuration.md` why such a host serves no
 ## Prove
 
 `cargo test -p podrunner doctor`: with no Landlock and no hold, `doctor` names both causes.
+
+## Done
+
+2026-11-15: `doctor` names the shortfall of each kind for a source that no kind serves (`boundary B below F`, `hold H below N`, or no kind of the architecture); a case of `doctor_reads_the_kinds_and_the_tiers_of_the_file`. `docs/non-goals.md` gives the emulated host, why it serves no forge tier, its trigger, and the ways that remain.
 
 # T-195: Issue #75 names the expiry of the artifacts without the time, and not `runner-full-x86_64`
 
