@@ -288,6 +288,8 @@ jobs:
             --podvm "$PODRUNNER_PODVM" --images "$PODRUNNER_PODVM_IMAGES" --image "$PODRUNNER_RUNNER_IMAGE" | tee "$RUNNER_TEMP/tags.txt"
           grep -q '^docker://busybox:1.37.0 sha256:' "$RUNNER_TEMP/tags/podrunner-actions.lock"
           grep -qx 'ok      tagged' "$RUNNER_TEMP/tags.txt"
+          grep -q '^docker://busybox:1.37.0-musl sha256:' "$RUNNER_TEMP/tags/podrunner-actions.lock"
+          grep -qx 'ok      static' "$RUNNER_TEMP/tags.txt"
       # T-138: the work directory of the runner in a podvm unit is a host
       # directory; the workspace of the job goes to DIR/JOB. A measure.
       - name: The export of a workspace from a podvm unit (a measure)

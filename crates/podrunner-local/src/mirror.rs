@@ -122,11 +122,11 @@ fn podvm(pull: &PodvmPull, args: &[&str]) -> Result<(), String> {
 }
 
 /// Fill `dir` with each image of Docker Hub of the run: each pinned image
-/// of `pins` (`docker://NAME:TAG` → `NAME@sha256:HEX`), and each image of
-/// `digests`. Each image goes through a private store of one platform:
-/// `podvm save` has no `--platform`, and the store of the units can hold
-/// an image of each platform for one index digest. Give the pins for the
-/// job messages of a guest: each image of the mirror by its manifest
+/// of `pins` (`docker://NAME:TAG` → `NAME@sha256:HEX`), which the pin step
+/// put into the store of the units, and each image of `digests`, pulled
+/// into that store first. `podvm save --platform` takes the manifest of the
+/// platform of the units (podvm `0.2.0-beta.19`, T-163). Give the pins for
+/// the job messages of a guest: each image of the mirror by its manifest
 /// (`docker://NAME@sha256:HEX` for an image that a digest names).
 pub fn fill(
     pull: &PodvmPull,
@@ -137,25 +137,24 @@ pub fn fill(
     let mut out = pins.clone();
     let tagged = pins.iter().filter(|(k, _)| k.starts_with("docker://")).map(|(k, v)| (k.clone(), v.clone()));
     let named = digests.iter().map(|d| (format!("docker://{d}"), d.clone()));
-    let one = PodvmPull { binary: pull.binary.clone(), store: dir.join("store"), platform: pull.platform.clone() };
+    std::fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    let tar = dir.join("save.tar");
+    let save = |r: &str| podvm(pull, &["save", "--platform", &pull.platform, "-o", &tar.to_string_lossy(), r]);
+    // The cache of Docker Hub first: Docker Hub limits the pulls of a host
+    // with no login (HTTP 429). The digest names the same bytes.
+    let fetch = |r: &str| -> Result<(), String> {
+        let cached = hub_cache(r);
+        let p = |x: &str| podvm(pull, &["pull", "-q", "--platform", &pull.platform, x]);
+        p(&cached).and_then(|()| save(&cached)).or_else(|_| p(r).and_then(|()| save(r)))
+    };
     for (key, pinned) in tagged.chain(named).collect::<Vec<_>>() {
         let Some((name, _)) = pinned.split_once('@') else { continue };
         if !on_docker_hub(name) {
             continue;
         }
-        let _ = std::fs::remove_dir_all(&one.store);
-        std::fs::create_dir_all(&one.store).map_err(|e| format!("{}: {e}", one.store.display()))?;
-        let tar = dir.join("save.tar");
-        // The cache of Docker Hub first: Docker Hub limits the pulls of a
-        // host with no login (HTTP 429). The digest names the same bytes.
-        let save = |r: &str| {
-            podvm(&one, &["pull", "-q", "--platform", &one.platform, r])
-                .and_then(|()| podvm(&one, &["save", "-o", &tar.to_string_lossy(), r]))
-        };
-        let saved = save(&hub_cache(&pinned)).or_else(|_| save(&pinned));
+        let saved = save(&pinned).or_else(|_| fetch(&pinned));
         let manifest = saved.and_then(|()| unpack(&tar, dir));
         let _ = std::fs::remove_file(&tar);
-        let _ = std::fs::remove_dir_all(&one.store);
         out.insert(key, format!("{name}@{}", manifest?));
     }
     Ok(out)

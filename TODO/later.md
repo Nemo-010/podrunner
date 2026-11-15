@@ -2381,7 +2381,7 @@ State (2026-11-14, later): runner-image run 43621400822 (`dcbc53f`): `podvm save
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** blocked
+**Status:** partial
 
 ## Problem
 
@@ -2399,9 +2399,8 @@ Ask podvm for a detached run of the memfd family (GitHub #100, COORD-040). Take 
 
 `runner-image.yml`: the step "An image by tag in a podvm unit" gives `ok` for `busybox:1.37.0-musl`.
 
-## Blocker
+State (2026-11-15): podvm `0.2.0-beta.19` (PodUtils/podvm#376) is pinned in `images/podvm.toml`. `tags.yml` has the job `static` with `busybox:1.37.0-musl`, and the step "An image by tag in a podvm unit" checks `ok static` and its line in the lock. Next: its green run.
 
-podvm: the release `0.2.0-beta.19` with PodUtils/podvm@T-1896 (PodUtils/podvm#376): a static payload of x86_64 goes to the native-static rung, which now has a detached driver (`run -d`, `stop`, `wait`, `logs`). Then pin it (with T-163) and add `busybox:1.37.0-musl` to `tags.yml`.
 
 # T-159: An intermittent unknown count of processes at the destroy of a podvm unit
 
@@ -2524,7 +2523,7 @@ A unit conformance test on each kind: a payload that forks past `pids`, and one 
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** blocked
+**Status:** partial
 
 ## Problem
 
@@ -2542,6 +2541,4 @@ Pin podvm `0.2.0-beta.19` in `images/podvm.toml`. Save each image of the mirror 
 
 `runner-image.yml`: the step "The images of a guest engine from the store" passes with the save from the store of the units.
 
-## Blocker
-
-podvm: the release `0.2.0-beta.19` with PodUtils/podvm@T-1895 (PodUtils/podvm#375).
+State (2026-11-15): podvm `0.2.0-beta.19` is pinned. `mirror::fill` saves each pinned image from the store of the units with `podvm save --platform`; an image that a digest names is pulled into that store first (through `mirror.gcr.io`, then Docker Hub). No private store and no second pull. Next: the green run of "The images of a guest engine from the store".

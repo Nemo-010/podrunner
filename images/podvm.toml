@@ -15,9 +15,12 @@
 # --podvm-engine for a container engine in a guest (T-103); beta.17 a glibc
 # 2.34 image with no libdl.so.2 where chroot is denied (T-156,
 # PodUtils/podvm#351); beta.18 refuses a foreign platform of the machine
-# tier by name (T-151, PodUtils/podvm#366).
-version = "0.2.0-beta.18"
+# tier by name (T-151, PodUtils/podvm#366); beta.19 a detached run of a
+# static image where chroot is denied (T-158, PodUtils/podvm#376), one
+# image for a tag and a digest of one manifest, and `save --platform`
+# (T-163, PodUtils/podvm#375).
+version = "0.2.0-beta.19"
 
 [sha256]
-x86_64 = "2a99cb353f36538e780352f85374e094264faa6de55073d151b3d07ae541261c"
-aarch64 = "b53e14f277a0e48913dbe8f74244e7ca388041ba2b34ef710d083a7946d027a9"
+x86_64 = "d9408228ef6636db31c3355437a4306fbaa24fd4bd1418685fadacb523c2f2a6"
+aarch64 = "babc87c63c5847b0eb842d4bbe12d5d1ce2558836ba49ff199f36769635e1066"

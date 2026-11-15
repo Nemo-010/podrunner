@@ -1,13 +1,13 @@
 # Progress
 
-`TODO/INDEX.md` holds 163 entries: 2 open, 4 partial, 7 blocked, 150 done.
+`TODO/INDEX.md` holds 163 entries: 2 open, 6 partial, 5 blocked, 150 done.
 
 ## State
 
 - The plan is GitHub #1; one entry for each issue. The owner answered
   DR-1 to DR-7 and GitHub #8 (`docs/decisions.md`); DR-7 is yes
   (2026-11-13): the live gates run on GitHub #74 and #75.
-- Pins: podcrates `v0.49.0`, podvm `v0.2.0-beta.18`, podnet
+- Pins: podcrates `v0.49.0`, podvm `v0.2.0-beta.19`, podnet
   `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.5` (release
   run 43656918895, `34d56b5`; it pins podcrates `v0.47.0`). Last green
   `runner-image.yml`: 43663327458 (`c695295`); the tag `v0.1.0-beta.5` has run 43658370121 with its archives.
@@ -37,13 +37,14 @@ The queue, most valuable first:
 
 2. T-162 (M, open): G-12, limits of CPU, memory and processes on the podvm and incus kinds: measure, then ask podvm.
 3. T-161 (M, open): an alternate payload (U15, allowed on 2026-11-14): the census of the calls of the runner, then the choice.
-4. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
+4. T-158 (S, partial) and T-163 (S, partial): podvm `0.2.0-beta.19` is pinned; close both on the green run of `runner-image.yml`.
+5. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 
 The local mode against act and runner.server (`docs/local-mode.md`) has no open entry; T-158 waits for podvm.
 
 Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040).
 
-Blocked: T-158 and T-163 (podvm `0.2.0-beta.19`: PodUtils/podvm#376 and #375), T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
+Blocked: T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
 
 ## Questions for the owner
 

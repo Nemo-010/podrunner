@@ -1,8 +1,9 @@
 # Images by tag (T-130): podrunner run pulls each tag into the store of the
 # units before the first job and pins it by the lock beside this file; the
 # runner gets the digest. It needs a unit with container hooks (--podvm).
-# Where chroot is denied, podvm runs this glibc image detached from
-# v0.2.0-beta.17 (T-156, GitHub #100).
+# Where chroot is denied, podvm runs the glibc image detached from
+# v0.2.0-beta.17 (T-156), and the static (musl) image from v0.2.0-beta.19
+# (T-158, GitHub #100).
 name: podrunner local tags
 on: push
 jobs:
@@ -15,3 +16,9 @@ jobs:
       - uses: docker://busybox:1.37.0
         with:
           entrypoint: /bin/true
+  static:
+    runs-on: local
+    container: busybox:1.37.0-musl
+    steps:
+      - run: echo "static-$((6*7))"
+        shell: sh
