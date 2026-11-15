@@ -110,7 +110,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #108 | COORD-048: podrunner takes podcrates v0.48.0 at c3b5744 (the answer to PodUtils/podcrates#162) (to podcrates) | closed | T-118 |
 | #109 | COORD-049: podrunner takes podcrates v0.49.0 at c695295 (the answer to PodUtils/podcrates#163) (to podcrates) | closed | T-118 |
 | #110 | COORD-050: limits of memory, CPU and processes for a detached run and an incus instance (to podvm) | open (podvm answered on PodUtils/podvm#382; the incus keys wait for its next release) | T-162 |
-| #111 | COORD-051: a read-only bind (`-v SRC:DST:ro`) on the detached run of a static image where chroot is denied (to podvm) | open (podvm `0.2.0-beta.21` has PodUtils/podvm@T-1901 and is pinned; closes on the green run) | T-158 |
+| #111 | COORD-051: a read-only bind (`-v SRC:DST:ro`) on the detached run of a static image where chroot is denied (to podvm) | closed (runner-image run 43686746902 gives `ok static` with podvm `0.2.0-beta.21`) | T-158 |
 | #112 | [gh action] requested | closed (gate 43683347311 and secrets 43683349837 green on `ed54ccb`; runner-image 43683637902 on `6ac1c42` red only at the static image, T-158) | T-164, T-165, T-166, T-167, T-158 |
 | #113 | COORD-052: podrunner takes podcrates v0.50.0 at cbb5372 (the answer to PodUtils/podcrates#164) (to podcrates) | closed (podcrates closed PodUtils/podcrates#164) | T-118 |
 | #114 | [gh action] requested | open (the gate, the secrets scan, `runner-image.yml` and `level2.yml` of `main` at `4fe27da` or later) | T-158, T-162, T-175, T-177, T-178 |

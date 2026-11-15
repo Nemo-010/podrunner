@@ -98,12 +98,9 @@ is done.
   gates. LIVE-1 ran the gates with a local build of the sidecar that fixed
   defects 1 to 4; LIVE-2 (#75) reports the gates next. Fix the P1 entries,
   then release a beta and point #74 and #75 at it.
-- The runner-image run 43669743775 (`fa84341`, podvm `0.2.0-beta.19`)
-  is red only at the job `static` of `tags.yml` (T-158): podvm refuses
-  the mount `/__e:ro` on the detached run of a static image. T-158 is
-  blocked on COORD-051 (#111, to podvm). Each other step is green; T-163
-  is done. To get a green run before podvm answers, do not drop the
-  `:ro`: the hook policy keeps `/__e` read-only on purpose.
+- The last green `runner-image.yml` is 43686746902 (`9a7fb3c`, podvm
+  `0.2.0-beta.21`): the static image (T-158), and the job-started hook
+  of T-175 in a podvm unit.
 - T-162 (open, G-12): podvm answered on PodUtils/podvm#382. `--ulimit
   nproc=N` and `--ulimit as=BYTES` hold on `run -d` now: add
   `[unit.podvm] mem` and `pids` with them, and the conformance tests of

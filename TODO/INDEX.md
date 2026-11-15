@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**196 entries: 3 open, 16 partial, 8 blocked, 169 done.**
+**196 entries: 3 open, 15 partial, 8 blocked, 170 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 7 | 1 | 37 | 45 |
 | P2 | 1 | 6 | 4 | 73 | 84 |
-| P3 | 2 | 3 | 3 | 59 | 67 |
-| **All** | 3 | 16 | 8 | 169 | 196 |
+| P3 | 2 | 2 | 3 | 60 | 67 |
+| **All** | 3 | 15 | 8 | 170 | 196 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -205,7 +205,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-155](later.md) | P3 | S | later | defect | done | An intermittent failure of the workspace tests that the check script hid |
 | [T-156](later.md) | P3 | S | later | defect | done | Local mode: a glibc image by tag in a podvm unit where chroot is denied |
 | [T-157](later.md) | P3 | M | later | feature | done | Local mode: load the images of a job from the store into the engine of the guest |
-| [T-158](later.md) | P3 | S | later | defect | partial | Local mode: a static image as a container of a podvm unit |
+| [T-158](later.md) | P3 | S | later | defect | done | Local mode: a static image as a container of a podvm unit |
 | [T-159](later.md) | P2 | S | later | defect | partial | An intermittent unknown count of processes at the destroy of a podvm unit |
 | [T-160](later.md) | P3 | S | later | feature | done | Local mode: a shell in a paused job of the incus kind |
 | [T-161](later.md) | P3 | M | later | research | partial | An alternate payload: a runner other than the official one |

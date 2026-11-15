@@ -910,6 +910,8 @@ State (2026-11-15): step 2 is in. Measured on the official runner v2.338.2 with 
 
 State (2026-11-15, later): `crates/podrunner-broker-fake/tests/podvm.rs` runs the image of `runner-image.yml` in a podvm unit: the canned job with the placed job (`.podrunner-job` `example-org/app 1`) passes, and `a_foreign_job_ends_before_its_first_step_in_a_podvm_unit` (another repository and run) must give `failed` with no output of its step. They run in the step "The runner in a podvm unit runs a canned job and a container job".
 
+State (2026-11-15, CI): runner-image run 43686746902 (`9a7fb3c`) built the image with the hook: in a podvm unit the placed job runs, and `a_foreign_job_ends_before_its_first_step_in_a_podvm_unit` passes, with and without the confine layer. Step 2 holds. Left: step 1 (which assigned job a new runner of the set takes, on the test organization) and step 3 (T-169, Q7).
+
 # T-176: The JIT configuration is minted before the unit starts: a failed start spends it and leaves the job assigned
 
 **Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
