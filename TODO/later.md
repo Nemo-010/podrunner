@@ -4032,3 +4032,32 @@ Evaluate the image of each cell with the contexts that GitHub allows there, befo
 ## Prove
 
 A test of `crates/podrunner-local`: a service image `valkey/valkey:${{ matrix.v }}` gives `valkey/valkey:9.0` for the cell `v=9.0` in the collect of the images; `podrunner run ... --dry-run` of the corpus row `rq-valkey` (`scripts/corpus/user-gate.tsv`) plans the cell on `--podvm`.
+
+# T-251: The gate and the host of an agent run shellcheck of other versions
+
+**Source:** gate 43730995552 on `037cb35` (the request of `v0.1.0-beta.7`, GitHub #154, #179)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The gate ran the shellcheck of its runner image, which flagged SC2015 in `scripts/install.sh`; shellcheck 0.11.0 does not flag that line, and on the host of an agent `scripts/test-install.sh` skipped shellcheck with no word when it was not there. So the checks of the session passed, the gate failed, and the release of beta.7 did not start.
+
+## Premise
+
+The log of the job `lint` of gate 43730995552, read on 2026-11-15.
+
+## Approach
+
+One pinned version of ShellCheck, by its SHA-256, in CI and on the host of an agent (`scripts/shellcheck.sh`); `scripts/test-install.sh` never skips it. The three lines `A && B || C` of the installer and of its test become `if`.
+
+## Prove
+
+`sh scripts/test-install.sh`: case 13 runs the pinned shellcheck on each script; the gate runs the same script.
+
+## Done
+
+2026-11-15: `scripts/shellcheck.sh` (ShellCheck 0.11.0, SHA-256 pinned, into `.work/tools`); `scripts/test-install.sh` case 13; `gate.yml` takes no shellcheck of the image; `scripts/install.sh` and `scripts/test-install.sh` have no `A && B || C`.

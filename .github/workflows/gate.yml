@@ -79,11 +79,10 @@ jobs:
           python3 -I scripts/check-size.py --self-test
       # T-202: the installer of the local mode against a local fixture, its
       # pins against images/*.toml (a changed pin must fail), and shellcheck
-      # (in the image of the runner).
+      # of the pinned version (scripts/shellcheck.sh, T-251).
       - name: The installer
         run: |
           set -eu
-          command -v shellcheck
           sh scripts/test-install.sh
       - name: No agent attribution line in a commit
         env:

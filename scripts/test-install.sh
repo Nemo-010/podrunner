@@ -201,7 +201,9 @@ ok "the offline bundle, from its directory, with --prefix and --full"
 RELEASE_ASSETS_IMAGES=$t/images sh "$root/scripts/release-assets.sh" local-mode 9.9.9-test "$a" "$t/rel" > "$t/out" 2>&1 ||
     fail "release-assets.sh local-mode"
 for f in podrunner-install.sh podrunner-bundle-x86_64.tar.gz podrunner-bundle-aarch64.tar.gz "runner-$arch.tar" "runner-full-$arch.tar"; do
-    [ -f "$t/rel/$f" ] && [ -f "$t/rel/$f.sha256" ] || fail "release-assets.sh: no $f with its .sha256"
+    if [ ! -f "$t/rel/$f" ] || [ ! -f "$t/rel/$f.sha256" ]; then
+        fail "release-assets.sh: no $f with its .sha256"
+    fi
 done
 grep -qx 'PODRUNNER_VERSION="9.9.9-test"' "$t/rel/podrunner-install.sh" || fail "release-assets.sh: the installer has not the version"
 ok "the assets of a release (scripts/release-assets.sh)"
@@ -239,10 +241,10 @@ if python3 -I "$root/scripts/user-gate.py" summary --lanes local,bad "$t" > "$t/
 grep -q '^| `install:full` | pass | \*\*FAIL\*\* |$' "$t/out" || fail "the summary does not show the failed check"
 ok "a lane of the user-path gate; a lane with a missing asset fails"
 
-# 12. The scripts pass shellcheck, when it is there.
-if command -v shellcheck > /dev/null 2>&1; then
-    shellcheck "$root/scripts/install.sh" "$root/scripts/make-bundle.sh" "$root/scripts/test-install.sh" \
-        "$root/scripts/release-assets.sh" "$root"/scripts/lab/*.sh || fail "shellcheck"
-    ok "shellcheck"
-fi
+# 12. The scripts pass shellcheck of the pinned version (T-251): the same
+# version in CI and on the host of an agent, never skipped.
+sh "$root/scripts/shellcheck.sh" "$root/scripts/install.sh" "$root/scripts/make-bundle.sh" \
+    "$root/scripts/test-install.sh" "$root/scripts/release-assets.sh" "$root/scripts/shellcheck.sh" \
+    "$root"/scripts/lab/*.sh || fail "shellcheck"
+ok "shellcheck"
 echo "test-install: $pass passed"

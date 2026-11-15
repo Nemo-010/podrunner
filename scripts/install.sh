@@ -111,8 +111,9 @@ if [ -z "$bundle" ] && [ -f "$here/PODRUNNER-BUNDLE" ]; then
     bundle=$here
 fi
 
-[ -n "$PODRUNNER_VERSION" ] && [ -n "$(pin SUM_podrunner)" ] && [ -n "$(pin SUM_image)" ] ||
+if [ -z "$PODRUNNER_VERSION" ] || [ -z "$(pin SUM_podrunner)" ] || [ -z "$(pin SUM_image)" ]; then
     die "this copy of the installer has no pins of a release for $arch: take podrunner-install.sh or the bundle of a release of PodUtils/podrunner"
+fi
 
 if [ -n "$prefix" ]; then
     mkdir -p "$prefix" || die "cannot make $prefix"
@@ -243,8 +244,9 @@ fi
 podvm=$data/bin/podvm
 load_image() { # KIND NAME
     digest=$(pin "DIGEST_$1")
-    [ -n "$digest" ] && [ -n "$(pin "SUM_$1")" ] ||
+    if [ -z "$digest" ] || [ -z "$(pin "SUM_$1")" ]; then
         die "$2: this release has no such image for $arch"
+    fi
     if PODVM_STORE=$store "$podvm" inspect "runner@$digest" > /dev/null 2>&1; then
         PODVM_STORE=$store "$podvm" verify > /dev/null 2>&1 ||
             die "the store $store fails 'podvm verify': remove $store and run the installer again"
