@@ -30,7 +30,20 @@ pub struct Podvm {
     pub binary: PathBuf,
 }
 
+/// podvm removes the tree of a run in a background process after its
+/// exit, unless this is `0`. That process races the removal of the unit
+/// directory at `destroy` (thousands of `chmod` errors) and outlives the
+/// unit. With `0` the removal is part of the run (PodUtils/podvm#391).
+pub const SPARE_TREE: (&str, &str) = ("PODVM_SPARE_TREE", "0");
+
 impl Podvm {
+    /// A command of this podvm, with no background removal of a tree.
+    pub fn command(&self) -> std::process::Command {
+        let mut c = std::process::Command::new(&self.binary);
+        c.env(SPARE_TREE.0, SPARE_TREE.1);
+        c
+    }
+
     /// Run `podvm probe --json` and map it.
     pub fn probe(&self) -> Result<Capability, UnitError> {
         probe::capability(&self.probe_json()?, std::env::consts::ARCH)
@@ -84,6 +97,16 @@ mod tests {
         let binary = PathBuf::from(std::env::var_os("PODRUNNER_PODVM").expect("PODRUNNER_PODVM"));
         let c = Podvm { binary }.probe().unwrap();
         assert_eq!(c.kind, "podvm");
+    }
+
+    #[test]
+    fn each_command_of_podvm_removes_its_tree_in_the_run() {
+        let c = Podvm { binary: "podvm".into() }.command();
+        let envs: Vec<_> = c.get_envs().collect();
+        assert!(
+            envs.contains(&(std::ffi::OsStr::new("PODVM_SPARE_TREE"), Some(std::ffi::OsStr::new("0")))),
+            "{envs:?}"
+        );
     }
 
     /// A fake podvm whose probe names `version`.

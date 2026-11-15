@@ -59,10 +59,11 @@ impl PodvmUnit {
             (Some((podnet, backend)), Some(egress)) => {
                 let mut c = Command::new(podnet);
                 c.args(["pod", "--backend", backend, "-x", &format!("http://unix:{}", egress.display()), "--"])
-                    .arg(&self.podvm.binary);
+                    .arg(&self.podvm.binary)
+                    .env(crate::SPARE_TREE.0, crate::SPARE_TREE.1);
                 c
             }
-            _ => Command::new(&self.podvm.binary),
+            _ => self.podvm.command(),
         }
     }
 }

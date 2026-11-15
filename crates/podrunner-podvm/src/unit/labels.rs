@@ -7,7 +7,7 @@
 //! ends with the start (`detached`): the exit comes from `podvm wait`.
 
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use podrunner_schema::UnitId;
 use serde_json::Value;
@@ -36,7 +36,9 @@ impl PodvmUnit {
     /// Remove each container of `store` with the label of `unit`. It gives
     /// the count that `ps` listed.
     pub(super) fn remove_labeled(&self, store: &Path, unit: &str) -> usize {
-        let Ok(out) = Command::new(&self.podvm.binary)
+        let Ok(out) = self
+            .podvm
+            .command()
             .args(["ps", "-a", "-q", "--filter", &format!("label={LABEL}={unit}")])
             .env("PODVM_STORE", store)
             .stdin(Stdio::null())
@@ -47,7 +49,9 @@ impl PodvmUnit {
         };
         let ids: Vec<String> = String::from_utf8_lossy(&out.stdout).split_whitespace().map(String::from).collect();
         for id in &ids {
-            let _ = Command::new(&self.podvm.binary)
+            let _ = self
+                .podvm
+                .command()
                 .args(["rm", "-f", id])
                 .env("PODVM_STORE", store)
                 .stdin(Stdio::null())

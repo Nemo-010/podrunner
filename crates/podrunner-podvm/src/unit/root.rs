@@ -8,7 +8,7 @@
 
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use podrunner_unit::{UnitCode, UnitError};
 
@@ -19,7 +19,9 @@ impl PodvmUnit {
     /// killed (`State` `dead`): its orphans went to init, out of reach of
     /// podvm and of the driver (design test 15).
     pub(super) fn launcher_died(&self, store: &Path, name: &str) -> bool {
-        let Ok(out) = Command::new(&self.podvm.binary)
+        let Ok(out) = self
+            .podvm
+            .command()
             .args(["inspect", name])
             .env("PODVM_STORE", store)
             .stdin(Stdio::null())
@@ -36,7 +38,9 @@ impl PodvmUnit {
     /// `RootfsPath` of the container `name` in `store`, when podvm names
     /// a directory.
     pub(super) fn inspected_root(&self, store: &Path, name: &str) -> Option<PathBuf> {
-        let out = Command::new(&self.podvm.binary)
+        let out = self
+            .podvm
+            .command()
             .args(["inspect", "--format", "{{.RootfsPath}}", name])
             .env("PODVM_STORE", store)
             .stdin(Stdio::null())

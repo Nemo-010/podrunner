@@ -104,7 +104,8 @@ impl PodvmUnit {
 
     /// `podvm wait` of `unit`, tagged as the unit.
     fn waiter(&self, store: &Path, unit: &UnitId, tag: &str) -> Result<Child, UnitError> {
-        Command::new(&self.podvm.binary)
+        self.podvm
+            .command()
             .args(["wait", unit.as_str()])
             .env("PODVM_STORE", store)
             .env(TAG_VAR, tag)

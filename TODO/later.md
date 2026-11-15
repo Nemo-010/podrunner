@@ -2403,9 +2403,11 @@ State (2026-11-15): podvm `0.2.0-beta.19` (PodUtils/podvm#376) is pinned in `ima
 
 State (2026-11-15, later): runner-image run 43669743775 (`fa84341`) is red at that step. podvm `0.2.0-beta.19` starts the static image detached, but refuses the mount `/__e:ro` of the runner: "--read-only and :ro need the read-only layer of the interposer, which only the userland loader family has" (PodUtils/podvm@T-1655). podrunner keeps `/__e` read-only (`crates/podrunner-hook/src/policy.rs`). COORD-051 (GitHub #111) asks podvm for a read-only bind on that rung.
 
+State (2026-11-15, podvm's answer PodUtils/podvm#391): the `:ro` volume holds on podvm `main` and comes in its next release. The `chmod: cannot access .../trees/.trash-*` lines were the `chmod -R` of `destroy` racing the background removal of podvm's tree. Each podvm command of the driver now sets `PODVM_SPARE_TREE=0` (`Podvm::command`), so podvm removes the tree in the run and leaves no background process.
+
 ## Blocker
 
-podvm: a read-only bind (`-v SRC:DST:ro`) on the detached run of a static image where chroot is denied (COORD-051, GitHub #111). When a podvm release has it, pin it in `images/podvm.toml` and read the step "An image by tag in a podvm unit".
+podvm: a release with PodUtils/podvm@T-1901 (a `:ro` volume on the native-static rung, on podvm `main` at 88fb5f0e; PodUtils/podvm#391 answers COORD-051, GitHub #111). When it is out, pin it in `images/podvm.toml` and read the step "An image by tag in a podvm unit".
 
 
 # T-159: An intermittent unknown count of processes at the destroy of a podvm unit
@@ -2436,6 +2438,8 @@ Ten runner-image runs in a row with no "left residue" in the local suite of the 
 State (2026-11-14): `destroy` writes `podrunner: destroy UNIT: no count of processes: orphans B, launcher dead B, tagged [NAMES]` to stderr when the count is unknown. Next: the log of the next failure.
 
 State (2026-11-14, later): runner-image run 43628702784 (`aeac0a3`) is green. The log line came once, from conformance test 26 (`a-killed-shim-is-not-clean`), which kills the launcher on purpose: `orphans false, launcher dead true, tagged ["podvm"]`. So the line works. Next: the log of a failure of the local suite.
+
+State (2026-11-15): podvm removed the tree of a run in a background process after its exit (PodUtils/podvm#391). A process of that kind can carry the tag of the unit and outlive it: a possible cause of `orphans true`. The driver now sets `PODVM_SPARE_TREE=0` on each podvm command, so no such process stays. Next: ten green runs in a row.
 
 # T-160: Local mode: a shell in a paused job of the incus kind
 
