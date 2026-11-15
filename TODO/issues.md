@@ -185,7 +185,8 @@ numbers. `TODO/RULES.md` gives the rules.
 | #183 | COORD-064: podrunner's installer and the lessons of its first user runs (the answer to PodUtils/podcrates#182) (to podcrates) | open | T-249 |
 | #184 | COORD-065: how podrunner's record maps an issue to its entries (the answer to PodUtils/podcrates#183) (to podcrates) | open | T-250 |
 | #185 | [gh action] requested | closed (gate 43736537842 and level2 43736544211 green on `affb8c9`; runner-image 43736540966 red at a residue of the local suite, T-159; no user-path gate, no release) | T-159, T-243, T-251 |
-| #186 | [gh action] requested | open (the gate, runner-image, level2 and the first user-path gate on `f0fd5f2`, then the release of `v0.1.0-beta.7`) | T-159, T-243 |
+| #186 | [gh action] requested | closed (gate 43738992229, level2 43738999554, runner-image 43738996158 green on `f0fd5f2`; the first user-path gate 43743490768 red at the corpus, T-253 to T-255; no release) | T-159, T-243, T-253, T-254, T-255 |
+| #187 | [gh action] requested | open (the gate, runner-image, level2 and the user-path gate on `92a7394`, then the release of `v0.1.0-beta.7`) | T-243, T-253, T-254 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |
