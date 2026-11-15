@@ -4141,19 +4141,19 @@ The log of the job `lint` of expressjs/express in run 43743490768.
 
 ## Approach
 
-`podrunner_broker_fake::message::TOKEN` is empty; the documents say so.
+The made-up token stays (T-122). When a failed job has "Bad credentials" in its log, the run says on stderr that the job gave the made-up token to a real API, and names `--github-token-env NAME` (`logs::token_hint`). The user-path gate gives the jobs of its corpus the token of its run (T-253).
 
 ## Decision
 
-The call of 2026-11-15: `github.token` and `secrets.GITHUB_TOKEN` are empty by default. An action with an empty token calls the public API with no credential, as on a host with no token; `--github-token-env NAME` gives a real one. An action that needs a token at all (`actions/github-script`) fails by its own message, as it would with a made-up token.
+The call of 2026-11-15, after a first change: an empty `github.token` made `actions/github-script` refuse its required input before it ran ("Input required and not supplied: github-token": the parity suite in runner-image 43750369310); a required input is a more common case than an LTS alias of `setup-node`. So the token stays made-up, and the run names the fix.
 
 ## Prove
 
-`cargo test -p podrunner-local --lib message::`; the express row of the next run of the gate.
+`cargo test -p podrunner --lib bad_credentials_name_the_token_flag`; the parity suite of `runner-image.yml` and the express row of the gate.
 
 ## Done
 
-2026-11-15: `TOKEN` is `""`; `docs/cli.md`, `docs/local-mode.md`.
+2026-11-15: `logs::token_hint` (`crates/podrunner/src/run_local/logs.rs`), the line on stderr after the logs of the failed jobs; `docs/cli.md`, `docs/local-mode.md`.
 
 # T-255: On `--runner-dir`, the tests of express miss headers and hang
 

@@ -44,7 +44,8 @@ if [ "${1:-}" != notest ]; then
     if [ -n "${PODRUNNER_RUNNER_DIR:-}" ]; then
         { timeout 1200 cargo test -q -p podrunner-broker-fake --test runner --test container -- --ignored --test-threads 1 &&
             timeout 1200 cargo test -q -p podrunner-local --test runner --test actions -- --ignored --test-threads 1 &&
-            timeout 1800 cargo test -q -p podrunner --test local -- --ignored --test-threads 1; } > "$log/runner.log" 2>&1; r=$?
+            timeout 1800 cargo test -q -p podrunner --test local -- --ignored --test-threads 1 &&
+            timeout 2400 cargo test -q -p podrunner --test parity -- --ignored --test-threads 1; } > "$log/runner.log" 2>&1; r=$?
         echo "runner $r"; [ "$r" -eq 0 ] || { rc=1; grep -E "FAILED|panicked|^error|^---- " "$log/runner.log" | head -30; }
     else
         echo "runner skipped: set PODRUNNER_RUNNER_DIR to an unpacked actions/runner (level2.yml runs these suites)"

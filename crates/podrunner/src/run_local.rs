@@ -472,6 +472,7 @@ pub fn run(args: &[String]) -> Out {
             for (job, log) in &logs {
                 stderr.push_str(&format!("--- log of {job}\n{log}\n"));
             }
+            stderr.push_str(&logs::token_hint(&logs));
             Out { code: 1, stdout, stderr }
         }
         Err(e) => {

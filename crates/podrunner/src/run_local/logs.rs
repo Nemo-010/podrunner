@@ -12,6 +12,15 @@ use podrunner_local::exec::Live;
 use podrunner_schema::JobId;
 use serde_json::json;
 
+/// The fix when a failed job gave the made-up `github.token` to a real API
+/// (T-254), else nothing.
+pub(super) fn token_hint<J>(logs: &[(J, String)]) -> String {
+    match logs.iter().any(|(_, log)| log.contains("Bad credentials")) {
+        true => "podrunner: a job gave the made-up github.token to a real API (\"Bad credentials\"); fix: give a token with --github-token-env NAME\n".into(),
+        false => String::new(),
+    }
+}
+
 /// `text` with each secret value as `***`.
 pub(super) fn mask(text: &str, secrets: &[String]) -> String {
     let mut out = text.to_string();
@@ -87,4 +96,15 @@ pub(super) fn write_dir(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod hint_tests {
+    /// T-254: a failed job with "Bad credentials" in its log names the fix.
+    #[test]
+    fn bad_credentials_name_the_token_flag() {
+        let logs = vec![("a".to_string(), "##[error]Last error: Bad credentials".to_string())];
+        assert!(super::token_hint(&logs).contains("--github-token-env"));
+        assert!(super::token_hint(&[("a".to_string(), "other".to_string())]).is_empty());
+    }
 }
