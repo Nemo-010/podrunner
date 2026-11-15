@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**222 entries: 2 open, 16 partial, 8 blocked, 196 done.**
+**242 entries: 14 open, 16 partial, 10 blocked, 202 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 0 | 6 | 0 | 43 | 49 |
-| P2 | 1 | 7 | 5 | 81 | 94 |
-| P3 | 1 | 3 | 3 | 72 | 79 |
-| **All** | 2 | 16 | 8 | 196 | 222 |
+| P1 | 0 | 6 | 1 | 44 | 51 |
+| P2 | 9 | 7 | 6 | 85 | 107 |
+| P3 | 5 | 3 | 3 | 73 | 84 |
+| **All** | 14 | 16 | 10 | 202 | 242 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -270,3 +270,23 @@ acceptance, later The crate dependencies later than v1.
 | [T-220](later.md) | P2 | M | later | feature | blocked | The local mode cannot run on a host that refuses each AF_INET bind |
 | [T-221](later.md) | P3 | S | later | feature | blocked | `cpus` on the podvm kind |
 | [T-222](live.md) | P1 | S | M-C | defect | done | A refusal of one source holds the job for each source of the host |
+| [T-223](later.md) | P2 | S | later | defect | done | `doctor --run` says ok for a store that does not hold `--image` |
+| [T-224](later.md) | P2 | M | later | feature | open | A run that hangs prints nothing until it ends |
+| [T-225](later.md) | P2 | S | later | defect | done | A unit that has no room says `PODVM_STORE`, which podrunner sets itself |
+| [T-226](later.md) | P2 | S | later | defect | done | A run does not say what egress hold its units have |
+| [T-227](later.md) | P2 | S | later | defect | blocked | `podvm run -d` refuses a passed descriptor when podrunner runs under `podnet pod` |
+| [T-228](later.md) | P2 | S | later | defect | done | A listener of the loopback needs `getsockname`, which `podnet pod` refuses |
+| [T-229](later.md) | P2 | M | later | feature | open | The run should pick its transport, its stores and its hold, and say so |
+| [T-230](later.md) | P1 | S | later | defect | done | With no `--platform`, a job of Windows, macOS or another architecture runs on the host |
+| [T-231](later.md) | P3 | S | later | defect | done | Ctrl-C in the wait of `--schedule` exits 0 |
+| [T-232](later.md) | P1 | S | later | defect | blocked | A tar with a link before its target fails in a podvm unit |
+| [T-233](later.md) | P2 | S | later | defect | open | The egress of a job ignores the proxy of the host |
+| [T-234](later.md) | P2 | S | later | defect | open | A job on `--runner-dir` drops the proxy of the host |
+| [T-235](later.md) | P3 | S | later | defect | open | Each log line of a job comes two times, with a BOM |
+| [T-236](later.md) | P3 | S | later | defect | open | The events of `--json` share stderr with the console of the runner |
+| [T-237](later.md) | P2 | S | later | defect | open | A Dockerfile action on `--podvm` fails at its step, not before the job |
+| [T-238](later.md) | P2 | S | later | defect | open | `--artifacts DIR` gives 409 on a second run |
+| [T-239](later.md) | P2 | S | later | defect | open | `--action-server` on the loopback or a private address is denied |
+| [T-240](later.md) | P3 | S | later | defect | open | `doctor --run --incus` does not try incus |
+| [T-241](later.md) | P3 | S | later | defect | open | The small findings of the second QA report |
+| [T-242](later.md) | P2 | M | later | defect | open | Each run copies the runner image several times into a new directory |

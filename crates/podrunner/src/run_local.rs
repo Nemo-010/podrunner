@@ -346,6 +346,10 @@ pub fn run(args: &[String]) -> Out {
     };
     let mut stdout = String::new();
     let mut stderr = note;
+    // The egress hold of the units, once (T-226).
+    if !a.quiet && !a.dry_run {
+        eprintln!("podrunner: the egress hold: {}", doctor::hold(&a));
+    }
     podrunner_local::cancel::install();
     let (dry, as_json) = (a.dry_run, a.json);
     // The pauses wait for Enter on the terminal (T-150); a dry run has none.

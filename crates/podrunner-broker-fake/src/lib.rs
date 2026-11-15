@@ -114,8 +114,8 @@ impl Broker {
     /// address `host` in each URL: a client behind a proxy names the
     /// broker so.
     pub fn start_seen_at(host: &str) -> std::io::Result<Broker> {
-        let listener = TcpListener::bind("127.0.0.1:0")?;
-        let base = format!("http://{host}:{}/", listener.local_addr()?.port());
+        let (listener, port) = bind_loopback()?;
+        let base = format!("http://{host}:{port}/");
         let state: Arc<Mutex<State>> = Arc::default();
         let (s, b) = (state.clone(), base.clone());
         std::thread::spawn(move || {
@@ -252,6 +252,30 @@ impl Broker {
 
 fn reply(json: &Value) -> (u16, Vec<u8>) {
     (200, json.to_string().into_bytes())
+}
+
+/// A free port of the loopback and its listener. Under a supervisor that
+/// refuses `getsockname` (`podnet pod`), the port of `127.0.0.1:0` cannot
+/// be read: then try ports of the dynamic range, from a start that each
+/// process draws (T-228).
+pub fn bind_loopback() -> std::io::Result<(TcpListener, u16)> {
+    let listener = TcpListener::bind("127.0.0.1:0")?;
+    if let Ok(a) = listener.local_addr() {
+        return Ok((listener, a.port()));
+    }
+    drop(listener);
+    let mut seed = [0u8; 2];
+    let _ = std::fs::File::open("/dev/urandom").and_then(|mut f| std::io::Read::read_exact(&mut f, &mut seed));
+    let start = u16::from_le_bytes(seed) % 16_000;
+    let mut last = std::io::Error::from(std::io::ErrorKind::AddrInUse);
+    for i in 0..400u16 {
+        let port = 49_152 + (start + i * 37) % 16_000;
+        match TcpListener::bind(("127.0.0.1", port)) {
+            Ok(l) => return Ok((l, port)),
+            Err(e) => last = e,
+        }
+    }
+    Err(last)
 }
 
 /// A connection of a client: TCP or a unix socket.

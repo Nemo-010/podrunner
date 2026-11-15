@@ -3245,3 +3245,535 @@ A unit test of the arguments, and a measure in `runner-image.yml`: a payload tha
 ## Blocker
 
 2026-11-15: PodUtils/podvm@T-1747 (COORD-050, GitHub #110).
+
+# T-223: `doctor --run` says ok for a store that does not hold `--image`
+
+**Source:** GitHub #172 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The `store` row of `doctor --run` checked that `--images` is a directory only; an empty store and a store with no `--image` were `ok`, and the run failed later in `podvm extract`.
+
+## Premise
+
+The report of GitHub #172 (2026-11-15).
+
+## Approach
+
+A row `image`: `podvm inspect IMAGE` in the store, with a fix that names the load.
+
+## Prove
+
+`cargo test -p podrunner --lib doctor_checks_the_image_of_the_store_and_names_the_hold`.
+
+## Done
+
+2026-11-15: `image_in_store` (`crates/podrunner/src/run_local/doctor.rs`), with the test above (a fake podvm).
+
+# T-224: A run that hangs prints nothing until it ends
+
+**Source:** GitHub #173 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** feature
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+The output of a unit, and the lines of the broker, come only when the job ends. A run that waits until `timeout-minutes` prints nothing for minutes, also with `--json`, so its phase is invisible.
+
+## Premise
+
+The report of GitHub #173 (2026-11-15): 180 s with no byte on stdout or stderr.
+
+## Approach
+
+1. Stream the output of the unit as it comes (the console of the runner), with the job as its prefix. 2. `--json`: phase events (`unit_started`, `runner_connected`, `job_received`, `broker_request`, `unit_ended`) with a time. 3. A line after N seconds with no event, that names the phase and the count of requests of the broker. 4. A job that `timeout-minutes` ends says what it waited for.
+
+## Prove
+
+A test of `run` with a fake unit that never takes its job: a phase line on stderr before the end, and the `--json` events in order.
+
+# T-225: A unit that has no room says `PODVM_STORE`, which podrunner sets itself
+
+**Source:** GitHub #174 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The store of each unit of `run` is under `TMPDIR`; podvm's advice on a full store names `PODVM_STORE`, which podrunner sets for each unit, so the advice cannot help.
+
+## Premise
+
+The report of GitHub #174 (2026-11-15); `crates/podrunner/src/run_local.rs` (the state of the units under `std::env::temp_dir()`).
+
+## Approach
+
+The failure of a start that names `PODVM_STORE` adds the fix of podrunner: set `TMPDIR`, with the path. A flag for the directory of the units is part of T-229.
+
+## Prove
+
+`cargo test -p podrunner-local --lib a_full_store_names_tmpdir`.
+
+## Done
+
+2026-11-15: `start_error` (`crates/podrunner-local/src/exec.rs`).
+
+# T-226: A run does not say what egress hold its units have
+
+**Source:** GitHub #175 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+A run with `--podvm` and no `--podnet` gave its units the network of the host with no word; with `--podnet` the hold is the advisory seccomp hold, also with no word; `doctor --run` had no row.
+
+## Premise
+
+The report of GitHub #175 (2026-11-15).
+
+## Approach
+
+One line at the start of a run (`podrunner: the egress hold: ...`) and a row `hold` of `doctor --run`, from one function.
+
+## Prove
+
+`cargo test -p podrunner --lib doctor_checks_the_image_of_the_store_and_names_the_hold` (the `hold` row).
+
+## Done
+
+2026-11-15: `doctor::hold` (`crates/podrunner/src/run_local/doctor.rs`); `run_local.rs` writes the line on stderr at the start (not with `-q`, not in a dry run).
+
+# T-227: `podvm run -d` refuses a passed descriptor when podrunner runs under `podnet pod`
+
+**Source:** GitHub #176 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+Under `podnet pod` (the seccomp backend), `run --podvm` fails at the start of the unit: `podvm run: exit 125: a passed descriptor goes onto 17, the number of the root file system or of the memfd`. podvm alone under the same supervisor starts the same command.
+
+## Premise
+
+The report of GitHub #176 (2026-11-15). podrunner passes no descriptor to `podvm run` (no `pre_exec`, no raw descriptor; each descriptor of Rust is close-on-exec).
+
+## Approach
+
+Ask podvm by COORD-059 (GitHub #177) how `run -d` numbers its descriptors and to take a range that cannot collide; then a run under `podnet pod` on a host with no AF_INET bind.
+
+## Prove
+
+A run under `podnet pod --egress direct` starts its unit (a measure on a host of the class of #167).
+
+## Blocker
+
+2026-11-15: podvm `0.2.0-beta.24` (PodUtils/podvm#421, COORD-059, GitHub #177): podvm passes its memo on descriptor 17, and its root landed on 17 when the parent left descriptors 3 to 15 open; PodUtils/podvm@T-1914 holds 17 from its start. When it is out: pin it, then a run under `podnet pod`.
+
+# T-228: A listener of the loopback needs `getsockname`, which `podnet pod` refuses
+
+**Source:** GitHub #167 (comment of 2026-11-15) (a user agent of the local mode, #153, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The broker and the fetch relay bind `127.0.0.1:0` and read the port with `local_addr` (`getsockname`); under `podnet pod` that call fails (`EOPNOTSUPP`), so neither can listen, although the bind holds.
+
+## Premise
+
+The comment of 2026-11-15 on GitHub #167: with a fixed port the broker binds under the supervisor.
+
+## Approach
+
+`bind_loopback`: bind port 0 and read it; when the read fails, bind ports of the dynamic range from a start that each process draws.
+
+## Prove
+
+`cargo test -p podrunner-local --lib bind_loopback_gives_a_port_that_answers` (the usual path; the fallback needs a host of the class of #167).
+
+## Done
+
+2026-11-15: `podrunner_broker_fake::bind_loopback`, in `Broker::start_seen_at` and `fetch::Relay::start`.
+
+# T-229: The run should pick its transport, its stores and its hold, and say so
+
+**Source:** GitHub #171 (a user agent of the local mode, #153, 2026-11-15)
+**Category:** feature
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+On a host that refuses AF_INET bind, a run needs the user to know the transport, `TMPDIR` and the hold from four documents. The fetch relay is a second loopback listener that the plan of T-220 does not cover.
+
+## Premise
+
+The report of GitHub #171 (2026-11-15) and the call of 2026-11-15 in `docs/decisions.md` (the release stays static).
+
+## Approach
+
+1. The fetch relay through the same transport as the broker (a unix socket, as `podrunner-egress` serves). 2. At the start of a run, and in `doctor --run`: the transport, the store, the directory of the units and the hold (the hold is T-226). 3. A flag (or a key of `run.toml`) for the directory of the units, and a default with room. 4. The choice of the transport from the host (a loopback bind, else a unix socket and podnet), with an override.
+
+## Prove
+
+On a host that refuses AF_INET bind: `podrunner run FILE --checkout .` with the `run.toml` of the installer runs a job, or refuses before the run with the transport it could not make.
+
+# T-230: With no `--platform`, a job of Windows, macOS or another architecture runs on the host
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`routes::build` returned the default executor with no dispatch when no `--platform` was given, so the check of the labels of `Dispatch::route` did not run: a `windows-latest`, `macos-*` or `ARM64` job ran on the host and could end `ok`.
+
+## Premise
+
+Code read: `crates/podrunner/src/run_local/routes.rs`, `crates/podrunner-local/src/dispatch.rs`.
+
+## Approach
+
+Wrap the default executor in a `Dispatch` with no routes.
+
+## Prove
+
+`cargo test -p podrunner --lib a_foreign_label_fails_with_no_platform` (it fails on the code of before).
+
+## Done
+
+2026-11-15: `routes::build`; `flags_tests::a_foreign_label_fails_with_no_platform`.
+
+# T-231: Ctrl-C in the wait of `--schedule` exits 0
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+A signal while `run --schedule` waits for the next time of its crons returned the result of the last run, exit 0 before a first run.
+
+## Premise
+
+Code read: `crates/podrunner/src/run_local/watch.rs`.
+
+## Approach
+
+Exit 130 at a signal in the wait, as at a signal in a run.
+
+## Prove
+
+By hand: `podrunner run FILE --schedule --runner-dir DIR`, Ctrl-C in the wait, `echo $?` gives 130.
+
+## Done
+
+2026-11-15: `watch.rs`: `Out { code: 130, ..last }`.
+
+# T-232: A tar with a link before its target fails in a podvm unit
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+In a `--podvm` unit, `tar -x` of an archive with a symbolic link before its target, or a dangling link, exits 2 on `utime` and `chmod`; `--microvm` and the host pass. It breaks `actions/setup-python` (`pallets/click`).
+
+## Premise
+
+The claim of the QA report (its `fixtures/tarprobe/`); not measured here. A likely cause is that the interposer of podvm follows the link and drops `AT_SYMLINK_NOFOLLOW`.
+
+## Approach
+
+A COORD issue to podvm with the probe of four tars; then pin the podvm that fixes it.
+
+## Prove
+
+`tar -x` of each tar of the probe in a podvm unit exits 0 (a test of `runner-image.yml`).
+
+## Blocker
+
+2026-11-15: podvm: COORD-060 (GitHub #178).
+
+# T-233: The egress of a job ignores the proxy of the host
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+On a host that reaches the internet only through a proxy, the egress module of a job connects directly (`Egress::host(None, ...)` in `run_local/guest.rs` and `routes.rs`), so an allowed host gets 502. The fetch of the actions reads the proxy of the environment (`fetch.rs`).
+
+## Premise
+
+The QA report; the code read confirms the two calls.
+
+## Approach
+
+Give the egress module of a job the upstream proxy of `pod_proxy::Environment`, as the fetch does.
+
+## Prove
+
+`cargo test -p podrunner-local egress_upstream`: an allowed host goes through the upstream proxy of the environment.
+
+# T-234: A job on `--runner-dir` drops the proxy of the host
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`runner.rs` clears the environment of the runner (`env_clear`), so a job on a runner directory has no proxy; the work-around with `--env-file` puts the credential of the proxy in the job.
+
+## Premise
+
+The QA report; code read confirms `env_clear`.
+
+## Approach
+
+Serve the job through a local relay of the proxy (as the fetch does) and give the runner `https_proxy=http://127.0.0.1:PORT`, with no credential in the job.
+
+## Prove
+
+A test: a step that reads `https_proxy` sees the relay, not the credential.
+
+# T-235: Each log line of a job comes two times, with a BOM
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The live log relays the blob of the job log and the blob of each step (`take_new`, `logs` of the broker), so each line comes two times; a U+FEFF of the runner leaks into the text.
+
+## Premise
+
+The QA report (`json.err`); code read confirms the two families.
+
+## Approach
+
+Relay one family of blobs, and drop a leading BOM.
+
+## Prove
+
+`cargo test -p podrunner-broker-fake live_log_once`: each line of a canned job comes once, with no U+FEFF.
+
+# T-236: The events of `--json` share stderr with the console of the runner
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With `--json`, the events of each log line and the raw console of the runner both go to stderr, so a reader cannot parse the stream.
+
+## Premise
+
+The QA report; code read (`logs.rs`, `runner.rs`).
+
+## Approach
+
+Each line of the console under `--json` becomes an event `{"event":"console"}`, or the events go to stdout.
+
+## Prove
+
+A test: with `--json`, each line of stderr is a JSON object.
+
+# T-237: A Dockerfile action on `--podvm` fails at its step, not before the job
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`needs_containers` reads only the `containerRegistry` steps of a message, so a job with an action of `using: docker` and a Dockerfile goes to a podvm unit with no hooks and fails with `docker: command not found`.
+
+## Premise
+
+The QA report; code read (`crates/podrunner-local/src/exec.rs`).
+
+## Approach
+
+Read the `action.yml` of each fetched action: `using: docker` with `image: Dockerfile` (or a path) is refused before the job with `build-not-supported` on each kind but `microvm` with an engine.
+
+## Prove
+
+A test of `run --dry-run` on `--podvm` with a Dockerfile action: the job fails with `build-not-supported`.
+
+# T-238: `--artifacts DIR` gives 409 on a second run
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The store of `--artifacts DIR` has no run id, so a second run that uploads the same name gets 409.
+
+## Premise
+
+The QA report; code read (`crates/podrunner/src/run_local.rs`).
+
+## Approach
+
+Key the store as `DIR/RUN_ID`; `--rerun` keeps the run id of its state.
+
+## Prove
+
+A test: two runs into one `--artifacts DIR` both pass, with two directories.
+
+# T-239: `--action-server` on the loopback or a private address is denied
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The fetch through the egress module refuses a forge on the loopback or a private network (`fixed:loopback`, `fixed:private`), so a local Gitea or Forgejo cannot serve the actions.
+
+## Premise
+
+The claim of the QA report; not measured here.
+
+## Approach
+
+Grant the one address of `--action-server` (the same one-target grant that T-187 needs of pod-broker).
+
+## Prove
+
+A test with a local git server on the loopback named by `--action-server`.
+
+# T-240: `doctor --run --incus` does not try incus
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`doctor --run` checks the podvm binary of `--incus`, not that an instance can start.
+
+## Premise
+
+The QA report; code read (`run_local/doctor.rs`).
+
+## Approach
+
+A row `incus` that starts and removes one instance of the image.
+
+## Prove
+
+`cargo test -p podrunner --lib doctor_tries_incus`: with a fake podvm whose incus tier fails, the row is FAIL with its fix.
+
+# T-241: The small findings of the second QA report
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`--env-file` keeps one of `FOO` and `foo` with no word; `doctor` with no configuration exits 0; `--json` does nothing with `--list` and `doctor --run`; the runner images have no Rust; nothing says that the userland rung of podvm gives no isolation.
+
+## Premise
+
+The claims of the QA report; not measured here.
+
+## Approach
+
+Refuse names that differ only by case in `--env-file`; a JSON form of `--list` and `doctor --run`; list the tools that the images do not have (or add a Rust row to `runner-full`); a row of `doctor --run` with the isolation that `podvm probe` names.
+
+## Prove
+
+`cargo test -p podrunner --lib the_small_findings_of_the_second_qa_report`: one case for each change.
+
+# T-242: Each run copies the runner image several times into a new directory
+
+**Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+The state of the units of a run is under a directory of the process, so its cache of image tars is never used again: each run does `podvm save` of the image (about 300 MB), and each unit `load` and `extract` (about 1.2 GB), about 1.5 GB of writes for each job. A user agent ran out of its write budget (23.7 of 26.8 GB) in one session.
+
+## Premise
+
+The transcript of a user agent of #153, read by an agent on 2026-11-15; code read (`crates/podrunner/src/run_local.rs`, `crates/podrunner-podvm/src/unit.rs`).
+
+## Approach
+
+Keep the tar of each image in a cache of the user, keyed by its digest, across runs; extract one tree for each run and give each unit a copy-on-write or a fresh copy only where the rung needs it.
+
+## Prove
+
+A measure in `runner-image.yml`: `podrunner run` of one job two times on `--podvm`, and the bytes written (`/proc/self/io` of the run): the second run writes no tar of the image.

@@ -6,6 +6,9 @@
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
+
+pub use errors::broker_error;
+use errors::{Gone, start_error};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -17,6 +20,7 @@ use podrunner_schema::JobId;
 
 use crate::drive::{End, Executor, result_of};
 
+mod errors;
 mod host;
 mod images;
 mod toolcache;
@@ -366,7 +370,7 @@ impl Executor for InUnit {
             mounts,
             limits: Default::default(),
         };
-        let started = self.driver.start(&spec).map_err(|e| format!("start {id}: {e}"));
+        let started = self.driver.start(&spec).map_err(|e| start_error(&id, &e.to_string()));
         if let Err(e) = started {
             if let Some(h) = hooks {
                 h.stop();
@@ -457,22 +461,6 @@ impl Executor for InUnit {
 
 /// The job needs the container hooks of a unit: `container:`, `services:`
 /// or a Docker action (T-093).
-/// A file that goes when the job ends: the unix socket of its broker.
-struct Gone(Option<PathBuf>);
-
-impl Drop for Gone {
-    fn drop(&mut self) {
-        if let Some(p) = &self.0 {
-            let _ = std::fs::remove_file(p);
-        }
-    }
-}
-
-/// A fake broker that did not start: the address and the fix (T-213).
-pub fn broker_error(e: std::io::Error) -> String {
-    format!("the fake broker: bind 127.0.0.1:0: {e}; fix: allow a bind of the loopback on this host")
-}
-
 pub fn needs_containers(message: &Job) -> bool {
     let o = &message.overrides;
     let docker = o

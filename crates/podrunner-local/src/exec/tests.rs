@@ -221,3 +221,21 @@ fn a_unit_exports_its_work_directory() {
     assert!(!scratch.exists(), "the work directory goes");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-225: podvm's advice to set `PODVM_STORE` becomes the advice to set
+/// `TMPDIR`, the knob of the units of podrunner.
+#[test]
+fn a_full_store_names_tmpdir() {
+    let id = podrunner_schema::UnitId::parse("u-1").unwrap();
+    let e = start_error(&id, "podvm extract: not enough space. Set $PODVM_STORE to a directory with room");
+    assert!(e.contains("fix: set TMPDIR"), "{e}");
+    assert_eq!(start_error(&id, "other"), "start u-1: other");
+}
+
+/// T-228: a free port of the loopback, as `bind_loopback` gives it.
+#[test]
+fn bind_loopback_gives_a_port_that_answers() {
+    let (l, port) = podrunner_broker_fake::bind_loopback().unwrap();
+    assert!(std::net::TcpStream::connect(("127.0.0.1", port)).is_ok());
+    drop(l);
+}

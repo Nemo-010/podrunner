@@ -109,8 +109,9 @@ pub fn repeat(args: &[String]) -> Out {
             };
             eprintln!("podrunner: the next run of the schedule is at {}", utc(at));
             while now() < at {
+                // A signal in the wait is an interrupt, as in a run (T-231).
                 if cancel::requested() {
-                    return last;
+                    return Out { code: 130, ..last };
                 }
                 std::thread::sleep(Duration::from_secs(1));
             }

@@ -6,7 +6,7 @@
 //! connection. A redirect or a submodule to another host gets 403.
 
 use std::io::{Read, Write};
-use std::net::{Shutdown, TcpListener, TcpStream};
+use std::net::{Shutdown, TcpStream};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -43,8 +43,8 @@ fn pipe(tcp: TcpStream, socket: &Path) {
 
 impl Relay {
     pub fn start(socket: PathBuf) -> std::io::Result<Relay> {
-        let listener = TcpListener::bind("127.0.0.1:0")?;
-        let port = listener.local_addr()?.port();
+        // No `getsockname` under `podnet pod` (T-228).
+        let (listener, port) = podrunner_broker_fake::bind_loopback()?;
         let stop = Arc::new(AtomicBool::new(false));
         let flag = stop.clone();
         std::thread::spawn(move || {

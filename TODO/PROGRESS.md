@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 222 entries: 2 open, 16 partial, 8 blocked, 196 done.
+`TODO/INDEX.md` holds 242 entries: 14 open, 16 partial, 10 blocked, 202 done.
 
 ## State
 
@@ -36,9 +36,11 @@ The queue, most valuable first:
 
 2. The onboarding of the local mode: T-205 (P1, partial: a `runner-image.yml` run and a dry run of `release.yml` prove the assets; then the next release), T-203 (P2: a local checkout with no `--checkout`), T-204 (P3: the packages of the image archives).
 
-3. T-220 (M, blocked on podnet, COORD-058 #170): the local mode on a host that refuses AF_INET bind and connect (GitHub #167); steps 1 and 2 (the broker on a unix socket, the front of the guest kinds) can go first.
-4. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.
-5. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
+3. The second local-mode user run (#171 to #176): T-224 (M: progress output while a run waits), T-229 (M: the run picks its transport and stores; the fetch relay on the transport of the broker), T-227 (blocked on podvm beta.24, COORD-059 #177).
+4. The second QA report (the open entries of T-232 to T-242): T-232 (P1, blocked on podvm, COORD-060 #178: tar links on the userland rung), T-233 and T-234 (the proxy of the host), T-237 (Dockerfile actions on `--podvm`), T-238 (`--artifacts`), T-239 (`--action-server` on the loopback), T-242 (the copies of the image), then the P3 ones.
+5. T-220 (M, blocked on podnet, COORD-058 #170): the local mode on a host that refuses AF_INET bind and connect (GitHub #167); steps 1 and 2 (the broker on a unix socket, the front of the guest kinds) can go first.
+6. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.
+7. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 
 The local mode against act and runner.server (`docs/local-mode.md`) has no open entry.
 

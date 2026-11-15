@@ -57,6 +57,33 @@ fn free_disk(dir: &Path) -> Result<String, String> {
     Ok(format!("{}: {size} free", dir.display()))
 }
 
+/// `podvm inspect IMAGE` in `store`: the image is there.
+fn image_in_store(podvm: &Path, store: &Path, image: &str) -> Result<String, String> {
+    let out = std::process::Command::new(podvm)
+        .args(["inspect", image])
+        .env("PODVM_STORE", store)
+        .stdin(std::process::Stdio::null())
+        .output()
+        .map_err(|e| format!("{}: {e}", podvm.display()))?;
+    match out.status.success() {
+        true => Ok(format!("{image} is in {}", store.display())),
+        false => Err(format!(
+            "{} does not hold {image}; fix: load the runner image (podvm load -i runner-ARCH.tar) or name another --image",
+            store.display()
+        )),
+    }
+}
+
+/// The egress hold of the units of the run (T-226).
+pub(super) fn hold(a: &Args) -> String {
+    match (&a.podvm, &a.guest, &a.podnet, &a.runner_dir) {
+        (Some(_), _, Some(_), _) => "podnet, the seccomp hold (advisory): only the hosts of --allow".into(),
+        (Some(_), _, None, _) => "none: the unit has the network of the host (give --podnet for a hold)".into(),
+        (None, Some(_), _, _) => "the guest has no NIC: only the broker and the hosts of --allow (enforced)".into(),
+        _ => "none: the runner directory has the network of the host".into(),
+    }
+}
+
 /// The runner reads each directory above its root, up to `/` (T-213).
 fn parents_readable(dir: &Path) -> Result<String, String> {
     let dir = std::path::absolute(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
@@ -145,6 +172,10 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
                     Err(format!("{}: not a directory; fix: give the podvm store with --images", store.display()))
                 },
             ));
+            // The store holds the image of `--image` (T-223).
+            if let (Some(image), true) = (&a.image, store.is_dir()) {
+                out.push(check("image", image_in_store(&b, store, image)));
+            }
         }
     }
     if matches!(a.guest, Some((true, _))) {
@@ -173,6 +204,7 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
             if p.is_file() { Ok(p.display().to_string()) } else { Err(format!("{}: not a file", p.display())) },
         ));
     }
+    out.push(check("hold", Ok(hold(a))));
     out
 }
 

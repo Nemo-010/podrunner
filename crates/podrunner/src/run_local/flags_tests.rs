@@ -163,3 +163,52 @@ fn an_unknown_event_and_a_missing_payload_fail_first() {
     assert!(e.contains("--event-path /nonexistent/e.json: not a file"), "{e}");
     assert!(parse(&args(&["w.yml", "--runner-dir", "/r", "--event", "workflow_dispatch"])).is_ok());
 }
+
+/// T-223, T-226: `doctor --run` checks that the store holds `--image`, and
+/// names the egress hold of the run.
+#[test]
+fn doctor_checks_the_image_of_the_store_and_names_the_hold() {
+    use std::os::unix::fs::PermissionsExt;
+    let (dir, w) = workflow("image", "on: push\njobs:\n  a:\n    runs-on: x\n    steps: [{run: a}]\n");
+    let podvm = dir.join("podvm");
+    std::fs::write(
+        &podvm,
+        "#!/bin/sh\ncase \"$1\" in probe) echo '{\"podvm\":\"0.2.0-beta.22\",\"rung\":\"userland\"}';; inspect) [ \"$2\" = have@sha256:00 ];; esac\n",
+    )
+    .unwrap();
+    std::fs::set_permissions(&podvm, std::fs::Permissions::from_mode(0o755)).unwrap();
+    let store = dir.join("store");
+    std::fs::create_dir_all(&store).unwrap();
+    let (p, s) = (podvm.display().to_string(), store.display().to_string());
+    let out = doctor(&args(&[&w, "--podvm", &p, "--images", &s, "--image", "none@sha256:00"]));
+    assert!(
+        out.stdout.contains("FAIL image:") && out.stdout.contains("does not hold none@sha256:00"),
+        "{}",
+        out.stdout
+    );
+    assert!(out.stdout.contains("ok   hold: none: the unit has the network of the host"), "{}", out.stdout);
+    let out = doctor(&args(&[&w, "--podvm", &p, "--images", &s, "--image", "have@sha256:00"]));
+    assert!(out.stdout.contains("ok   image: have@sha256:00 is in"), "{}", out.stdout);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// T-230: with no `--platform`, a job of Windows, of macOS or of another
+/// architecture fails by name, not `ok` on the host.
+#[test]
+fn a_foreign_label_fails_with_no_platform() {
+    let other = if std::env::consts::ARCH == "aarch64" { "X64" } else { "ARM64" };
+    for (tag, label) in [("win", "windows-latest"), ("mac", "macos-14"), ("arch", other)] {
+        let (dir, w) = workflow(
+            tag,
+            &format!("on: push\njobs:\n  j:\n    runs-on: [self-hosted, {label}]\n    steps: [{{run: x}}]\n"),
+        );
+        std::fs::create_dir_all(dir.join("runner/bin")).unwrap();
+        std::fs::write(dir.join("runner/run.sh"), "exit 9").unwrap();
+        std::fs::write(dir.join("runner/bin/Runner.Listener"), "").unwrap();
+        let r = dir.join("runner").display().to_string();
+        let out = run(&args(&[&w, "--runner-dir", &r, "--no-cache"]));
+        assert_eq!(out.code, 1, "{label}: {}{}", out.stdout, out.stderr);
+        assert!(out.stdout.contains(&format!("failure j: runs-on \"{label}\"")), "{label}: {}", out.stdout);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+}

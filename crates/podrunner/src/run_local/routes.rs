@@ -84,8 +84,11 @@ pub(super) fn build(a: &Args, c: &Common, state: &Path) -> Result<Box<dyn Execut
         (None, true) => Some(host(a, c)?),
         (None, false) => None,
     };
+    // With no --platform too, the dispatch refuses a label of Windows, of
+    // macOS or of another architecture by name (T-230).
     if a.platforms.is_empty() {
-        return default.ok_or_else(|| fail(Class::Usage, super::USAGE));
+        let default = default.ok_or_else(|| fail(Class::Usage, super::USAGE))?;
+        return Ok(Box::new(Dispatch::new(Vec::new(), Some(default))));
     }
     let mut routes = Vec::new();
     for (i, (label, target)) in a.platforms.iter().enumerate() {

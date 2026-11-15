@@ -28,7 +28,7 @@ says so, and the take goes through `THIRD_PARTY.md`.
 | | act | runner.server | podrunner |
 | --- | --- | --- | --- |
 | Engine of the steps | its own Go engine | the official runner (a fork), with its own server | the official runner, unchanged, pinned |
-| Isolation | a container of the Docker daemon of the host | a container of the host's Docker, or the host | a fresh unit for each job (podvm, microvm, incus), no root, no daemon |
+| Isolation | a container of the Docker daemon of the host | a container of the host's Docker, or the host | a fresh unit for each job (podvm, microvm, incus), no root, no daemon; the isolation is that of the kind: a guest of `microvm` or an incus instance isolates, and the userland rung of podvm (a host with no user namespace) gives a fresh root but no isolation |
 | Network of a job | the Docker network, open | open | the egress hold: only the hosts of `--allow` |
 | Binary | static Go | .NET, not static | static musl |
 
@@ -51,7 +51,7 @@ the entry that closes the gap, or the entry that did the work.
 | Checkout of another repository | real action | `--remote-checkout` | from the store at the commit of the lock | T-133 |
 | `./` local actions | yes | yes | yes | T-092 |
 | Docker actions by image | yes | yes | yes, pinned by digest, through the hooks | T-093, T-098 |
-| Dockerfile actions (`docker build`) | yes | yes | yes, in a `microvm` guest with an engine (`--engine DIR`); refused on the other executors (`build-not-supported`) | T-124 |
+| Dockerfile actions (`docker build`) | yes | yes | yes, in a `microvm` guest with an engine (`--engine DIR`); refused on the other unit kinds; a Dockerfile action on `--podvm` fails at its step today, not before the job (T-237) | T-124 |
 | `container:` | yes | yes | yes, pinned by digest | T-093 |
 | `services:` with health checks | yes | yes | yes, in a `microvm` guest with an engine: a service answers by `localhost` and by its name; refused on the other executors | T-123, T-124 |
 | Images by tag, pull | yes, `--pull` | yes | yes: `podvm pull` into the store, pinned by the lock; the units never pull | T-130 |
@@ -80,7 +80,7 @@ the entry that closes the gap, or the entry that did the work.
 | Reruns | no | `rerun --failed`, keep artifacts | `--state DIR`, `--rerun DIR [--failed \| --job ID]`, kept results, outputs and artifacts; a changed workflow fails by name | T-135 |
 | Watch, schedules | `--watch` | `--watch`, schedules | `--watch` (a change cancels the run in progress), `--schedule` (the crons of `on.schedule`, UTC) | T-142 |
 | Configuration file | `.actrc`, trust of the project file | `.actrc` | `run.toml` of the user and of the project, with `trusted`; the flags of `.actrc` that podrunner knows | T-143 |
-| Keep a container, bind the tree, tool cache | `--reuse`, `--bind` | `--keep-container`, shared tool cache | `--export DIR` on `--runner-dir` and `--podvm`; `--toolcache DIR` on `--podvm` (read-only, linked into `_work/_tool`); `--keep-failed` keeps a failed job at its failed step | T-138 |
+| Keep a container, bind the tree, tool cache | `--reuse`, `--bind` | `--keep-container`, shared tool cache | `--export DIR` on `--runner-dir` and `--podvm`; `--toolcache DIR` on `--podvm` (a tree of links into `_work/_tool`; the directory is mounted read-only where the rung of podvm has mounts); `--keep-failed` keeps a failed job at its failed step | T-138 |
 | Pause before a step | no | no | `--break JOB:STEP`, `--break-on-failure`: the job waits for Enter; `s` opens a shell in a podvm unit or an incus instance | T-150 |
 | Host check, bug report | `--bug-report` | no | `doctor --run FILE [the options of run]`: each input checked, with its fix | T-153 |
 | Interrupt | cancels and removes | cancels | cancels: each unit is destroyed, the scratch directories go, exit 130 | T-141 |
