@@ -2419,7 +2419,7 @@ State (2026-11-15, later): podvm `0.2.0-beta.21` (PodUtils/podvm@T-1901) is pinn
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -2442,6 +2442,10 @@ State (2026-11-14): `destroy` writes `podrunner: destroy UNIT: no count of proce
 State (2026-11-14, later): runner-image run 43628702784 (`aeac0a3`) is green. The log line came once, from conformance test 26 (`a-killed-shim-is-not-clean`), which kills the launcher on purpose: `orphans false, launcher dead true, tagged ["podvm"]`. So the line works. Next: the log of a failure of the local suite.
 
 State (2026-11-15): podvm removed the tree of a run in a background process after its exit (PodUtils/podvm#391). A process of that kind can carry the tag of the unit and outlive it: a possible cause of `orphans true`. The driver now sets `PODVM_SPARE_TREE=0` on each podvm command, so no such process stays. Next: ten green runs in a row.
+
+## Done
+
+2026-11-15: the cause is in runner-image run 43736540966 (`affb8c9`), the local suite with `--jobs`: `podrunner: destroy u-3: no count of processes: orphans true, launcher dead false, tagged [""]`. A tagged process ended between the list of the tree and the read of its name; its name read as empty, and it counted as a live orphan. `destroy` now reads each name once (`labels::live_names`) and drops a process with no name; `labels::orphaned` reads only those names. `labels::tests::a_process_that_ended_is_no_orphan`.
 
 # T-160: Local mode: a shell in a paused job of the incus kind
 

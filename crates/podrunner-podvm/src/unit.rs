@@ -356,14 +356,12 @@ impl UnitDriver for PodvmUnit {
         let removed = self.units.lock().expect("the units").remove(unit);
         let dir = self.unit_dir(unit);
         let tag = procs::tag_of(&self.state_dir, unit.as_str());
-        // With no live supervisor of podvm, but processes of the unit, the
-        // orphans went to init: no count is true then (design test 15).
-        let tree = shim::tree_of_tagged(&tag);
+        // Each tagged process but the waiter, with its name, read once: a
+        // process that ended after the list has no name, and is gone, not an
+        // orphan (T-159: the name `""` of a run of the gate).
         let waiter = removed.as_ref().map(|r| r.waiter.id());
-        // The `podnet pod` of the hold carries the tag and can outlive the
-        // payload: it is no process of the payload.
-        let orphans = !tree.iter().any(|p| Some(*p) != waiter && procs_comm_is_podvm(*p))
-            && tree.iter().any(|p| Some(*p) != waiter && !procs_comm_is(*p, "podnet"));
+        let live = labels::live_names(&shim::tree_of_tagged(&tag), waiter);
+        let orphans = labels::orphaned(&live);
         // From beta.4 the payload ends with a killed launcher, so no tagged
         // process is left; podvm names the state `dead` then. Read it before
         // the kill, which also ends the launcher.
@@ -371,13 +369,8 @@ impl UnitDriver for PodvmUnit {
         let lost = orphans || dead;
         if lost {
             // T-159: the cause of an unknown count, for the log of the job.
-            let names: Vec<String> = tree
-                .iter()
-                .filter(|p| Some(**p) != waiter)
-                .map(|p| fs::read_to_string(format!("/proc/{p}/comm")).unwrap_or_default().trim().to_string())
-                .collect();
             eprintln!(
-                "podrunner: destroy {unit}: no count of processes: orphans {orphans}, launcher dead {dead}, tagged {names:?}"
+                "podrunner: destroy {unit}: no count of processes: orphans {orphans}, launcher dead {dead}, tagged {live:?}"
             );
         }
         let left = shim::kill_tree_of_tagged(&tag, KILL_LIMIT);

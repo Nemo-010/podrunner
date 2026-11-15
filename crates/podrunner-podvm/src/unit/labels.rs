@@ -77,8 +77,41 @@ pub(super) fn no_hostname<'a>(argv: &[&'a str], name: &str) -> Vec<&'a str> {
     out
 }
 
+/// The names of the processes `pids` but `waiter`, each read once from
+/// `/proc`: a process that ended after the list has no name, and is gone,
+/// not an orphan (T-159).
+pub(super) fn live_names(pids: &[u32], waiter: Option<u32>) -> Vec<String> {
+    pids.iter()
+        .filter(|p| Some(**p) != waiter)
+        .filter_map(|p| std::fs::read_to_string(format!("/proc/{p}/comm")).ok())
+        .map(|c| c.trim().to_string())
+        .collect()
+}
+
+/// With no live supervisor of podvm, but processes of the unit, the orphans
+/// went to init: no count is true then (design test 15). The `podnet pod` of
+/// the hold carries the tag and can outlive the payload: it is no process of
+/// the payload.
+pub(super) fn orphaned(live: &[String]) -> bool {
+    !live.iter().any(|c| c.starts_with("podvm")) && live.iter().any(|c| !c.starts_with("podnet"))
+}
+
 #[cfg(test)]
 mod tests {
+    /// T-159: a process that ended after the list is no orphan.
+    #[test]
+    fn a_process_that_ended_is_no_orphan() {
+        let gone = u32::MAX - 7;
+        assert!(super::live_names(&[gone], None).is_empty());
+        assert!(!super::orphaned(&super::live_names(&[gone], None)));
+        let me = std::process::id();
+        assert_eq!(super::live_names(&[me, gone], None).len(), 1);
+        assert!(super::live_names(&[me], Some(me)).is_empty());
+        assert!(super::orphaned(&["sh".into()]));
+        assert!(!super::orphaned(&["podvm".into(), "sh".into()]));
+        assert!(!super::orphaned(&["podnet".into()]));
+    }
+
     /// T-182: the start with no name drops `--hostname NAME` only.
     #[test]
     fn the_start_with_no_name_drops_the_name_only() {

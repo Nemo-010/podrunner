@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**252 entries: 19 open, 17 partial, 13 blocked, 203 done.**
+**252 entries: 19 open, 16 partial, 13 blocked, 204 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 2 | 7 | 3 | 45 | 57 |
-| P2 | 12 | 7 | 7 | 85 | 111 |
+| P2 | 12 | 6 | 7 | 86 | 111 |
 | P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 19 | 17 | 13 | 203 | 252 |
+| **All** | 19 | 16 | 13 | 204 | 252 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -206,7 +206,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-156](later.md) | P3 | S | later | defect | done | Local mode: a glibc image by tag in a podvm unit where chroot is denied |
 | [T-157](later.md) | P3 | M | later | feature | done | Local mode: load the images of a job from the store into the engine of the guest |
 | [T-158](later.md) | P3 | S | later | defect | done | Local mode: a static image as a container of a podvm unit |
-| [T-159](later.md) | P2 | S | later | defect | partial | An intermittent unknown count of processes at the destroy of a podvm unit |
+| [T-159](later.md) | P2 | S | later | defect | done | An intermittent unknown count of processes at the destroy of a podvm unit |
 | [T-160](later.md) | P3 | S | later | feature | done | Local mode: a shell in a paused job of the incus kind |
 | [T-161](later.md) | P3 | M | later | research | partial | An alternate payload: a runner other than the official one |
 | [T-162](later.md) | P2 | M | later | feature | done | G-12: limits of CPU, memory and processes on the podvm and incus kinds |

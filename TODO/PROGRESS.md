@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 252 entries: 19 open, 17 partial, 13 blocked, 203 done.
+`TODO/INDEX.md` holds 252 entries: 19 open, 16 partial, 13 blocked, 204 done.
 
 ## State
 
@@ -42,7 +42,6 @@ The queue, most valuable first:
 4. The second QA report (the open entries of T-232 to T-242): T-232 (P1, blocked on podvm, COORD-060 #178: tar links on the userland rung), T-233 and T-234 (the proxy of the host), T-237 (Dockerfile actions on `--podvm`), T-238 (`--artifacts`), T-239 (`--action-server` on the loopback), T-242 (the copies of the image), then the P3 ones.
 5. T-220 (M, blocked on podnet, COORD-058 #170): the local mode on a host that refuses AF_INET bind and connect (GitHub #167); steps 1 and 2 (the broker on a unix socket, the front of the guest kinds) can go first.
 6. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.
-7. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 
 The local mode against act and runner.server (`docs/local-mode.md`) has no open entry.
 
