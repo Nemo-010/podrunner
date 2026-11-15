@@ -1,7 +1,8 @@
 //! The denials of the egress module: each connection that a policy refused,
 //! with its job, its host, its port and its rule. A job log names them, so
 //! a user sees which host to allow. The audit of `pod-broker` goes on to
-//! `tracing` as before; only the last denials stay in memory.
+//! `tracing` as before; only the last denials stay in memory. A connection
+//! that failed (a stage and a class) is a line of the log of `serve`.
 
 use std::collections::VecDeque;
 use std::sync::Mutex;
@@ -30,9 +31,28 @@ impl Denials {
     }
 }
 
+/// The text for the log of `serve` of a connection that failed: its job,
+/// its host and port, and the stage and the class of the failure (T-179).
+/// An audit line of `pod-broker` holds no secret value.
+pub fn failure_text(line: &Line) -> Option<String> {
+    let stage = line.stage?;
+    let f = &line.fields;
+    let text = |k: &str| f[k].as_str().map(str::to_string).unwrap_or_else(|| f[k].to_string());
+    Some(format!(
+        "podrunner: egress: job {} {}:{} failed at {stage} ({})",
+        text("job"),
+        text("host"),
+        text("port"),
+        line.class.unwrap_or("unknown")
+    ))
+}
+
 impl Audit for Denials {
     fn line(&self, line: &Line) {
         Tracing.line(line);
+        if let Some(t) = failure_text(line) {
+            eprintln!("{t}");
+        }
         let f = &line.fields;
         if f["decision"] != "deny" {
             return;
@@ -48,5 +68,28 @@ impl Audit for Denials {
             last.pop_front();
         }
         last.push_back((text("job"), what));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_failed_connection_is_a_line_of_the_log() {
+        let line = |stage: Option<&'static str>| Line {
+            schema: 1,
+            time: "2026-11-15T00:00:00Z".into(),
+            level: "warn",
+            event: "broker.connection",
+            fields: serde_json::json!({ "job": "u-1", "host": "github.com", "port": 443, "decision": "allow" }),
+            stage,
+            class: Some("unavailable"),
+        };
+        assert_eq!(
+            failure_text(&line(Some("connect"))).as_deref(),
+            Some("podrunner: egress: job u-1 github.com:443 failed at connect (unavailable)")
+        );
+        assert_eq!(failure_text(&line(None)), None);
     }
 }

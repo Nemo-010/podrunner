@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**196 entries: 4 open, 15 partial, 8 blocked, 169 done.**
+**196 entries: 3 open, 16 partial, 8 blocked, 169 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 1 | 6 | 1 | 37 | 45 |
+| P1 | 0 | 7 | 1 | 37 | 45 |
 | P2 | 1 | 6 | 4 | 73 | 84 |
 | P3 | 2 | 3 | 3 | 59 | 67 |
-| **All** | 4 | 15 | 8 | 169 | 196 |
+| **All** | 3 | 16 | 8 | 169 | 196 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -226,7 +226,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-176](live.md) | P1 | M | M-C | defect | partial | The JIT configuration is minted before the unit starts: a failed start spends it and leaves the job assigned |
 | [T-177](live.md) | P1 | S | M-C | defect | partial | `serve` does not pull an image that a digest pins: a `container:` job fails with no cause in the log |
 | [T-178](live.md) | P1 | S | M-C | defect | partial | A job on the incus and microvm kinds has `HOME=/root` for a runner that is not root: `actions/checkout` fails |
-| [T-179](live.md) | P1 | M | M-C | defect | open | On an H0 host the runner times out on the broker under the seccomp hold and the egress module |
+| [T-179](live.md) | P1 | M | M-C | defect | partial | On an H0 host the runner times out on the broker under the seccomp hold and the egress module |
 | [T-180](live.md) | P2 | S | M-C | defect | partial | As PID 1 of a container, `serve` reaps no orphan: the zombies stop the supervisor |
 | [T-181](live.md) | P2 | M | M-C | defect | partial | `--podvm-confine` stops name resolution in a podvm unit: the runner cannot reach the broker |
 | [T-182](live.md) | P2 | S | M-C | defect | blocked | A podvm unit has the host name of the host: the job log of GitHub shows it |
