@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**248 entries: 18 open, 16 partial, 12 blocked, 202 done.**
+**249 entries: 18 open, 17 partial, 12 blocked, 202 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 6 | 2 | 44 | 54 |
-| P2 | 11 | 7 | 6 | 85 | 109 |
+| P1 | 1 | 7 | 2 | 44 | 54 |
+| P2 | 12 | 7 | 6 | 85 | 110 |
 | P3 | 5 | 3 | 4 | 73 | 85 |
-| **All** | 18 | 16 | 12 | 202 | 248 |
+| **All** | 18 | 17 | 12 | 202 | 249 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -290,9 +290,10 @@ acceptance, later The crate dependencies later than v1.
 | [T-240](later.md) | P3 | S | later | defect | open | `doctor --run --incus` does not try incus |
 | [T-241](later.md) | P3 | S | later | defect | open | The small findings of the second QA report |
 | [T-242](later.md) | P2 | M | later | defect | open | Each run copies the runner image several times into a new directory |
-| [T-243](later.md) | P1 | M | later | release | open | The user-path gate: the files of the release, installed and used as a user |
+| [T-243](later.md) | P1 | M | later | release | partial | The user-path gate: the files of the release, installed and used as a user |
 | [T-244](later.md) | P1 | M | later | release | blocked | The host lanes of the user-path gate |
 | [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |
 | [T-246](later.md) | P1 | S | later | release | open | An adversarial QA before each release |
 | [T-247](later.md) | P2 | S | later | release | open | The notes of a release name the level of the proof of each claim |
 | [T-248](later.md) | P3 | M | later | feature | blocked | The help and the manual of podrunner from the shared crate of PodUtils |
+| [T-260](later.md) | P2 | S | later | defect | open | An expression in the image of a service or a job container fails the job |

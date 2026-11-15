@@ -134,6 +134,13 @@ in a directory, with their own pins: a fresh install, a second run that
 downloads nothing (its mirror is empty), a changed binary that is replaced,
 a corrupt asset that fails by name, a `run.toml` of the user that stays, and
 the offline bundle as an archive and as a directory, with `--prefix` and
-`--full`. It also runs the check of the pins with a planted change, and
-`shellcheck` when it is there. The gate and `scripts/agent/check.sh` run
-it.
+`--full`. It also runs the check of the pins with a planted change, the
+assets of a release from `scripts/release-assets.sh`, an install from a
+local HTTP server, a lane of the user-path gate (`scripts/user-gate.py`)
+on the fake assets, and `shellcheck` when it is there. The gate and
+`scripts/agent/check.sh` run it.
+
+The user-path gate (`.github/workflows/user-gate.yml`, T-243) runs the
+commands of "Quick start" and "The offline bundle" of this page as they
+are written, on the files of a release, as a user with no root
+(`docs/maintenance.md`, "A release").

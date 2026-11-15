@@ -78,6 +78,14 @@ the tools.
     measures use.
   * `corpus.py`: the corpus of the fake broker from the workflows of a
     podcrates checkout (T-038, `level2.yml`).
+  * `release-assets.sh`: the files of a release (the static binaries,
+    the image archives of a `runner-image.yml` run, the installer with
+    its pins, the bundles); `release.yml` and `user-gate.yml` both call
+    it (T-205, T-243).
+  * `user-gate.py`: the checks of one lane of the user-path gate, the
+    corpus table `corpus/user-gate.tsv` and the summary (T-243).
+    `test-install.sh` runs a lane on fake assets.
+  * `lab/*.sh`: the host classes of the lanes (T-244, `lab/README.md`).
 * The copies of podcrates scripts (`check-size.py`, `check-static.sh`,
   `cloud-setup.sh`, `fetch-zig.sh`, `pull-image.sh`, `retry.sh`,
   `secrets-report.py`, `check-github-numbers.py`) come from podcrates
@@ -158,6 +166,52 @@ comes only after each step below holds on the commit of the release
    a P1 or P2 finding blocks the release.
 4. The notes of the release say, for each claim, the level of its proof:
    CI, a constrained host, or not run.
+
+### The user-path gate
+
+`user-gate.yml` takes a commit and two optional inputs: `images_run`, the
+id of a green `runner-image.yml` run of the same commit (empty: the latest
+green one; with none, the gate refuses), and `version`, the version of the
+files (empty: the version of `Cargo.toml` with `-gate.RUN_ID`). Give the
+version of the release to test the files with the version that the release
+writes into them.
+
+Dispatch it as each workflow ("A run of a workflow": the MCP tool
+`actions_run_trigger`, or a `[gh action] requested` issue with this
+block):
+
+```sh
+gh workflow run user-gate.yml --repo PodUtils/podrunner --ref main -f version=X.Y.Z-beta.N
+```
+
+The run has these jobs:
+
+| Job | What it does |
+| --- | --- |
+| `build`, `assets` | The files of the release, made by `scripts/release-assets.sh` as `release.yml` makes them, as the artifact `user-gate-assets`. |
+| `lanes` | One job for each host class: `plain`, `small-tmp`, `userns-off`, `inherited-fds` (`scripts/lab/`), each as a user with no root. |
+| `summary` | One table, check x lane, in the summary of the run. A failed check or a lane with no results fails it. |
+
+Each lane runs `scripts/user-gate.py lane`: the quick start of
+`docs/install.md` as it is written (online, from a local HTTP server with
+the paths of the release), the bundle with no network, `--full`,
+`podrunner doctor --run` and `hello.yml` on each executor (`--microvm` in
+`plain` only), and the corpus `scripts/corpus/user-gate.tsv`: jobs of real
+projects at pinned commits on `--podvm` and `--runner-dir`, against the
+result of github.com. A mismatch prints the log of the job; the artifact
+`lane-LANE` keeps each log. An `xfail` row names the entry of its cause;
+when it passes, the gate fails until the row says `ok`.
+
+`release.yml` refuses a version with no green `user-gate.yml` run on its
+commit. The input `no_user_gate` (a reason) skips that condition; the
+notes of the release must then contain the text `user-path gate: not run`.
+
+To run a lane on a disposable host (it needs root for the lab scripts),
+with the assets of a run in `DIR`:
+
+```sh
+sh scripts/lab/nonroot.sh -- python3 -I scripts/user-gate.py lane --lane plain --assets DIR --out OUT
+```
 
 ## This sandbox
 
