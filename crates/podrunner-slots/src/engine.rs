@@ -90,7 +90,9 @@ pub struct Slots {
     pub(crate) sources: Vec<Source>,
     pub(crate) kinds: Vec<UnitKind>,
     pub(crate) jobs: BTreeMap<(usize, JobId), Job>,
-    pub(crate) suppressed: BTreeMap<JobId, u64>,
+    /// The refused and the final jobs that a source offers again, by the
+    /// source: a refusal of one source holds no other source (T-222).
+    pub(crate) suppressed: BTreeMap<(usize, JobId), u64>,
     pub(crate) journal: Journal,
     pub(crate) audit: Audit,
     pub(crate) ids: UnitIds,
@@ -322,12 +324,13 @@ impl Slots {
 
     fn intake(&mut self, s: usize, offer: Offer, now: u64) {
         let id = offer.job_id.clone();
-        if self.suppressed.get(&id).is_some_and(|until| *until > now) {
+        if self.suppressed.get(&(s, id.clone())).is_some_and(|until| *until > now) {
             // The source offers a refused job again: withdraw it again, so
             // that a source that keeps it at the head of its queue moves on
-            // (T-189).
+            // (T-189), with an audit line (T-222).
             let code = self.jobs.get(&(s, id.clone())).and_then(|j| j.refusal).unwrap_or(RefusalCode::EventNotAllowed);
             let _ = self.sources[s].source.withdraw(&id, code.as_str());
+            self.audit(audit::Kind::Refuse, s, &id, Some(code), Some("offered again: withdrawn again".into()));
             return;
         }
         let key = (s, id.clone());
@@ -438,7 +441,7 @@ impl Slots {
             j.placement = None;
         }
         self.audit(audit::Kind::Refuse, s, &key.1, Some(code), detail);
-        self.suppressed.insert(key.1.clone(), now + self.cfg.terminal_suppress_s * 1000);
+        self.suppressed.insert(key.clone(), now + self.cfg.terminal_suppress_s * 1000);
         self.report(key);
         self.set(key, State::Refused, now);
     }

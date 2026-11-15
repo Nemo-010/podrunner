@@ -28,7 +28,7 @@ impl Slots {
             .collect();
         for key in old {
             self.jobs.remove(&key);
-            let until = self.suppressed.entry(key.1).or_insert(0);
+            let until = self.suppressed.entry(key).or_insert(0);
             *until = (*until).max(now + FINAL_KEPT_MS);
         }
         self.suppressed.retain(|_, until| *until > now);

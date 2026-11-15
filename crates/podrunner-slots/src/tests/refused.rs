@@ -65,3 +65,31 @@ fn a_refused_job_offered_again_is_withdrawn_again() {
     assert!(w.len() >= 3, "{w:?}");
     assert!(w.iter().all(|x| x == "j-1 limit-not-enforceable"), "{w:?}");
 }
+
+/// T-222: a refusal of one source holds the job for that source only: the
+/// same job of a second source of the host runs, and each withdraw of the
+/// suppressed job has an audit line.
+#[test]
+fn a_refusal_of_one_source_holds_no_other_source() {
+    let cap = capability(Boundary::Confined, Principal::Distinct, EgressHold::Advisory);
+    let kind = KindSpec { name: "fake", slots: 1, capability: cap, command: sh("exit 0") };
+    let mut bed =
+        Bed::new(config(""), vec![("a", "trusted", None, vec![]), ("b", "trusted", None, vec![])], vec![kind]);
+    let of = |need: Value| -> Offer {
+        let step: Value = serde_json::from_str(&offer(0, "j-1", need)).unwrap();
+        serde_json::from_value(step["offer"].clone()).unwrap()
+    };
+    let wa: Arc<Mutex<Vec<String>>> = Arc::default();
+    let wb: Arc<Mutex<Vec<String>>> = Arc::default();
+    let need = json!({ "limits": { "memory": 1 }, "limits_required": ["memory"] });
+    bed.slots.sources[0].source = Box::new(Again { offer: of(need), withdrawn: wa.clone() });
+    bed.slots.sources[1].source = Box::new(Again { offer: of(json!({})), withdrawn: wb.clone() });
+    for _ in 0..6 {
+        bed.tick();
+    }
+    assert!(!wa.lock().unwrap().is_empty());
+    assert!(wb.lock().unwrap().is_empty(), "source b: {:?}", wb.lock().unwrap());
+    assert!(bed.slots.jobs().any(|j| j.source == 1 && j.id.as_str() == "j-1"), "the job of source b is taken");
+    let audit = std::fs::read_to_string(bed.slots.state_dir.join("audit.jsonl")).unwrap();
+    assert!(audit.contains("offered again"), "{audit}");
+}

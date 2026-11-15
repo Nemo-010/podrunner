@@ -1629,3 +1629,32 @@ The hook writes an `::error title=podrunner::` line that names this job (not the
 ## Done
 
 2026-11-15: `images/runner/podrunner-job-started.sh` writes the annotation. `a_job_started_hook_ends_a_foreign_job_before_its_first_step` (runner directory) and `a_foreign_job_ends_before_its_first_step_in_a_podvm_unit` (the runner image, `runner-image.yml`) check it; the first fails on the hook of before and passes now.
+
+# T-222: A refusal of one source holds the job for each source of the host
+
+**Source:** githome's pair run on `v0.1.0-beta.6`, GitHub #151 (COORD-054, 2026-11-15)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The jobs that `serve` withdraws again (T-189) were kept by job id only. githome offers a trusted job to both sources of one host; the untrusted source refused a job with a `docker://` step (`container-not-supported`), and each later offer of that job to the trusted source, whose podvm kind could run it, was withdrawn too, for 30 minutes, with no line in the journal or the audit.
+
+## Premise
+
+The report of githome on GitHub #151, read on 2026-11-15; `crates/podrunner-slots/src/engine.rs` (`suppressed`, `intake`).
+
+## Approach
+
+Key the suppressed jobs by the source and the job. Write an audit line for each withdraw of a suppressed job.
+
+## Prove
+
+`cargo test -p podrunner-slots a_refusal_of_one_source_holds_no_other_source`: source a refuses `j-1`, the same `j-1` of source b is taken, and the audit has the line (it fails on the code of before: source b got the withdraw).
+
+## Done
+
+2026-11-15: `Slots::suppressed` is a map of `(source, job)`; `intake` writes an audit line `refuse` with `offered again: withdrawn again`; `forget` keeps the source in the key. `tests::refused::a_refusal_of_one_source_holds_no_other_source`.

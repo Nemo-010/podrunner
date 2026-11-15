@@ -150,7 +150,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #148 | [gh action] requested | closed (gate 43690748922 and secrets green on `ba24d0e`; runner-image 43690754546 red at the limits measure, T-162; level2 red at the corpus, T-196 fixed after it) | T-162, T-183, T-192 |
 | #149 | Live run 2026-11-15: on an emulated aarch64 host, start_s (120 s) kills the first unit, and nothing names the deadline | open | T-197 |
 | #150 | [gh action] requested | closed (gate 43704598372, level2 43704604467, runner-image 43704601731 green on `88cc4d7`; release 43708786078 of `v0.1.0-beta.6`) | T-162, T-169, T-198 |
-| #151 | COORD-054: githome and podrunner after the live run: the beta.6 changes and the next pair run (to githome) | open (githome runs the pair on beta.6) | T-162, T-178, T-189, T-190, T-191, T-193, T-198, T-200, T-201 |
+| #151 | COORD-054: githome and podrunner after the live run: the beta.6 changes and the next pair run (to githome) | open (the pair on beta.6 passed each test but one: T-222) | T-162, T-178, T-189, T-190, T-191, T-193, T-198, T-200, T-201, T-222 |
 | #152 | COORD-055: podrunner takes podcrates v0.51.0 at 800f6d4 (the answer to PodUtils/podcrates#172) (to podcrates) | open | T-118 |
 | #153 | LIVE-3: a user agent of the local mode: run real workflows with `podrunner run` and report (T-199) | open (the report of 2026-11-15: no job ran on its host; 12 issues #155 to #166 and nits, T-206 to T-219) | T-199, T-218, T-219 |
 | #154 | [gh action] requested | open (the gate, runner-image and level2 on `2f56267`, then the release of `v0.1.0-beta.7`) | T-162, T-169, T-198, T-200, T-201 |
