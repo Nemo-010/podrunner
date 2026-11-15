@@ -396,22 +396,26 @@ def lane(a) -> int:
             raise SystemExit("\n".join(errors))
     later = [f"hello:{e}" for e in g.executors]
     later += [f"corpus:{r['id']}:{r['executor']}" for r in rows if g.wants(r)]
-    if g.check("serve", g.serve):
-        g.check("docs:quick-start", g.quick_start)
-        installed = g.check("install:bundle", g.install_bundle)
-        if installed:
-            g.check("install:offline-doc", g.install_offline_doc)
-            if not g.check("install:full", g.install_full):
-                g.run_toml_image()
-            for e in g.executors:
-                g.check(f"hello:{e}", functools.partial(g.hello, e))
-            for r in rows:
-                if g.wants(r):
-                    g.check(f"corpus:{r['id']}:{r['executor']}", functools.partial(g.corpus_row, r))
-        else:
+    try:
+        if not g.check("serve", g.serve):
             for name in later:
-                g.skip(name, "the install failed")
-    g.write()
+                g.skip(name, "no local server")
+        else:
+            g.check("docs:quick-start", g.quick_start)
+            if g.check("install:bundle", g.install_bundle):
+                g.check("install:offline-doc", g.install_offline_doc)
+                # With no larger image, the rows run on the base image.
+                g.check("install:full", g.install_full) or g.check("install:base-image", g.run_toml_image)
+                for e in g.executors:
+                    g.check(f"hello:{e}", functools.partial(g.hello, e))
+                for r in rows:
+                    if g.wants(r):
+                        g.check(f"corpus:{r['id']}:{r['executor']}", functools.partial(g.corpus_row, r))
+            else:
+                for name in later:
+                    g.skip(name, "the install failed")
+    finally:
+        g.write()
     failed = [n for n, result, _ in g.results if result == "fail"]
     print(f"user-gate: lane {g.name}: {len(g.results) - len(failed)} of {len(g.results)} checks passed")
     return 1 if failed else 0
