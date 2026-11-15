@@ -21,4 +21,5 @@ disposable host (a GitHub runner).
 | `inherited-fds.sh` | descriptors 3 to N open in the command (`LAB_FDS`, default 15); bash | no |
 
 Each script checks its class first and fails with the part that does not
-hold. Each one is 0BSD, as the repository.
+hold. `.github/workflows/user-gate.yml` (T-243) runs them as the
+lanes of the user-path gate, one lane for each class. Each one is 0BSD, as the repository.

@@ -1,0 +1,505 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: 0BSD
+"""The user-path gate (T-243, T-244): the files of a release, installed and
+used as a user, on one host class (a lane of user-gate.yml).
+
+  user-gate.py check
+      check the corpus table and the sections of docs/install.md that a
+      lane runs
+  user-gate.py doc-commands FILE SECTION [--set OLD=NEW]...
+      print the commands of the sh blocks of a section of a document
+  user-gate.py lane --lane NAME --assets DIR --out DIR [--work DIR]
+                    [--executors podvm,runner-dir,microvm] [--no-corpus]
+      the checks of one lane, as the user that runs it; OUT/results.tsv
+      gets one line for each check
+  user-gate.py summary [--lanes A,B] DIR
+      one Markdown table (check x lane) of each results.tsv under DIR;
+      exit 1 when a check failed or a lane has no results
+
+A lane needs python3, git, curl, tar and gzip on the host. It takes no
+root: the lab scripts (scripts/lab/) make the user and the host class.
+"""
+
+import argparse
+import functools
+import http.server
+import os
+import pathlib
+import platform
+import re
+import shlex
+import shutil
+import signal
+import subprocess
+import sys
+import tarfile
+import threading
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+TABLE = ROOT / "scripts" / "corpus" / "user-gate.tsv"
+INSTALL_DOC = ROOT / "docs" / "install.md"
+COLUMNS = ("id", "repo", "sha", "workflow", "job", "matrix", "github", "executor", "lanes", "expect", "flags", "note")
+EXECUTORS = ("podvm", "runner-dir", "microvm")
+RELEASE_URL = "https://github.com/PodUtils/podrunner/releases/download/"
+# The sections of docs/install.md that a lane runs as they are written.
+QUICK_START = "Quick start"
+OFFLINE = "The offline bundle"
+# A mirror that refuses each connection: an offline install must not fetch.
+DEAD_MIRROR = "http://127.0.0.1:9"
+ROW_TIMEOUT = 45 * 60
+SAMPLE_CI = """on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: test -f README.md
+"""
+
+
+class GateError(Exception):
+    pass
+
+
+def read_table(path: pathlib.Path) -> tuple[list[dict], list[str]]:
+    rows, errors, seen = [], [], set()
+    for n, line in enumerate(path.read_text().splitlines(), 1):
+        if not line.strip() or line.startswith("#"):
+            continue
+        where = f"{path.name}:{n}"
+        f = line.split("\t")
+        if len(f) != len(COLUMNS):
+            errors.append(f"{where}: {len(f)} columns, not {len(COLUMNS)}")
+            continue
+        r = dict(zip(COLUMNS, f))
+        if not re.fullmatch(r"[0-9a-f]{40}", r["sha"]):
+            errors.append(f"{where}: the sha is not 40 hex digits")
+        if not re.fullmatch(r"[\w.-]+/[\w.-]+", r["repo"]):
+            errors.append(f"{where}: the repo is not OWNER/REPO")
+        if r["executor"] not in EXECUTORS:
+            errors.append(f"{where}: no executor {r['executor']!r}")
+        if r["github"] != "success":
+            errors.append(f"{where}: the corpus takes jobs that pass on github.com, not {r['github']!r}")
+        if r["expect"] not in ("ok", "xfail"):
+            errors.append(f"{where}: expect is ok or xfail, not {r['expect']!r}")
+        if r["expect"] == "xfail" and not re.search(r"\bT-\d{3,}\b", r["note"]):
+            errors.append(f"{where}: an xfail row names the entry of its cause in the note")
+        if r["matrix"] != "-" and not all(re.fullmatch(r"[\w-]+=\S+", kv) for kv in r["matrix"].split(";")):
+            errors.append(f"{where}: the matrix is not KEY=VALUE;KEY=VALUE")
+        if (r["id"], r["executor"]) in seen:
+            errors.append(f"{where}: {r['id']} on {r['executor']} twice")
+        seen.add((r["id"], r["executor"]))
+        rows.append(r)
+    if not rows:
+        errors.append(f"{path.name}: no rows")
+    return rows, errors
+
+
+def doc_commands(path: pathlib.Path, section: str, sets: list[tuple[str, str]]) -> str:
+    """The lines of the sh blocks under the heading SECTION, with each OLD
+    replaced by NEW."""
+    out, inside, level, fence, found = [], False, 0, None, False
+    for line in path.read_text().splitlines():
+        if fence is None:
+            h = re.match(r"(#+)\s+(.*?)\s*$", line)
+            if h:
+                if inside and len(h.group(1)) <= level:
+                    break
+                if h.group(2) == section:
+                    inside, level, found = True, len(h.group(1)), True
+                continue
+            if not inside:
+                continue
+            f = re.match(r"(```+)\s*(\w*)", line)
+            if f:
+                fence = (f.group(1), f.group(2) in ("sh", "shell", "bash"))
+        elif line.strip() == fence[0]:
+            fence = None
+        elif fence[1]:
+            out.append(line)
+    if not found:
+        raise GateError(f"{path.name}: no section {section!r}")
+    if not out:
+        raise GateError(f"{path.name}: the section {section!r} has no sh block")
+    text = "\n".join(out) + "\n"
+    for old, new in sets:
+        text = text.replace(old, new)
+    return text
+
+
+def read_pins(installer: pathlib.Path) -> dict[str, str]:
+    text = installer.read_text()
+    block = text[text.index("# BEGIN PINS") : text.index("# END PINS")]
+    return dict(re.findall(r'^(\w+)="(.*)"$', block, re.M))
+
+
+class Quiet(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+
+
+class Lane:
+    def __init__(self, a):
+        self.name = a.lane
+        self.assets = pathlib.Path(a.assets).resolve()
+        self.work = pathlib.Path(a.work or pathlib.Path.home() / "user-gate").resolve()
+        self.out = pathlib.Path(a.out).resolve()
+        self.executors = [e for e in a.executors.split(",") if e]
+        for e in self.executors:
+            if e not in EXECUTORS:
+                raise SystemExit(f"no executor {e!r}")
+        self.results: list[tuple[str, str, str]] = []
+        pins = read_pins(self.assets / "podrunner-install.sh")
+        self.version, self.runner_version = pins["PODRUNNER_VERSION"], pins["RUNNER_VERSION"]
+        arch = {"x86_64": "x86_64", "amd64": "x86_64", "aarch64": "aarch64", "arm64": "aarch64"}
+        self.arch = arch[platform.machine()]
+        if self.work.exists():
+            shutil.rmtree(self.work)
+        self.work.mkdir(parents=True)
+        (self.out / "logs").mkdir(parents=True, exist_ok=True)
+        self.home = self.work / "home"
+        self.data = self.home / ".local" / "share" / "podrunner"
+        self.image = ""
+
+    # The helpers.
+    def env(self, home: pathlib.Path, **extra) -> dict[str, str]:
+        e = {k: v for k, v in os.environ.items() if not k.startswith("XDG_") and k != "PODRUNNER_MIRROR"}
+        # A login shell of Ubuntu puts ~/.local/bin into PATH when it exists.
+        e["HOME"], e["PATH"] = str(home), f"{home}/.local/bin:" + os.environ.get("PATH", "/usr/bin:/bin")
+        e.update(extra)
+        return e
+
+    def run(self, argv, env, cwd, log: str, timeout=None) -> tuple[int, str]:
+        """Run ARGV with its stdout in logs/LOG.out and its stderr in
+        logs/LOG.err. The descriptors of the lane stay open in it
+        (inherited-fds). Return the exit code and the stdout."""
+        so, se = self.out / "logs" / f"{log}.out", self.out / "logs" / f"{log}.err"
+        argv = [str(x) for x in argv]
+        with so.open("w") as o, se.open("w") as e:
+            e.write(f"user-gate: in {cwd}: {shlex.join(argv)}\n")
+            e.flush()
+            p = subprocess.Popen(argv, cwd=cwd, env=env, stdout=o, stderr=e, close_fds=False, start_new_session=True)
+            try:
+                rc = p.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                os.killpg(p.pid, signal.SIGTERM)
+                try:
+                    p.wait(timeout=60)
+                except subprocess.TimeoutExpired:
+                    os.killpg(p.pid, signal.SIGKILL)
+                    p.wait()
+                e.write(f"\nuser-gate: stopped after {timeout} s\n")
+                rc = 124
+        return rc, so.read_text(errors="replace")
+
+    def show(self, log: str, lines: int = 300):
+        for ext in ("out", "err"):
+            text = (self.out / "logs" / f"{log}.{ext}").read_text(errors="replace").splitlines()
+            print(f"---- {log}.{ext} (the last {min(lines, len(text))} of {len(text)} lines)")
+            print("\n".join(text[-lines:]))
+
+    def check(self, name: str, fn) -> bool:
+        print(f"==== {self.name}: {name}", flush=True)
+        try:
+            got = fn()
+            result, detail = got if isinstance(got, tuple) else ("pass", got)
+        except (GateError, OSError, subprocess.SubprocessError) as e:
+            result, detail = "fail", str(e)
+        print(f"{result} {name}: {detail}", flush=True)
+        self.results.append((name, result, detail.replace("\t", " ").replace("\n", " ")))
+        return result in ("pass", "xfail")
+
+    def skip(self, name: str, why: str):
+        print(f"skip {name}: {why}", flush=True)
+        self.results.append((name, "skip", why))
+
+    # The checks.
+    def serve(self) -> str:
+        """A local HTTP server with the assets at the paths of the release."""
+        www = self.work / "www"
+        rel = www / "download" / f"v{self.version}"
+        rel.mkdir(parents=True)
+        for f in self.assets.iterdir():
+            (rel / f.name).symlink_to(f)
+        # podvm, podnet and the runner tarball come from their own releases;
+        # the bundle holds the same files with the same pins.
+        src = self.work / "bundle-src"
+        with tarfile.open(self.assets / f"podrunner-bundle-{self.arch}.tar.gz") as t:
+            t.extractall(src, filter="data")
+        for f in src.glob("*/*"):
+            if not (rel / f.name).exists():
+                (rel / f.name).symlink_to(f)
+        srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(Quiet, directory=str(www)))
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        self.base = f"http://127.0.0.1:{srv.server_port}"
+        self.mirror = f"{self.base}/download/v{self.version}"
+        return f"the assets of v{self.version} at {self.mirror}"
+
+    def sample_project(self) -> pathlib.Path:
+        p = self.work / "project"
+        (p / ".github" / "workflows").mkdir(parents=True)
+        (p / "README.md").write_text("A project of the user-path gate.\n")
+        (p / ".github" / "workflows" / "ci.yml").write_text(SAMPLE_CI)
+        git = ["git", "-C", str(p), "-c", "user.name=user-gate", "-c", "user.email=user-gate@example.invalid"]
+        for argv in (
+            git + ["init", "-q", "-b", "main"],
+            git + ["remote", "add", "origin", "https://github.com/example/project.git"],
+            git + ["add", "-A"],
+            git + ["commit", "-q", "-m", "A project"],
+        ):
+            subprocess.run(argv, check=True, stdout=subprocess.DEVNULL)
+        return p
+
+    def doc_script(self, section: str, sets, cwd: pathlib.Path, env, log: str) -> str:
+        script = doc_commands(INSTALL_DOC, section, sets)
+        path = self.out / "logs" / f"{log}.sh"
+        path.write_text(script)
+        rc, out = self.run(["sh", "-ex", path], env, cwd, log)
+        if rc:
+            self.show(log)
+            raise GateError(f"exit {rc}: a command of docs/install.md, {section}, failed ({path.name})")
+        return out
+
+    def quick_start(self) -> str:
+        home, cwd = self.work / "home-docs", self.work / "docs-cwd"
+        home.mkdir()
+        cwd.mkdir()
+        sets = [(RELEASE_URL, f"{self.base}/download/"), ("YOUR-PROJECT", str(self.sample_project())), ("VERSION", self.version)]
+        # The documented PODRUNNER_MIRROR takes the downloads of the
+        # installer to the local server in place of github.com.
+        self.doc_script(QUICK_START, sets, cwd, self.env(home, PODRUNNER_MIRROR=self.mirror), "docs-quick-start")
+        return "each command of docs/install.md, Quick start, passed (online, from the local server)"
+
+    def install_bundle(self) -> str:
+        dl = self.work / "download"
+        dl.mkdir()
+        bundle = f"podrunner-bundle-{self.arch}.tar.gz"
+        for n in ("podrunner-install.sh", bundle):
+            shutil.copy(self.assets / n, dl / n)
+        env = self.env(self.home, PODRUNNER_MIRROR=DEAD_MIRROR)
+        rc, out = self.run(["sh", "podrunner-install.sh", "--bundle", bundle], env, dl, "install-bundle")
+        if rc:
+            self.show("install-bundle")
+            raise GateError(f"sh podrunner-install.sh --bundle {bundle}: exit {rc}")
+        if "podrunner-install: fetch" in out:
+            raise GateError("the install from the bundle fetched a file")
+        return f"sh podrunner-install.sh --bundle {bundle}, with no network"
+
+    def install_offline_doc(self) -> str:
+        env = self.env(self.home, PODRUNNER_MIRROR=DEAD_MIRROR)
+        out = self.doc_script(OFFLINE, [("x86_64", self.arch)], self.work / "download", env, "install-offline-doc")
+        if "nothing was downloaded" not in out:
+            raise GateError("the second install did not say 'nothing was downloaded'")
+        return "each command of docs/install.md, The offline bundle, passed; a second install takes nothing"
+
+    def install_full(self) -> str:
+        full = self.assets / f"runner-full-{self.arch}.tar"
+        if not full.is_file():
+            raise GateError(f"no {full.name} in the assets")
+        bdir = self.work / "download" / f"podrunner-bundle-{self.version}-{self.arch}"
+        shutil.copy(full, bdir / full.name)
+        before = self.run_toml_image()
+        env = self.env(self.home, PODRUNNER_MIRROR=DEAD_MIRROR)
+        rc, _ = self.run(["sh", bdir / "podrunner-install.sh", "--full"], env, self.work / "download", "install-full")
+        if rc:
+            self.show("install-full")
+            raise GateError(f"podrunner-install.sh --full: exit {rc}")
+        if self.run_toml_image() == before:
+            raise GateError("run.toml names the base image after --full")
+        return "the larger image from the bundle directory (--full)"
+
+    def run_toml_image(self) -> str:
+        toml = self.home / ".config" / "podrunner" / "run.toml"
+        m = re.search(r'^image = "(.*)"$', toml.read_text(), re.M)
+        if not m:
+            raise GateError(f"{toml}: no image")
+        self.image = m.group(1)
+        return self.image
+
+    def flags(self, executor: str) -> list[str]:
+        if executor == "podvm":
+            return []  # the run.toml of the installer
+        if executor == "runner-dir":
+            return ["--no-config", "--runner-dir", str(self.data / "runner" / self.runner_version)]
+        return ["--no-config", "--microvm", str(self.data / "bin" / "podvm"), "--images", str(self.data / "images"), "--image", self.image]
+
+    def podrunner(self, args, cwd, log, expect_ok: bool, timeout=None) -> tuple[bool, str]:
+        """doctor --run, then run, with ARGS. True when each job is ok."""
+        env = self.env(self.home)
+        rc, _ = self.run(["podrunner", "doctor", "--run", *args], env, cwd, f"{log}-doctor")
+        if rc:
+            if expect_ok:
+                self.show(f"{log}-doctor")
+            return False, f"podrunner doctor --run: exit {rc}"
+        rc, out = self.run(["podrunner", "run", *args, "--log-dir", self.out / "logs" / log], env, cwd, log, timeout)
+        lines = [line for line in out.splitlines() if line.strip()]
+        ok = rc == 0 and any(line.startswith("ok ") for line in lines)
+        if not ok and expect_ok:
+            self.show(log, 100)
+            for job in sorted((self.out / "logs" / log).glob("*/job.log")):
+                text = job.read_text(errors="replace").splitlines()
+                print(f"---- {job.parent.name}/job.log (the last {min(400, len(text))} lines)")
+                print("\n".join(text[-400:]))
+        return ok, f"podrunner run: exit {rc}: " + "; ".join(lines[-5:])
+
+    def hello(self, executor: str) -> str:
+        ok, detail = self.podrunner([self.data / "hello.yml", *self.flags(executor)], self.work, f"hello-{executor}", True)
+        if not ok:
+            raise GateError(detail)
+        return detail
+
+    def clone(self, repo: str, sha: str) -> pathlib.Path:
+        d = self.work / "src" / f"{repo.replace('/', '_')}-{sha[:12]}"
+        if not d.is_dir():
+            for _ in range(3):
+                shutil.rmtree(d, ignore_errors=True)
+                if subprocess.run(["git", "clone", "-q", f"https://github.com/{repo}", str(d)]).returncode == 0:
+                    break
+            else:
+                raise GateError(f"git clone https://github.com/{repo} failed")
+            subprocess.run(["git", "-C", str(d), "checkout", "-q", "--detach", sha], check=True)
+        return d
+
+    def wants(self, r: dict) -> bool:
+        return r["executor"] in self.executors and (r["lanes"] == "*" or self.name in r["lanes"].split(","))
+
+    def corpus_row(self, r: dict):
+        src = self.clone(r["repo"], r["sha"])
+        args = [r["workflow"], "--checkout", ".", "--job", r["job"]]
+        for kv in [] if r["matrix"] == "-" else r["matrix"].split(";"):
+            args += ["--matrix", kv]
+        args += [] if r["flags"] == "-" else r["flags"].split()
+        args += self.flags(r["executor"])
+        ok, detail = self.podrunner(args, src, f"{r['id']}-{r['executor']}", r["expect"] == "ok", ROW_TIMEOUT)
+        if r["expect"] == "ok":
+            if not ok:
+                raise GateError(f"github.com: success; {detail}")
+            return "ok, as on github.com"
+        if ok:
+            raise GateError("the job passes now (an xfail row): set expect to ok in scripts/corpus/user-gate.tsv")
+        return "xfail", f"{r['note']} ({detail})"
+
+    def write(self):
+        with (self.out / "results.tsv").open("w") as f:
+            f.write("lane\tcheck\tresult\tdetail\n")
+            for name, result, detail in self.results:
+                f.write(f"{self.name}\t{name}\t{result}\t{detail}\n")
+
+
+def lane(a) -> int:
+    g = Lane(a)
+    print(f"user-gate: lane {g.name}, as uid {os.getuid()}, podrunner {g.version}, {g.arch}, TMPDIR={os.environ.get('TMPDIR', '')}")
+    rows = []
+    if not a.no_corpus:
+        rows, errors = read_table(TABLE)
+        if errors:
+            raise SystemExit("\n".join(errors))
+    later = [f"hello:{e}" for e in g.executors]
+    later += [f"corpus:{r['id']}:{r['executor']}" for r in rows if g.wants(r)]
+    try:
+        if not g.check("serve", g.serve):
+            for name in later:
+                g.skip(name, "no local server")
+        else:
+            g.check("docs:quick-start", g.quick_start)
+            if g.check("install:bundle", g.install_bundle):
+                g.check("install:offline-doc", g.install_offline_doc)
+                # With no larger image, the rows run on the base image.
+                g.check("install:full", g.install_full) or g.check("install:base-image", g.run_toml_image)
+                for e in g.executors:
+                    g.check(f"hello:{e}", functools.partial(g.hello, e))
+                for r in rows:
+                    if g.wants(r):
+                        g.check(f"corpus:{r['id']}:{r['executor']}", functools.partial(g.corpus_row, r))
+            else:
+                for name in later:
+                    g.skip(name, "the install failed")
+    finally:
+        g.write()
+    failed = [n for n, result, _ in g.results if result == "fail"]
+    print(f"user-gate: lane {g.name}: {len(g.results) - len(failed)} of {len(g.results)} checks passed")
+    return 1 if failed else 0
+
+
+def summary(a) -> int:
+    results: dict[str, dict[str, tuple[str, str]]] = {}
+    checks: list[str] = []
+    for path in sorted(pathlib.Path(a.dir).rglob("results.tsv")):
+        for line in path.read_text().splitlines()[1:]:
+            name, check, result, detail = (line.split("\t") + ["", "", "", ""])[:4]
+            results.setdefault(name, {})[check] = (result, detail)
+            if check not in checks:
+                checks.append(check)
+    lanes = a.lanes.split(",") if a.lanes else sorted(results)
+    mark = {"pass": "pass", "xfail": "xfail", "skip": "skip", "fail": "**FAIL**"}
+    print("## The user-path gate\n")
+    print("| check | " + " | ".join(lanes) + " |")
+    print("| --- |" + " --- |" * len(lanes))
+    bad = 0
+    for c in checks:
+        cells = []
+        for ln in lanes:
+            r = results.get(ln, {}).get(c)
+            cells.append(mark.get(r[0], r[0]) if r else "-")
+            bad += bool(r and r[0] == "fail")
+        print(f"| `{c}` | " + " | ".join(cells) + " |")
+    missing = [ln for ln in lanes if ln not in results]
+    for ln in missing:
+        print(f"\nThe lane {ln} gave no results.")
+    notes = [(ln, c, d) for ln in lanes for c, (r, d) in results.get(ln, {}).items() if r in ("fail", "xfail")]
+    if notes:
+        print("\n| lane | check | why |\n| --- | --- | --- |")
+        for ln, c, d in notes:
+            print(f"| {ln} | `{c}` | {d.replace('|', '/')} |")
+    return 1 if bad or missing else 0
+
+
+def check(_a) -> int:
+    rows, errors = read_table(TABLE)
+    try:
+        qs = doc_commands(INSTALL_DOC, QUICK_START, [])
+        if RELEASE_URL not in qs:
+            errors.append(f"{INSTALL_DOC.name}, {QUICK_START}: no {RELEASE_URL}: the lane cannot serve it")
+        doc_commands(INSTALL_DOC, OFFLINE, [])
+    except GateError as e:
+        errors.append(str(e))
+    for e in errors:
+        print(e)
+    if errors:
+        return 1
+    print(f"user-gate: {len(rows)} rows of the corpus; the sections of {INSTALL_DOC.name} have their commands")
+    return 0
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(description="The user-path gate (T-243).")
+    sub = p.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("check")
+    d = sub.add_parser("doc-commands")
+    d.add_argument("file")
+    d.add_argument("section")
+    d.add_argument("--set", action="append", default=[], metavar="OLD=NEW")
+    ln = sub.add_parser("lane")
+    ln.add_argument("--lane", required=True)
+    ln.add_argument("--assets", required=True)
+    ln.add_argument("--out", required=True)
+    ln.add_argument("--work")
+    ln.add_argument("--executors", default="podvm,runner-dir")
+    ln.add_argument("--no-corpus", action="store_true")
+    s = sub.add_parser("summary")
+    s.add_argument("--lanes", default="")
+    s.add_argument("dir")
+    a = p.parse_args()
+    if a.cmd == "doc-commands":
+        sets = [tuple(x.split("=", 1)) for x in a.set]
+        try:
+            sys.stdout.write(doc_commands(pathlib.Path(a.file), a.section, sets))
+        except GateError as e:
+            print(e, file=sys.stderr)
+            return 1
+        return 0
+    return {"check": check, "lane": lane, "summary": summary}[a.cmd](a)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

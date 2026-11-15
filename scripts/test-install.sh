@@ -7,7 +7,10 @@
 # release refuses; a fresh install; a second run that downloads nothing
 # (its mirror is empty); a corrupt asset fails by name and leaves no file;
 # a changed binary is replaced; a file of the user stays; the offline
-# bundle, as an archive and from its directory; --full.
+# bundle, as an archive and from its directory; --full. The assets of a
+# release from scripts/release-assets.sh; an install from a local HTTP
+# server; a lane of the user-path gate (scripts/user-gate.py, T-243) on the
+# fake assets, and a lane with a missing asset that fails.
 #
 #   sh scripts/test-install.sh
 set -eu
@@ -25,12 +28,10 @@ fail() {
     exit 1
 }
 case $(uname -m) in
-    x86_64 | amd64) arch=x86_64 rarch=x64 ;;
-    aarch64 | arm64) arch=aarch64 rarch=arm64 ;;
+    x86_64 | amd64) arch=x86_64 rarch=x64 other=aarch64 orarch=arm64 ;;
+    aarch64 | arm64) arch=aarch64 rarch=arm64 other=x86_64 orarch=x64 ;;
     *) echo "test-install: skip: no release for $(uname -m)"; exit 0 ;;
 esac
-other=aarch64
-[ "$arch" = x86_64 ] || other=x86_64
 
 # 1. The pins of the tree agree with images/*.toml; a changed pin fails.
 python3 -I "$root/scripts/install-pins.py" --check "$root/scripts/install.sh" > "$t/out" || fail "the pins of the tree"
@@ -47,6 +48,7 @@ cat > "$a/podrunner-$arch-unknown-linux-musl" <<'EOF'
 case "$1 ${2:-}" in
     "doctor --run") echo "ok   workflow: $3" ;;
     "doctor ") echo "kvm: no"; echo "probe unshare(CLONE_NEWUSER): ok"; echo "missing: --config: no unit kind" ;;
+    "run "*) echo "ok      hello" ;;
     *) echo "podrunner 9.9.9-test" ;;
 esac
 EOF
@@ -78,12 +80,17 @@ image() { # NAME TEXT
 }
 image "runner-$arch.tar" base
 image "runner-full-$arch.tar" full
-# The other architecture: a release needs its binary and its image.
+# The other architecture: a release needs its binary, its image and a
+# bundle; the copies have the same pins.
 cp "$a/podrunner-$arch-unknown-linux-musl" "$a/podrunner-$other-unknown-linux-musl"
 cp "$a/runner-$arch.tar" "$a/runner-$other.tar"
+cp "$a/podvm-$arch" "$a/podvm-$other"
+cp "$a/podnet-$arch-unknown-linux-musl" "$a/podnet-$other-unknown-linux-musl"
+cp "$a/actions-runner-linux-$rarch-2.0.0.tar.gz" "$a/actions-runner-linux-$orarch-2.0.0.tar.gz"
+(cd "$a" && for f in runner-*.tar; do sha256sum "$f" > "$f.sha256"; done)
 sum() { sha256sum < "$1" | cut -d' ' -f1; }
 pins() { # FILE NAME VERSION
-    printf 'version = "%s"\n\n[sha256]\n%s = "%s"\n%s = "%s"\n' "$3" "$arch" "$(sum "$a/$2")" "$other" "$(printf '%064d' 0)" > "$1"
+    printf 'version = "%s"\n\n[sha256]\n%s = "%s"\n%s = "%s"\n' "$3" "$arch" "$(sum "$a/$2")" "$other" "$(sum "$a/$2")" > "$1"
 }
 pins "$t/images/podvm.toml" "podvm-$arch" 0.0.0-test
 pins "$t/images/podnet.toml" "podnet-$arch-unknown-linux-musl" 0.0.0-test
@@ -190,9 +197,52 @@ full=sha256:$(printf full | sha256sum | cut -d' ' -f1)
 grep -qx "image = \"runner@$full\"" "$t/offline3/.config/podrunner/run.toml" || fail "--full: run.toml has not the full image"
 ok "the offline bundle, from its directory, with --prefix and --full"
 
-# 9. The scripts pass shellcheck, when it is there.
+# 9. The assets of a release, as release.yml and user-gate.yml make them.
+RELEASE_ASSETS_IMAGES=$t/images sh "$root/scripts/release-assets.sh" local-mode 9.9.9-test "$a" "$t/rel" > "$t/out" 2>&1 ||
+    fail "release-assets.sh local-mode"
+for f in podrunner-install.sh podrunner-bundle-x86_64.tar.gz podrunner-bundle-aarch64.tar.gz "runner-$arch.tar" "runner-full-$arch.tar"; do
+    [ -f "$t/rel/$f" ] && [ -f "$t/rel/$f.sha256" ] || fail "release-assets.sh: no $f with its .sha256"
+done
+grep -qx 'PODRUNNER_VERSION="9.9.9-test"' "$t/rel/podrunner-install.sh" || fail "release-assets.sh: the installer has not the version"
+ok "the assets of a release (scripts/release-assets.sh)"
+
+# 10. An install from a local HTTP server, through curl.
+python3 -I -c 'import functools, http.server, sys
+s = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(http.server.SimpleHTTPRequestHandler, directory=sys.argv[1]))
+print(s.server_port, flush=True)
+s.serve_forever()' "$a" > "$t/port" 2> /dev/null &
+server=$!
+i=0
+while [ ! -s "$t/port" ] && [ "$i" -lt 50 ]; do sleep 0.1; i=$((i + 1)); done
+mirror=http://127.0.0.1:$(cat "$t/port")
+if run online; then rc=0; else rc=$?; fi
+kill "$server"
+[ "$rc" -eq 0 ] || fail "the install from a local HTTP server"
+grep -q "fetch   podvm-$arch" "$t/out" || fail "the online install fetched no podvm"
+ok "an install from a local HTTP server"
+
+# 11. A lane of the user-path gate on the fake assets: the quick start of
+# docs/install.md online, the bundle offline, --full, and a run of
+# hello.yml with each executor. A lane with no larger image fails.
+python3 -I "$root/scripts/user-gate.py" check > "$t/out" 2>&1 || fail "user-gate.py check"
+python3 -I "$root/scripts/user-gate.py" lane --lane local --assets "$t/rel" --out "$t/lane-out" --work "$t/lane" --no-corpus \
+    > "$t/out" 2>&1 || fail "a lane of the user-path gate"
+python3 -I "$root/scripts/user-gate.py" summary --lanes local "$t/lane-out" > "$t/out" 2>&1 || fail "the summary of the lane"
+# shellcheck disable=SC2016 # the backticks are Markdown.
+grep -q '^| `install:full` | pass |$' "$t/out" || fail "the summary has no install:full"
+mkdir -p "$t/rel-bad"
+for f in "$t/rel"/*; do case $f in *runner-full-*) ;; *) ln -s "$f" "$t/rel-bad/" ;; esac; done
+if python3 -I "$root/scripts/user-gate.py" lane --lane bad --assets "$t/rel-bad" --out "$t/lane-bad" --work "$t/lane" --no-corpus \
+    > "$t/out" 2>&1; then fail "a lane with no larger image passed"; fi
+if python3 -I "$root/scripts/user-gate.py" summary --lanes local,bad "$t" > "$t/out" 2>&1; then fail "the summary of a failed lane passed"; fi
+# shellcheck disable=SC2016
+grep -q '^| `install:full` | pass | \*\*FAIL\*\* |$' "$t/out" || fail "the summary does not show the failed check"
+ok "a lane of the user-path gate; a lane with a missing asset fails"
+
+# 12. The scripts pass shellcheck, when it is there.
 if command -v shellcheck > /dev/null 2>&1; then
-    shellcheck "$root/scripts/install.sh" "$root/scripts/make-bundle.sh" "$root/scripts/test-install.sh" || fail "shellcheck"
+    shellcheck "$root/scripts/install.sh" "$root/scripts/make-bundle.sh" "$root/scripts/test-install.sh" \
+        "$root/scripts/release-assets.sh" "$root"/scripts/lab/*.sh || fail "shellcheck"
     ok "shellcheck"
 fi
 echo "test-install: $pass passed"

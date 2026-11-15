@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**250 entries: 19 open, 16 partial, 13 blocked, 202 done.**
+**251 entries: 19 open, 17 partial, 13 blocked, 202 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 3 | 6 | 3 | 44 | 56 |
-| P2 | 11 | 7 | 7 | 85 | 110 |
+| P1 | 2 | 7 | 3 | 44 | 56 |
+| P2 | 12 | 7 | 7 | 85 | 111 |
 | P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 19 | 16 | 13 | 202 | 250 |
+| **All** | 19 | 17 | 13 | 202 | 251 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -290,7 +290,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-240](later.md) | P3 | S | later | defect | open | `doctor --run --incus` does not try incus |
 | [T-241](later.md) | P3 | S | later | defect | open | The small findings of the second QA report |
 | [T-242](later.md) | P2 | M | later | defect | open | Each run copies the runner image several times into a new directory |
-| [T-243](later.md) | P1 | M | later | release | open | The user-path gate: the files of the release, installed and used as a user |
+| [T-243](later.md) | P1 | M | later | release | partial | The user-path gate: the files of the release, installed and used as a user |
 | [T-244](later.md) | P1 | M | later | release | blocked | The host lanes of the user-path gate |
 | [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |
 | [T-246](later.md) | P1 | S | later | release | open | An adversarial QA before each release |
@@ -298,3 +298,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-248](later.md) | P1 | M | later | feature | blocked | The help and the manual of podrunner from the shared crate of PodUtils |
 | [T-249](later.md) | P1 | M | later | feature | open | The installer on each host class, and the shared core of podcrates |
 | [T-250](later.md) | P2 | S | later | chore | blocked | The state of each issue comes from the record by a tool |
+| [T-260](later.md) | P2 | S | later | defect | open | An expression in the image of a service or a job container fails the job |

@@ -3785,7 +3785,7 @@ A measure in `runner-image.yml`: `podrunner run` of one job two times on `--podv
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -3802,6 +3802,8 @@ A workflow `user-gate.yml`, on the commit of a release candidate: build the asse
 ## Prove
 
 `gh workflow run user-gate.yml`: green on a commit; red on a commit that publishes an image archive that the pinned podvm cannot load (the defect of T-217, put back on a branch).
+
+State (2026-11-15, the first draft): `.github/workflows/user-gate.yml` (dispatch; the inputs `images_run` and `version`): `build` and `assets` make the files with `scripts/release-assets.sh`, which `release.yml` now calls too (the binaries, the image archives of the green `runner-image.yml` run of the commit, the installer with its pins, the bundles); `lanes` runs `scripts/user-gate.py lane` as a user with no root on each host class of T-244; `summary` writes one table, check x lane. A lane runs the quick start of `docs/install.md` as it is written (online, from a local HTTP server with the paths of the release), the bundle with no network (`--bundle`, then the block of "The offline bundle", then `--full`), `doctor --run` and `hello.yml` on each executor (`--microvm` in `plain`), and the corpus `scripts/corpus/user-gate.tsv`: ripgrep (rustfmt, docs), click (tests, Python 3.13), express (lint, Node.js 22), rq (lint; valkey-test with `services:` as xfail, T-260, T-124, T-218) at pinned commits, on `--podvm` and `--runner-dir` (rustfmt on `--microvm` too), against the result of github.com. `release.yml` refuses a version with no green `user-gate.yml` run on its commit; the input `no_user_gate` overrides it, and the notes must then say `user-path gate: not run`. Found and fixed in the same work: the job `check` of `release.yml` had no `actions: read` for the runs that it reads; it checked the notes after the push of the tag, so a release with no notes left a tag that never moves; a dry run gave the installer a version (`-dry`) that the binaries did not have. Measured in this sandbox: `sh scripts/test-install.sh` 13 passed (new: the assets from `release-assets.sh`, an install from a local HTTP server, a lane on fake assets with the quick start and the bundle, and a lane with no larger image that fails); a lane with the corpus on fake binaries clones each project at its commit; the real `podrunner` of this commit plans each corpus row on `--runner-dir` with `--dry-run`, and refuses rq-valkey (T-260); actionlint 1.7.7 with shellcheck 0.11.0 passes both workflows. Not run: `user-gate.yml` itself. A run must prove the lab scripts on a hosted runner, the installs and the corpus as the lab user, the expected results on each executor, the KVM step for `--microvm`, the disk room, and the times (the lane has 240 minutes); then the planted defect of the Prove.
 
 # T-244: The host lanes of the user-path gate
 
@@ -3841,6 +3843,8 @@ State (2026-11-15): podvm answered on PodUtils/podvm#424 (PodUtils/podvm@T-1916)
 State (2026-11-15, podcrates): podcrates takes `pod-lab` (PodUtils/podcrates#180, PodUtils/podcrates@T-692, P1). Part 1 in the tag after `v0.53.0`: the profiles as data, `check` against `pod-hostprobe`, `run` of the parts that a host with no root holds, and a static `podlab`. Part 2: the step of Actions, the machine-tier form (podvm), the network profiles (podnet). The scripts of podrunner are the first draft of the profiles.
 
 State (2026-11-15, the first scripts): `scripts/lab/` has `small-tmp.sh`, `userns-off.sh`, `nonroot.sh` and `inherited-fds.sh`; each checks its class first and exits 70 when the class does not hold. Measured in this sandbox: `small-tmp` mounts 1 GiB, `nonroot` runs with `CapEff` 0, `inherited-fds` opens 3 to 15; `userns-off` refuses (exit 70: the sysctl cannot be written here). Next: `bind-denied` (a seccomp filter; with `podvm lab run` when podvm has it), `proxy-only` (podnet), and the lanes of `user-gate.yml` (T-243).
+
+State (2026-11-15, the lanes): `user-gate.yml` (T-243) has the lanes `plain` (`nonroot.sh`), `small-tmp` (`small-tmp.sh`, then `nonroot.sh`), `userns-off` (`userns-off.sh`, then `nonroot.sh`) and `inherited-fds` (`nonroot.sh`, then `inherited-fds.sh`; `scripts/user-gate.py` keeps the descriptors open in each command), each a job of its own on `ubuntu-24.04` x86_64 with the checks of T-243. The matrix of the job `lanes` has the place of `bind-denied` and `proxy-only` in a comment; a lane is one matrix row with its lab command. `small-tmp.sh` uses `[:lower:]` and `[:upper:]` for shellcheck, and `scripts/test-install.sh` runs shellcheck on `scripts/lab/`. Not run: the lanes on a hosted runner; aarch64 has no lane yet.
 
 
 # T-245: The command line as a contract
@@ -4003,3 +4007,28 @@ Take the workflow and the check of podcrates when they are out; give it the map 
 ## Blocker
 
 2026-11-15: podcrates: the workflow and the check of PodUtils/podcrates@T-703 (PodUtils/podcrates#183).
+
+# T-260: An expression in the image of a service or a job container fails the job
+
+**Source:** T-243 (the corpus of the user-path gate, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+GitHub evaluates `jobs.ID.services.NAME.image` and `jobs.ID.container.image` with the contexts `github`, `needs`, `strategy`, `matrix`, `vars` and `inputs`. Real workflows name the image of each cell so: rq/rq at 535172412469b78d4ac690a446284d8ec1e9f541 has in its workflow valkey.yml `image: valkey/valkey:${{ matrix.valkey-version }}`. The local mode does not evaluate the expression: the collect of the images refuses it, and the cell fails before it starts with `the image "valkey/valkey:${{ matrix.valkey-version }}" is not pinned by digest (NAME@sha256:HEX)`. The text names the wrong cause: the image has a tag after the evaluation, which the pull of T-130 pins.
+
+## Premise
+
+Measured on 2026-11-15 in this sandbox: `podrunner run .github/workflows/valkey.yml --checkout . --job valkey-test --matrix python-version=3.14 --matrix valkey-version=9.0 --matrix redis-py-version=8 --runner-dir DIR --dry-run` in a clone of that commit gives the line above. Code read: `crates/podrunner-local/src/message.rs` (`pinned`) and `crates/podrunner-local/src/images.rs` (an expression is refused). Not measured: the same on `--podvm`.
+
+## Approach
+
+Evaluate the image of each cell with the contexts that GitHub allows there, before the collect of the images, so the pull and the lock see `NAME:TAG`. A context that GitHub does not allow there fails the cell by name. The text of a refusal names the expression when one is there.
+
+## Prove
+
+A test of `crates/podrunner-local`: a service image `valkey/valkey:${{ matrix.v }}` gives `valkey/valkey:9.0` for the cell `v=9.0` in the collect of the images; `podrunner run ... --dry-run` of the corpus row `rq-valkey` (`scripts/corpus/user-gate.tsv`) plans the cell on `--podvm`.
