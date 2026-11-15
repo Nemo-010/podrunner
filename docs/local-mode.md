@@ -25,7 +25,7 @@ the entry that closes the gap, or the entry that did the work.
 | Feature | act | runner.server | podrunner now | Entry |
 | --- | --- | --- | --- | --- |
 | `needs`, outputs, `if:`, matrix with `include` and `exclude` | yes | yes | yes | T-087, T-088 |
-| `fail-fast`, job `continue-on-error` | yes | yes | no | T-117 |
+| `fail-fast`, job `continue-on-error` | yes | yes | yes | T-117 |
 | The `github` context in the steps | yes | yes | yes, the context of the run over the canned one | T-114 |
 | `run:` steps, `defaults.run`, `shell`, `working-directory` | yes | yes | yes | T-088 |
 | Composite and JavaScript actions by commit | yes | yes | yes, from `--actions DIR` | T-091 |
@@ -36,9 +36,9 @@ the entry that closes the gap, or the entry that did the work.
 | Checkout of another repository | real action | `--remote-checkout` | from the store at the commit of the lock | T-133 |
 | `./` local actions | yes | yes | yes | T-092 |
 | Docker actions by image | yes | yes | yes, pinned by digest, through the hooks | T-093, T-098 |
-| Dockerfile actions (`docker build`) | yes | yes | refused (`build-not-supported`) | T-124 |
+| Dockerfile actions (`docker build`) | yes | yes | yes, in a `microvm` guest with an engine (`--engine DIR`); refused on the other executors (`build-not-supported`) | T-124 |
 | `container:` | yes | yes | yes, pinned by digest | T-093 |
-| `services:` with health checks | yes | yes | refused on the host network | T-123, T-124 |
+| `services:` with health checks | yes | yes | yes, in a `microvm` guest with an engine: a service answers by `localhost` and by its name; refused on the other executors | T-123, T-124 |
 | Images by tag, pull | yes, `--pull` | yes | yes: `podvm pull` into the store, pinned by the lock; the units never pull | T-130 |
 | Images by `runs-on` label | `-P LABEL=IMAGE` | `-P LABEL=IMAGE` or the host | `--platform LABEL=IMAGE` (pinned) or `host`; no fallback to an image the user did not name. The larger image (`images/runner/full.txt`: C and C++, CMake, Python, Node.js) is the artifact `runner-full-x86_64` of `runner-image.yml`: `podvm load -i` it, then `--platform ubuntu-latest=runner@DIGEST` | T-129 |
 | Another architecture | `--container-architecture` | yes | host only | T-151 |
@@ -68,7 +68,7 @@ the entry that closes the gap, or the entry that did the work.
 | Keep a container, bind the tree, tool cache | `--reuse`, `--bind` | `--keep-container`, shared tool cache | `--export DIR` on `--runner-dir` and `--podvm`; `--toolcache DIR` on `--podvm` (read-only, linked into `_work/_tool`); `--keep-failed` keeps a failed job at its failed step | T-138 |
 | Pause before a step | no | no | `--break JOB:STEP`, `--break-on-failure`: the job waits for Enter; `s` opens a shell in a podvm unit or an incus instance | T-150 |
 | Host check, bug report | `--bug-report` | no | `doctor --run FILE [the options of run]`: each input checked, with its fix | T-153 |
-| Interrupt | cancels and removes | cancels | leaves units and scratch files | T-141 |
+| Interrupt | cancels and removes | cancels | cancels: each unit is destroyed, the scratch directories go, exit 130 | T-141 |
 | `env:` of one expression | not read | yes | yes: the workflow, the job and the step, as the schema of the runner allows | T-152 |
 | Privileged containers, host binds, cap add | flags, with a policy | yes | refused by the hook policy; privileged work runs in the engine of the unit | T-124 |
 | Azure Pipelines YAML | no | a subset | no: it needs the Azure Pipelines agent (`docs/azure-pipelines.md`, Q6) | T-148 |
@@ -77,12 +77,23 @@ the entry that closes the gap, or the entry that did the work.
 
 | Fault | In podrunner | Entry |
 | --- | --- | --- |
-| .NET dies with SIGXFSZ under a small file size limit, with W^X on | the podvm driver sets `DOTNET_EnableWriteXorExecute=0`; the `--runner-dir` executor does not | T-144 |
-| The artifact step fails with ECONNRESET, then 403: no route of the results service | the ArtifactService is served (T-119); another route still gets 404 in silence | T-145 |
-| A rerun fails with EACCES on files that a container wrote as another uid | the `--runner-dir` executor ignores a failed removal of `_work`; the residue of a unit after a container job is not measured | T-146 |
+| .NET dies with SIGXFSZ under a small file size limit, with W^X on | fixed: each executor sets `DOTNET_EnableWriteXorExecute=0`; a runner that SIGXFSZ ends fails its job with the limit named | T-144 |
+| The artifact step fails with ECONNRESET, then 403: no route of the results service | fixed: the ArtifactService is served (T-119); a route that the fake broker does not serve is named in the job log and on stderr | T-145 |
+| A rerun fails with EACCES on files that a container wrote as another uid | fixed: `_work` gets its write bits back before the removal, and a failure fails the job with the path | T-146 |
 
-The study's conformance suite has defects (T-046) and no licence. T-147
-writes a new suite of the same scope.
+The study's conformance suite has defects (T-046) and no licence. The
+parity suite of T-147 (`crates/podrunner/tests/local/parity`) is its
+replacement: each row passes in `microvm` guests with an engine and on a
+runner directory in `runner-image.yml`.
+
+## Gaps
+
+- The egress hold of the local mode is the seccomp hold (`advisory`); the
+  netns hold waits for a grant of the loopback port of the fake broker
+  (T-187).
+- `services:` and Dockerfile actions need the `microvm` kind with an
+  engine (KVM and QEMU, or podvm's own QEMU).
+- A job of another architecture fails by name (T-151).
 
 ## Where podrunner exceeds them
 
