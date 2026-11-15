@@ -102,6 +102,17 @@ pub fn is_mint_file(text: &str) -> bool {
     text.parse::<toml::Table>().is_ok_and(|t| t.contains_key("cert_file"))
 }
 
+/// `podrunner check`: a file of `mint-serve` as the mint reads it, else a
+/// file of `serve` (T-171). The text of the answer.
+pub fn check_any(path: &Path) -> Result<&'static str, Failure> {
+    if is_mint_file(&std::fs::read_to_string(path).unwrap_or_default()) {
+        check(path)?;
+        return Ok("the mint configuration is usable\n");
+    }
+    crate::serve::check(path)?;
+    Ok("the configuration is usable\n")
+}
+
 /// Check a mint file as `mint-serve` reads it, and start nothing: the keys,
 /// the source (its key file and its program), and the certificate and the
 /// key of the mint (T-171).
