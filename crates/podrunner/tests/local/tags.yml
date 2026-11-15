@@ -2,8 +2,8 @@
 # units before the first job and pins it by the lock beside this file; the
 # runner gets the digest. It needs a unit with container hooks (--podvm).
 # Where chroot is denied, podvm runs the glibc image detached from
-# v0.2.0-beta.17 (T-156), and the static (musl) image from v0.2.0-beta.19
-# (T-158, GitHub #100).
+# v0.2.0-beta.17 (T-156), and the static (musl) image with the `:ro` mount
+# of the runner from v0.2.0-beta.21 (T-158, GitHub #100, #111).
 name: podrunner local tags
 on: push
 jobs:

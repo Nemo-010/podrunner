@@ -18,9 +18,12 @@
 # tier by name (T-151, PodUtils/podvm#366); beta.19 a detached run of a
 # static image where chroot is denied (T-158, PodUtils/podvm#376), one
 # image for a tag and a digest of one manifest, and `save --platform`
-# (T-163, PodUtils/podvm#375).
-version = "0.2.0-beta.19"
+# (T-163, PodUtils/podvm#375); beta.20 the limits of an incus instance
+# (`--memory`, `--cpus`, `--pids-limit`, T-162, PodUtils/podvm#382);
+# beta.21 a `:ro` volume on the detached run of a static image where
+# chroot is denied (T-158, PodUtils/podvm#391).
+version = "0.2.0-beta.21"
 
 [sha256]
-x86_64 = "d9408228ef6636db31c3355437a4306fbaa24fd4bd1418685fadacb523c2f2a6"
-aarch64 = "babc87c63c5847b0eb842d4bbe12d5d1ce2558836ba49ff199f36769635e1066"
+x86_64 = "30e238adc71394dfe962efb2cab2387495ed2d391f96a9e90ea2326404cc4a93"
+aarch64 = "d8727f010feed5406a2701e68dcb73c98b1a260d6de780a447e3b0a271062a21"

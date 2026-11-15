@@ -8,7 +8,7 @@ is done.
 
 ## Where podrunner stands
 
-- Pins: podcrates `v0.50.0` (`Cargo.toml`); podvm `v0.2.0-beta.19`
+- Pins: podcrates `v0.50.0` (`Cargo.toml`); podvm `v0.2.0-beta.21`
   (`images/podvm.toml`; the podvm kind takes `probe::LOWEST` and later,
   the microvm kind `LOWEST_GUEST` (beta.10), the incus kind
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
@@ -145,8 +145,6 @@ is done.
 | Who | What | Entries |
 | --- | --- | --- |
 | LIVE-1 and LIVE-2 | the report of GitHub #75, and a new run on the next beta | T-032, T-033, T-040 |
-| podvm | the incus keys of the limits (PodUtils/podvm@T-1897, next release) | T-162 |
-| podvm | a read-only bind on the detached run of a static image (#111) | T-158 |
 | podcrates | `pod-unit`, `pod-release` (none planned for v1) | T-043 |
 | actions/runner | a release with `Microsoft.AspNetCore.WebUtilities` 8.0.34 or later | T-082 |
 

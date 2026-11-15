@@ -2382,7 +2382,7 @@ State (2026-11-14, later): runner-image run 43621400822 (`dcbc53f`): `podvm save
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** blocked
+**Status:** partial
 
 ## Problem
 
@@ -2406,10 +2406,7 @@ State (2026-11-15, later): runner-image run 43669743775 (`fa84341`) is red at th
 
 State (2026-11-15, podvm's answer PodUtils/podvm#391): the `:ro` volume holds on podvm `main` and comes in its next release. The `chmod: cannot access .../trees/.trash-*` lines were the `chmod -R` of `destroy` racing the background removal of podvm's tree. Each podvm command of the driver now sets `PODVM_SPARE_TREE=0` (`Podvm::command`), so podvm removes the tree in the run and leaves no background process.
 
-## Blocker
-
-podvm: a release with PodUtils/podvm@T-1901 (a `:ro` volume on the native-static rung, on podvm `main` at 88fb5f0e; PodUtils/podvm#391 answers COORD-051, GitHub #111). When it is out, pin it in `images/podvm.toml` and read the step "An image by tag in a podvm unit".
-
+State (2026-11-15, later): podvm `0.2.0-beta.21` (PodUtils/podvm@T-1901) is pinned in `images/podvm.toml`. Next: the step "An image by tag in a podvm unit" of `runner-image.yml` gives `ok static`; then close GitHub #111.
 
 # T-159: An intermittent unknown count of processes at the destroy of a podvm unit
 
