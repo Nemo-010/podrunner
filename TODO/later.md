@@ -3526,7 +3526,7 @@ A COORD issue to podvm with the probe of four tars; then pin the podvm that fixe
 
 ## Blocker
 
-2026-11-15: podvm: COORD-060 (GitHub #178).
+2026-11-15: podvm `0.2.0-beta.24` (PodUtils/podvm#423, COORD-060, GitHub #178): podvm confirmed it; the interposer followed the last link in `utimensat` and `fchmodat` with `AT_SYMLINK_NOFOLLOW`; PodUtils/podvm@T-1915 fixes it, with the fix of COORD-059. When it is out: pin it, and a test of the four orders in `runner-image.yml`.
 
 # T-233: The egress of a job ignores the proxy of the host
 

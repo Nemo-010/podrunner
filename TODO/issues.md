@@ -177,7 +177,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #175 | Local mode 2026-11-15: a `--podvm` run never says what egress hold the unit has, and here the only hold podnet offers is the advisory one | open (fixed on `main`; closes with the next beta) | T-226 |
 | #176 | Local mode 2026-11-15: podnet's supervision makes podvm refuse the unit start (a passed descriptor goes onto 17) | open (T-227 waits for podvm, #177) | T-227 |
 | #177 | COORD-059: `podvm run -d` refuses "a passed descriptor goes onto 17" when podrunner runs under `podnet pod` (to podvm) | open (podvm answered on PodUtils/podvm#421: the fix in `0.2.0-beta.24`) | T-227 |
-| #178 | COORD-060: on the userland rung, `tar -x` fails when a symbolic link comes before its target (to podvm) | open | T-232 |
+| #178 | COORD-060: on the userland rung, `tar -x` fails when a symbolic link comes before its target (to podvm) | open (podvm answered on PodUtils/podvm#423: the fix in `0.2.0-beta.24`) | T-232 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |
