@@ -134,3 +134,67 @@ fn mint_gives_the_credential_of_the_minter() {
     let c = s.mint(&id("a.0"), "r-1").unwrap();
     assert_eq!(c.files[0].content.expose(), "r-1 a.0");
 }
+
+/// T-190: the conformance suite gives each job of a test back at its end:
+/// `release` for a claimed job, `withdraw` for an offer that it only acked.
+#[test]
+fn the_conformance_suite_gives_each_job_back() {
+    use std::sync::{Arc, Mutex};
+    #[derive(Default)]
+    struct Count {
+        release: u32,
+        withdraw: u32,
+    }
+    struct Recorder(Box<dyn JobSource>, Arc<Mutex<Count>>);
+    impl JobSource for Recorder {
+        fn hello(&mut self, c: &str, v: &str) -> Result<podrunner_source::Hello, podrunner_source::SourceError> {
+            self.0.hello(c, v)
+        }
+        fn next(&mut self, n: u32, w: Duration) -> Result<Vec<Event>, podrunner_source::SourceError> {
+            self.0.next(n, w)
+        }
+        fn ack(&mut self, j: &JobId) -> Result<(), podrunner_source::SourceError> {
+            self.0.ack(j)
+        }
+        fn claim(&mut self, j: &JobId, r: &str) -> Result<(), podrunner_source::SourceError> {
+            self.0.claim(j, r)
+        }
+        fn mint(&mut self, j: &JobId, r: &str) -> Result<podrunner_schema::Credential, podrunner_source::SourceError> {
+            self.0.mint(j, r)
+        }
+        fn report(
+            &mut self,
+            j: &JobId,
+            r: &serde_json::Map<String, serde_json::Value>,
+        ) -> Result<(), podrunner_source::SourceError> {
+            self.0.report(j, r)
+        }
+        fn audit(
+            &mut self,
+            l: &serde_json::Map<String, serde_json::Value>,
+        ) -> Result<(), podrunner_source::SourceError> {
+            self.0.audit(l)
+        }
+        fn withdraw(&mut self, j: &JobId, r: &str) -> Result<(), podrunner_source::SourceError> {
+            self.1.lock().unwrap().withdraw += 1;
+            self.0.withdraw(j, r)
+        }
+        fn release(&mut self, j: &JobId) -> Result<(), podrunner_source::SourceError> {
+            self.1.lock().unwrap().release += 1;
+            self.0.release(j)
+        }
+    }
+    struct Fx(Arc<Mutex<Count>>);
+    impl Fixture for Fx {
+        fn fresh(&self) -> Box<dyn JobSource> {
+            Box::new(Recorder(Box::new(source(TWO)), self.0.clone()))
+        }
+    }
+    let count = Arc::new(Mutex::new(Count::default()));
+    let reports = conformance::run(&Fx(count.clone()), &[]);
+    assert!(reports.iter().all(|r| r.failure.is_none()), "{reports:?}");
+    let c = count.lock().unwrap();
+    // Tests 5, 6, 7 and 10 claim a job (10 releases it as its test); 4
+    // and 9 only ack one (9 withdraws it as its test).
+    assert_eq!((c.release, c.withdraw), (4, 2));
+}

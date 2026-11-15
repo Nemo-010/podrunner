@@ -1,7 +1,7 @@
 //! The conformance suite of the source seam: the tests 1 to 12 of
 //! `docs/contracts/source-driver.md`. Each test takes a fresh source from
-//! the fixture. The script of a fresh source holds two offers or more, which
-//! the first `next` can give.
+//! the fixture. A fresh source gives an offer on its first `next`; two or
+//! more make test 3 strict. Each test gives its job back at its end (T-190).
 
 use std::fmt;
 use std::time::Duration;
@@ -128,20 +128,31 @@ fn next_gives_at_most_capacity_offers(fx: &dyn Fixture) -> Result<(), String> {
     let events = fx.fresh().next(1, WAIT).map_err(err("next"))?;
     match events.iter().filter(|e| matches!(e, Event::Offer { .. })).count() {
         1 => Ok(()),
-        n => Err(format!("next with capacity 1 gives {n} offers, not 1 (the script holds two or more)")),
+        n => Err(format!(
+            "next with capacity 1 gives {n} offers, not 1 (the source needs one job or more; two make the test strict)"
+        )),
     }
+}
+
+/// `result`, after the end of `job`: a live source gets each job of a test
+/// back at once (T-190), not at the end of its own lease.
+fn give_back(s: &mut dyn JobSource, job: &JobId, claimed: bool, result: Result<(), String>) -> Result<(), String> {
+    let _ = if claimed { s.release(job) } else { s.withdraw(job, "conformance") };
+    result
 }
 
 fn ack_of_an_offer(fx: &dyn Fixture) -> Result<(), String> {
     let (mut s, job) = offered(fx)?;
     s.ack(&job).map_err(err("ack"))?;
     let never = JobId::new("never-offered-0").expect("a job id");
-    refused("ack of a job that was not offered", s.ack(&never), SourceCode::UnknownJob)
+    let r = refused("ack of a job that was not offered", s.ack(&never), SourceCode::UnknownJob);
+    give_back(s.as_mut(), &job, false, r)
 }
 
 fn a_job_is_claimed_once(fx: &dyn Fixture) -> Result<(), String> {
     let (mut s, job) = claimed(fx)?;
-    refused("a second claim", s.claim(&job, "runner-u-2"), SourceCode::AlreadyClaimed)
+    let r = refused("a second claim", s.claim(&job, "runner-u-2"), SourceCode::AlreadyClaimed);
+    give_back(s.as_mut(), &job, true, r)
 }
 
 fn mint_needs_a_claim(fx: &dyn Fixture) -> Result<(), String> {
@@ -149,18 +160,21 @@ fn mint_needs_a_claim(fx: &dyn Fixture) -> Result<(), String> {
     s.ack(&job).map_err(err("ack"))?;
     refused("mint before claim", s.mint(&job, "runner-u-1"), SourceCode::NotClaimed)?;
     s.claim(&job, "runner-u-1").map_err(err("claim"))?;
-    let c = s.mint(&job, "runner-u-1").map_err(err("mint"))?;
-    if c.files.is_empty() || !c.files.iter().all(|f| f.name_is_plain()) {
-        return Err("mint gives no file, or a file name that is not plain".into());
-    }
-    Ok(())
+    let r = s.mint(&job, "runner-u-1").map_err(err("mint")).and_then(|c| {
+        if c.files.is_empty() || !c.files.iter().all(|f| f.name_is_plain()) {
+            return Err("mint gives no file, or a file name that is not plain".into());
+        }
+        Ok(())
+    });
+    give_back(s.as_mut(), &job, true, r)
 }
 
 fn report_of_a_claimed_job(fx: &dyn Fixture) -> Result<(), String> {
     let (mut s, job) = claimed(fx)?;
     let mut r = Map::new();
     r.insert("exit_reason".into(), "success".into());
-    s.report(&job, &r).map_err(err("report"))
+    let result = s.report(&job, &r).map_err(err("report"));
+    give_back(s.as_mut(), &job, true, result)
 }
 
 fn audit_is_accepted(fx: &dyn Fixture) -> Result<(), String> {

@@ -1313,7 +1313,7 @@ Send `withdraw` with the refusal code to the source for each job that podrunner 
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -1330,6 +1330,10 @@ Take the offers of the first `next` once and share them between the tests that n
 ## Prove
 
 `cargo test -p podrunner-source conformance`: a fixture source that gives two offers once passes the 12 tests, and each claimed job gets `release`.
+
+## Done
+
+2026-11-15: each conformance test that claims a job releases it at its end, and a test that only acks an offer withdraws it (`give_back` of `crates/podrunner-source/src/conformance.rs`), so a live source gets each job back at once. Only test 3 is strict with two offers; one offer is enough for the others. `docs/cli.md` says how many queued jobs a live run takes. `tests::the_conformance_suite_gives_each_job_back` (`podrunner-local`): 4 releases and 2 withdrawals in a run of the 12 tests (1 and 1 on the code of before). The offers are not shared between tests: each test starts the program again, as a fresh source.
 
 # T-191: The tier rule takes only an organization as the owner of a trusted repository
 
