@@ -271,6 +271,8 @@ jobs:
           sh scripts/measure-podvm-confine.sh "$PODRUNNER_PODVM" "$RUNNER_TEMP/confine"
           # T-078: the labels and the run report of podvm.
           timeout 300 cargo test -p podrunner-podvm --test report -- --ignored --nocapture
+          # T-162: a payload past `memory` and one past `pids` of an offer get an error.
+          timeout 300 cargo test -p podrunner-podvm --test limits -- --ignored --nocapture
           # T-062: a step through exec cannot write the externals (:ro).
           sh scripts/measure-container-verbs.sh "$PODRUNNER_PODVM" "$RUNNER_TEMP/verbs" | tee "$RUNNER_TEMP/verbs.txt"
           grep -qx 'externals-read-only ok' "$RUNNER_TEMP/verbs.txt"
@@ -504,6 +506,9 @@ jobs:
           # T-109: no NIC, and the egress socket as the one way out.
           cargo test -p podrunner-incus --test egress --no-run
           sg incus-admin -c "PODRUNNER_PODVM_IMAGE='$PODRUNNER_RUNNER_IMAGE' timeout 600 cargo test -p podrunner-incus --test egress -- --ignored --nocapture"
+          # T-162: the keys of the instance hold past `memory` and `pids`.
+          cargo test -p podrunner-incus --test limits --no-run
+          sg incus-admin -c "PODRUNNER_PODVM_IMAGE='$PODRUNNER_RUNNER_IMAGE' timeout 600 cargo test -p podrunner-incus --test limits -- --ignored --nocapture"
           # T-123: podrunner run, each job in a fresh incus instance.
           cargo build -q -p podrunner
           sg incus-admin -c "timeout 2400 target/x86_64-unknown-linux-musl/debug/podrunner run crates/podrunner/tests/local/suite.yml --incus '$PODRUNNER_PODVM' --images '$PODRUNNER_PODVM_IMAGES' --image '$PODRUNNER_RUNNER_IMAGE' --checkout ." \
