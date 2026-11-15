@@ -20,6 +20,7 @@ pub mod runner;
 use std::collections::VecDeque;
 use std::io::BufReader;
 use std::net::{TcpListener, TcpStream};
+use std::os::unix::net::{UnixListener, UnixStream};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -115,6 +116,24 @@ impl Broker {
     pub fn start_seen_at(host: &str) -> std::io::Result<Broker> {
         let listener = TcpListener::bind("127.0.0.1:0")?;
         let base = format!("http://{host}:{}/", listener.local_addr()?.port());
+        let state: Arc<Mutex<State>> = Arc::default();
+        let (s, b) = (state.clone(), base.clone());
+        std::thread::spawn(move || {
+            for conn in listener.incoming().flatten() {
+                let (s, b) = (s.clone(), b.clone());
+                std::thread::spawn(move || serve(conn, &s, &b));
+            }
+        });
+        Ok(Broker { base, state })
+    }
+
+    /// Listen on the unix socket `path`, and give its clients the address
+    /// `host` in each URL: a host that refuses each AF_INET bind serves a
+    /// guest through its front (T-220).
+    pub fn start_unix(path: &std::path::Path, host: &str) -> std::io::Result<Broker> {
+        let _ = std::fs::remove_file(path);
+        let listener = UnixListener::bind(path)?;
+        let base = format!("http://{host}/");
         let state: Arc<Mutex<State>> = Arc::default();
         let (s, b) = (state.clone(), base.clone());
         std::thread::spawn(move || {
@@ -235,8 +254,25 @@ fn reply(json: &Value) -> (u16, Vec<u8>) {
     (200, json.to_string().into_bytes())
 }
 
-fn serve(conn: TcpStream, state: &Mutex<State>, base: &str) {
-    let Ok(mut w) = conn.try_clone() else { return };
+/// A connection of a client: TCP or a unix socket.
+trait Conn: std::io::Read + std::io::Write + Sized {
+    fn dup(&self) -> std::io::Result<Self>;
+}
+
+impl Conn for TcpStream {
+    fn dup(&self) -> std::io::Result<Self> {
+        self.try_clone()
+    }
+}
+
+impl Conn for UnixStream {
+    fn dup(&self) -> std::io::Result<Self> {
+        self.try_clone()
+    }
+}
+
+fn serve<C: Conn>(conn: C, state: &Mutex<State>, base: &str) {
+    let Ok(mut w) = conn.dup() else { return };
     let mut req = match read_request_with(&mut BufReader::new(conn), BODY_MAX) {
         Ok(r) => r,
         // An answer, not a closed connection: a client retries a closed one

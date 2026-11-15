@@ -55,7 +55,7 @@ fn the_broker_gets_origin_form_and_another_host_is_refused_with_no_egress() {
             upstream_answer(c, &s);
         }
     });
-    let front = serve(&d.join("egress.sock"), port, None).unwrap();
+    let front = serve(&d.join("egress.sock"), Upstream::Tcp(port), None).unwrap();
     let mode = std::fs::metadata(d.join("egress.sock")).unwrap().permissions().mode() & 0o777;
     assert_eq!(mode, 0o666);
     let out =
@@ -80,9 +80,29 @@ fn another_host_goes_unchanged_to_the_egress_module() {
             upstream_answer(c, &s);
         }
     });
-    let _front = serve(&d.join("egress.sock"), 1, Some(d.join("inner.sock"))).unwrap();
+    let _front = serve(&d.join("egress.sock"), Upstream::Tcp(1), Some(d.join("inner.sock"))).unwrap();
     let out = ask(&d.join("egress.sock"), "CONNECT github.com:443 HTTP/1.1\r\nHost: github.com:443\r\n\r\n");
     assert!(out.ends_with("ok"), "{out}");
     assert_eq!(seen.lock().unwrap()[0], "CONNECT github.com:443 HTTP/1.1");
+    let _ = std::fs::remove_dir_all(&d);
+}
+
+/// T-220: a broker on a unix socket only (no AF_INET bind on the host):
+/// the front gives it each request for the broker, in origin form.
+#[test]
+fn the_broker_on_a_unix_socket_gets_its_requests() {
+    let d = dir("unix");
+    let up = UnixListener::bind(d.join("broker.sock")).unwrap();
+    let seen = Arc::new(Mutex::new(Vec::new()));
+    let s = seen.clone();
+    std::thread::spawn(move || {
+        for c in up.incoming().flatten() {
+            upstream_answer(c, &s);
+        }
+    });
+    let _front = serve(&d.join("egress.sock"), Upstream::Unix(d.join("broker.sock")), None).unwrap();
+    let out = ask(&d.join("egress.sock"), &format!("GET http://{BROKER}/message HTTP/1.1\r\nHost: b\r\n\r\n"));
+    assert!(out.ends_with("ok"), "{out}");
+    assert_eq!(seen.lock().unwrap()[0], "GET /message HTTP/1.1");
     let _ = std::fs::remove_dir_all(&d);
 }

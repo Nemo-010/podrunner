@@ -238,8 +238,18 @@ impl Executor for InUnit {
 
     fn run(&mut self, job: &JobId, message: Job, limit: Duration) -> Result<End, String> {
         use podrunner_schema::{Credential, CredentialFile, Secret, UnitId};
-        let broker = if self.guest { Broker::start_seen_at(crate::front::BROKER) } else { Broker::start() };
-        let broker = broker.map_err(broker_error)?;
+        // One count for the process: the units of parallel jobs (T-132)
+        // never share an id, a socket directory or an egress grant.
+        let n = NEXT_UNIT.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
+        // A guest reaches the broker through its front: a unix socket, so
+        // the host needs no AF_INET bind (T-220).
+        let broker_sock = std::env::temp_dir().join(format!("podrunner-local-broker-{}-{n}.sock", std::process::id()));
+        let _gone = Gone(self.guest.then(|| broker_sock.clone()));
+        let broker = match self.guest {
+            true => Broker::start_unix(&broker_sock, crate::front::BROKER)
+                .map_err(|e| format!("the fake broker: {}: {e}", broker_sock.display()))?,
+            false => Broker::start().map_err(broker_error)?,
+        };
         if let Some(dir) = &self.actions {
             broker.serve_actions(dir, self.pins.clone());
         }
@@ -260,9 +270,6 @@ impl Executor for InUnit {
         }
         let message_copy = message.clone();
         broker.queue(message);
-        // One count for the process: the units of parallel jobs (T-132)
-        // never share an id, a socket directory or an egress grant.
-        let n = NEXT_UNIT.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
         let id = UnitId::parse(&format!("u-{n}")).map_err(|e| format!("unit id: {e:?}"))?;
         let runner = format!("podrunner-local-{n}");
         let files = podrunner_broker_fake::files::runner_files(
@@ -305,10 +312,9 @@ impl Executor for InUnit {
         }
         let _front = match (&sockets, self.guest) {
             (Some(dir), true) => {
-                let port: u16 =
-                    broker.base.trim_end_matches('/').rsplit(':').next().and_then(|p| p.parse().ok()).unwrap_or(0);
                 let inner = self.egress.as_ref().map(|_| egress_socket(dir));
-                match crate::front::serve(&dir.join(podrunner_unit::EGRESS_SOCKET), port, inner) {
+                let up = crate::front::Upstream::Unix(broker_sock.clone());
+                match crate::front::serve(&dir.join(podrunner_unit::EGRESS_SOCKET), up, inner) {
                     Ok(f) => Some(f),
                     Err(e) => {
                         end_sockets(&sockets);
@@ -451,6 +457,17 @@ impl Executor for InUnit {
 
 /// The job needs the container hooks of a unit: `container:`, `services:`
 /// or a Docker action (T-093).
+/// A file that goes when the job ends: the unix socket of its broker.
+struct Gone(Option<PathBuf>);
+
+impl Drop for Gone {
+    fn drop(&mut self) {
+        if let Some(p) = &self.0 {
+            let _ = std::fs::remove_file(p);
+        }
+    }
+}
+
 /// A fake broker that did not start: the address and the fix (T-213).
 pub fn broker_error(e: std::io::Error) -> String {
     format!("the fake broker: bind 127.0.0.1:0: {e}; fix: allow a bind of the loopback on this host")

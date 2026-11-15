@@ -3212,6 +3212,8 @@ A test of the guest kinds with the broker on a unix socket only. On a host that 
 
 2026-11-15: podnet: a TCP address of the vnet that connects to a unix socket, for a payload in a podvm unit (COORD-058, GitHub #170). Steps 1 and 2 (the unix socket of the broker, and the front of the guest kinds) need no other project.
 
+State (2026-11-15): steps 1 and 2 are in: `Broker::start_unix` (`crates/podrunner-broker-fake/tests/unix.rs`), `front::Upstream` (`the_broker_on_a_unix_socket_gets_its_requests`), and a job of the guest kinds starts its broker on a unix socket, so a guest run binds no AF_INET socket on the host. Next: the guest steps of `runner-image.yml` on these commits; then step 3 with the answer of podnet.
+
 
 # T-221: `cpus` on the podvm kind
 

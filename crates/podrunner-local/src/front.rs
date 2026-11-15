@@ -76,7 +76,15 @@ fn join<U: Read + Write + Send + 'static>(conn: UnixStream, up: U, up2: U, shut:
     Ok(())
 }
 
-fn one(conn: UnixStream, broker: u16, inner: Option<&Path>) -> std::io::Result<()> {
+/// Where the broker of a unit listens: a loopback port, or a unix socket
+/// (T-220: a host that refuses each AF_INET bind).
+#[derive(Debug, Clone)]
+pub enum Upstream {
+    Tcp(u16),
+    Unix(PathBuf),
+}
+
+fn one(conn: UnixStream, broker: &Upstream, inner: Option<&Path>) -> std::io::Result<()> {
     let mut r = BufReader::new(conn.try_clone()?);
     let mut first = String::new();
     r.read_line(&mut first)?;
@@ -97,7 +105,6 @@ fn one(conn: UnixStream, broker: u16, inner: Option<&Path>) -> std::io::Result<(
         (words.next().unwrap_or(""), words.next().unwrap_or(""), words.next().unwrap_or(""));
     let rest = r.buffer().to_vec();
     if host(method, target) == BROKER {
-        let mut up = TcpStream::connect(("127.0.0.1", broker))?;
         // One write of the head and of the bytes after it: an upstream that
         // answers and closes after its first read gets the whole request.
         let mut first_bytes = Vec::new();
@@ -108,11 +115,24 @@ fn one(conn: UnixStream, broker: u16, inner: Option<&Path>) -> std::io::Result<(
             first_bytes.extend_from_slice(format!("{method} {path} {version}\r\n{head}").as_bytes());
         }
         first_bytes.extend_from_slice(&rest);
-        up.write_all(&first_bytes)?;
-        let up2 = up.try_clone()?;
-        return join(conn, up, up2, |u| {
-            let _ = u.shutdown(std::net::Shutdown::Write);
-        });
+        return match broker {
+            Upstream::Tcp(port) => {
+                let mut up = TcpStream::connect(("127.0.0.1", *port))?;
+                up.write_all(&first_bytes)?;
+                let up2 = up.try_clone()?;
+                join(conn, up, up2, |u| {
+                    let _ = u.shutdown(std::net::Shutdown::Write);
+                })
+            }
+            Upstream::Unix(path) => {
+                let mut up = UnixStream::connect(path)?;
+                up.write_all(&first_bytes)?;
+                let up2 = up.try_clone()?;
+                join(conn, up, up2, |u| {
+                    let _ = u.shutdown(std::net::Shutdown::Write);
+                })
+            }
+        };
     }
     let Some(inner) = inner else {
         let body = format!("podrunner: the local mode allows no host but the broker: {target}\n");
@@ -128,11 +148,11 @@ fn one(conn: UnixStream, broker: u16, inner: Option<&Path>) -> std::io::Result<(
     })
 }
 
-/// Serve the socket `path` for a unit: the broker listens on the loopback
-/// port `broker`; `inner` is the socket of the egress module, if any. The
+/// Serve the socket `path` for a unit: the broker listens at `broker`;
+/// `inner` is the socket of the egress module, if any. The
 /// socket has mode 0666: the mapped root of an incus instance connects to
 /// it (inside the 0700 directory of the unit).
-pub fn serve(path: &Path, broker: u16, inner: Option<PathBuf>) -> std::io::Result<Front> {
+pub fn serve(path: &Path, broker: Upstream, inner: Option<PathBuf>) -> std::io::Result<Front> {
     let _ = std::fs::remove_file(path);
     let listener = UnixListener::bind(path)?;
     std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o666))?;
@@ -144,9 +164,9 @@ pub fn serve(path: &Path, broker: u16, inner: Option<PathBuf>) -> std::io::Resul
             match listener.accept() {
                 Ok((conn, _)) => {
                     let _ = conn.set_nonblocking(false);
-                    let inner = inner.clone();
+                    let (inner, broker) = (inner.clone(), broker.clone());
                     std::thread::spawn(move || {
-                        let _ = one(conn, broker, inner.as_deref());
+                        let _ = one(conn, &broker, inner.as_deref());
                     });
                 }
                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => std::thread::sleep(Duration::from_millis(20)),
