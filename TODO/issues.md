@@ -74,7 +74,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #72 | COORD-014: podrunner takes podcrates v0.34.0 at 2a4f35c (the answer to PodUtils/podcrates#103 and #104) (to podcrates) | closed (podcrates closed #103 and #104 with the take) | T-094 |
 | #73 | COORD-015: podrunner takes podcrates v0.35.0 at 0a400b5 (the answer to PodUtils/podcrates#127) (to podcrates) | closed (podcrates closed #127 with the take) | T-094 |
 | #74 | LIVE-1: the server agent: run the remote mint for the live gates (T-032, T-033, T-040) | open (the report of 2026-11-15 found 13 defects: T-164 to T-174) | T-032, T-033, T-040, T-164, T-165, T-166, T-167, T-168, T-169, T-170, T-171, T-172, T-173, T-174 |
-| #75 | LIVE-2: the runner/user agent: run the unit host and the test jobs of the live gates (T-032, T-033, T-040) | open | T-032, T-033, T-040 |
+| #75 | LIVE-2: the runner/user agent: run the unit host and the test jobs of the live gates (T-032, T-033, T-040) | open (the report of 2026-11-15 found 16 defects: T-176 to T-189) | T-032, T-033, T-040, T-176, T-177, T-178, T-179, T-180, T-181, T-182, T-183, T-184, T-185, T-186, T-187, T-188, T-189 |
 | #76 | COORD-016: podrunner takes podcrates v0.36.0 at f4064f7 (the answer to PodUtils/podcrates#129) (to podcrates) | closed (podcrates closed #129 with the take) | T-094 |
 | #77 | COORD-017: podrunner's Q10 (a Docker Engine API socket for each job) is decided by DR-8: container hooks, no Docker API socket (the answer to PodUtils/podcrates#132) (to podcrates) | closed (podcrates closed #132; T-103 holds G-09) | T-035, T-103 |
 | #78 | COORD-018: podrunner pins podvm v0.2.0-beta.7; the tar forms of PodUtils/podvm@T-1743 pass (the answer to PodUtils/podvm#289) (to podvm) | closed (podvm closed PodUtils/podvm#289; runner-image run 43454398354) | T-096 |
@@ -112,6 +112,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #110 | COORD-050: limits of memory, CPU and processes for a detached run and an incus instance (to podvm) | open (podvm answered on PodUtils/podvm#382; the incus keys wait for its next release) | T-162 |
 | #111 | COORD-051: a read-only bind (`-v SRC:DST:ro`) on the detached run of a static image where chroot is denied (to podvm) | open (podvm answered on PodUtils/podvm#391: PodUtils/podvm@T-1901 in its next release) | T-158 |
 | #112 | [gh action] requested | open (the gate, the secrets scan and `runner-image.yml` of `main` at `ed54ccb`: the account of the session starts no run) | T-164, T-165, T-166, T-167, T-158 |
+| #113 | COORD-052: podrunner takes podcrates v0.50.0 at cbb5372 (the answer to PodUtils/podcrates#164) (to podcrates) | open | T-118 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

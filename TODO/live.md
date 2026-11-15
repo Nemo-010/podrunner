@@ -876,3 +876,352 @@ A conformance test: a unit whose runner gets the message of another job runs no 
 
 State (2026-11-15): step 2 is in. Measured on the official runner v2.338.2 with the fake broker: the job-started hook sees `GITHUB_REPOSITORY` and `GITHUB_RUN_ID`, a hook that exits 1 fails the job, and no step runs; a relative path of the hook is not found (the job fails). So the runner image carries the hook (`images/runner/podrunner-job-started.sh` in `/home/runner/hooks/`, `ENV ACTIONS_RUNNER_HOOK_JOB_STARTED`), and slots stages `.podrunner-job` (`OWNER/REPO RUN_ID`) with the credential files (`job_file` of `crates/podrunner-slots/src/run.rs`); the image links it into `/home/runner`, as `.runner`. `a_job_started_hook_ends_a_foreign_job_before_its_first_step` (`crates/podrunner-broker-fake/tests/runner.rs`) runs the shipped script: the own job (another case of the letters) runs; another repository or another run fails with no step; with no file the job runs. Next: a runner-image run that builds the image and runs a foreign job in a podvm unit; then step 1 and step 3 on the test organization.
 
+# T-176: The JIT configuration is minted before the unit starts: a failed start spends it and leaves the job assigned
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+slots mints the JIT configuration, then starts the unit. When the start fails (the rows confine, incus and H0 of the report), the credential is spent, and the job of GitHub stays assigned ("Waiting for a runner to pick up this job"). No one gives it back (defect 1 of #75).
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Start (or prepare) the unit before the mint where the driver allows it, and mint into the running unit; or, on a failed start after the mint, release the runner (`release` removes it) and give the job back with the mechanism of T-169. Log the cause of each failed start in `serve`.
+
+## Prove
+
+A test of slots with a driver whose start fails: the source gets `release` of the minted job, and the log of `serve` names the cause.
+
+# T-177: `serve` does not pull an image that a digest pins: a `container:` job fails with no cause in the log
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A `container:` job and a `docker://` step on the podvm kind failed with `container-not-supported: the driver did not do the container operation`, and `serve` logged nothing. The local mode names the cause: `podvm save: no such image: busybox@sha256:...`. `serve` does not pull an image that a digest pins; after a `podvm pull` into the store, the job passed (row W2 of #75).
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+In `prepare` of the podvm driver (`start_container`), pull an image that the store does not have (through the egress grant of the unit, as the local mode does), and give the cause of a failed container operation to the hook refusal and to the log of `serve`.
+
+## Prove
+
+`cargo test -p podrunner-podvm container`: with a fake podvm, an image that is not in the store is pulled once, and a failed pull names its cause in the refusal.
+
+# T-178: A job on the incus and microvm kinds has `HOME=/root` for a runner that is not root: `actions/checkout` fails
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+On the incus kind and the microvm kind, `actions/checkout` fails with `EACCES: permission denied, stat '/root/.gitconfig'`: the runner is not root and `HOME=/root` (row W1 of #75). Most workflows start with a checkout.
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Set `HOME` (and `USER`) of the runner to the home of its user in the guest script of each kind (`crates/podrunner-incus/src/guest.rs`, `crates/podrunner-microvm/src/guest.rs`), as the podvm kind does.
+
+## Prove
+
+A test of each guest script: the payload runs with `HOME=/home/runner`. The parity suite with a checkout step on both kinds in `runner-image.yml`.
+
+# T-179: On an H0 host the runner times out on the broker under the seccomp hold and the egress module
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+On H0 (no user namespace), the podvm kind with the seccomp hold (`advisory`) failed `unit-failed` after about 2 min: each `GET .../_apis/connectionData` of the runner timed out after 60 s. `curl` and Node in a podvm unit under `podnet pod --backend seccomp` to a plain CONNECT proxy reach github.com there, so the failure is in the seccomp hold together with the egress module of podrunner (row W1 H0 of #75). H0 is the host that podrunner is for.
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Reproduce in `runner-image.yml` with a container that refuses `unshare` and `clone(CLONE_NEWUSER)` (the H0 profile of the report): the runner image in a podvm unit under the seccomp hold, with the egress module of podrunner. Find the call that hangs (the CONNECT of the module, the DNS of .NET, IPv6). Fix the module, or ask podnet by a COORD issue.
+
+## Prove
+
+The H0 step of `runner-image.yml`: a canned job of the official runner passes in a podvm unit under the seccomp hold.
+
+# T-180: As PID 1 of a container, `serve` reaps no orphan: the zombies stop the supervisor
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With podrunner as PID 1 of the H0 container, the processes of the units stayed zombies, and the supervisor stopped answering (`busy` for each `status`, capacity 0 at the mint). With `--init` it went on (row W1 H0 of #75).
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+When `serve` is PID 1, become a subreaper that reaps each orphan (`waitpid(-1, WNOHANG)` on each tick), or refuse to start as PID 1 with a message that names `--init`.
+
+## Prove
+
+A test that starts `serve` as PID 1 of a new PID namespace where one exists (or a unit test of the reaper with a subreaper): no zombie stays after a unit ends.
+
+# T-181: `--podvm-confine` stops name resolution in a podvm unit: the runner cannot reach the broker
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+With `[unit.podvm] confine = true`, the runner gets `SocketException (11)` on the broker. In the unit, `getent hosts github.com` fails and `curl https://140.82.112.3/ -k` answers 301, with or without podnet: the confine layer stops name resolution and leaves TCP to an address open (row W1 confine of #75). Also, the kind stays `redirect` with `confine = true` ("the confine layer is not proven"), and `doctor` says `egress_hold: unknown` for the podvm kind where `serve` says `enforced` or `advisory` (defect 3).
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Find which path the layer denies (`/etc/resolv.conf`, `/etc/hosts`, `/etc/nsswitch.conf`, a socket to the resolver): `podvm --podvm-confine` with `strace -f`. Allow it in the confine policy of podrunner, or ask podvm by a COORD issue. Make `doctor` run the same probes as `serve` for the boundary and the hold.
+
+## Prove
+
+A measure in `runner-image.yml`: name resolution in a confined podvm unit. A test that `doctor` and `serve` give the same boundary and hold for one configuration.
+
+# T-182: A podvm unit has the host name of the host: the job log of GitHub shows it
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The job log of github.com shows `Machine name`, and a podvm unit has the UTS name of the host, so the host name of the machine reaches GitHub (defect 8 of #75). An incus instance has its own.
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Give the runner a machine name of the unit: set `--hostname` of `podvm run` where the rung allows it, else the variable that the runner reads for its machine name, to `podrunner-UNIT`.
+
+## Prove
+
+A test of the podvm driver: the argv or the environment of the unit names the unit, not the host. The log of a canned job in `runner-image.yml` holds no host name of the runner VM.
+
+# T-183: The tree-kill self-test of a held podvm unit fails, and its units stay after it
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The tree-kill self-test of a held podvm unit fails: "unit-start-failed: a held unit needs its egress socket"; after a restart, "unit-in-use: u-999999999" from the units of the last self-test. The self-test units `u-999999998` and `u-999999999` stay in `state/podvm/units` (defect 4 and row W3 of #75).
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Give the self-test unit its own egress socket when the kind has a hold, and destroy each self-test unit at the end of the test and at the start of `serve`.
+
+## Prove
+
+`cargo test -p podrunner-slots guest`: the self-test of a held kind passes and leaves no unit; a stale self-test unit is removed at the start.
+
+# T-184: `status` answers `busy` while the supervisor waits on a call of a source
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`status` and `stop --wait` answer `busy: the supervisor did not answer in time` (exit 77) while the supervisor waits on a `next` of the source (defect 5 of #75). The control socket is answered only between ticks.
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+T-164 makes `next` of the sidecar answer at once. Also put each call of a source of a tick under a time limit that stays below the deadline of the control socket, or answer the control socket from its own thread with a copy of the state.
+
+## Prove
+
+A test of `serve` with a source whose `next` takes 10 s: `status` answers in its deadline.
+
+# T-185: `check`, `doctor` and `status` give a capacity that `serve` does not have
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner check` says "the configuration is usable" for a file whose one source no kind can serve, where `doctor` and `serve` say `no-tier-served` (defect 2 of #75). `status` says `slots 2` for a kind that `same_principal_ok = false` holds to one unit (row W3). `doctor` says the incus kind is `confined` and served on a host whose incusd cannot make an instance ("System doesn't have a functional idmap setup"); the first job then fails `unit-start-failed` after its mint, with no line in the log of `serve` (defect 6).
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+`check` runs the tier check of `serve` and exits 78 on `no-tier-served`. `status` gives the slots that the principal rule allows. The incus probe of `doctor` makes and removes one instance.
+
+## Prove
+
+Tests of `check` and `status` for the two cases, and a probe test of the incus kind with a fake incus that refuses to make an instance.
+
+# T-186: The store of podvm keeps `machine/run-PID-*` after each guest of the microvm kind
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The store of podvm keeps a `machine/run-PID-*` directory after each guest of the microvm kind: 6 after the test (defect 7 of #75).
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Find whether `destroy` of the microvm kind or podvm leaves it. Remove it at `destroy`, or ask podvm by a COORD issue.
+
+## Prove
+
+A test of the microvm driver on a real guest: no `machine/run-*` stays after `destroy`.
+
+# T-187: The local mode refuses the netns hold
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The local mode refuses the netns hold ("the local mode takes only the seccomp hold (advisory) now"), so the hold of `serve` cannot be tried in local mode (defect 9 of #75).
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Let `podrunner run --podvm` take the netns hold where `podnet pod doctor` gives it, as `serve` does.
+
+## Prove
+
+`cargo test -p podrunner --test local -- --ignored` on a host with user namespaces: the unit runs under the netns hold.
+
+# T-188: The tier intake names each parse failure of an offer `event-not-allowed`, and the offer schema of the design differs from the parser
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`route` of `crates/podrunner-remote/src/gate.rs` maps each parse failure of an offer to `event-not-allowed`: a source with a wrong field sees the code of a refused event (defect 10 of #75). The design copy of `job-offer.v1` (`docs/design/schemas`) differs from the parser of pod-job: `head_is_fork` is `yes`/`no`/`unknown` (not a boolean), `actor_class` takes `outside` (not `external`), `run_id` is a number, and the limit is `wall` (defect 11). A source that follows the design schema is refused.
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Map a parse failure to `bad-request` with the name of the field. The design copy stays as written (call C17); write the form of `job-offer.v1` that pod-job parses into `docs/contracts/source-driver.md`, with the differences.
+
+## Prove
+
+A test of the gate: an offer with a bad field gets `bad-request` and the name of the field.
+
+# T-189: A program source re-offers a refused job at the head of each `next`
+
+**Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With a slot of one, a program source offers its oldest job first. A job that podrunner refuses with `limit-not-enforceable` is kept back for `terminal_suppress_s` with no `withdraw` to the source, so the source offers it again at the head of each `next`, and the jobs behind it wait (defect 12 of #75).
+
+## Premise
+
+The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user namespaces, `/dev/kvm`) and an H0 host (a rootless container with no user namespace), podvm `v0.2.0-beta.18`, podnet `v0.4.0-beta.8`. Not reproduced in this session.
+
+## Approach
+
+Send `withdraw` with the refusal code to the source for each job that podrunner refuses at intake, as for a wait refusal.
+
+## Prove
+
+`cargo test -p podrunner-slots refused`: with a fake source, a refused job gets one `withdraw`, and the next job runs.

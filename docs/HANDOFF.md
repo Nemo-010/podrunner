@@ -89,6 +89,9 @@ is done.
 
 ## In flight
 
+- The LIVE-2 report (GitHub #75, 2026-11-15) ran W1, W3 (20 of 20) and
+  W4 on the podvm kind with a fixed sidecar, and W6 held. Its defects are
+  T-176 to T-189; T-176 to T-179 are P1.
 - **First:** the LIVE-1 report (GitHub #74, 2026-11-15): with the
   release binaries of `v0.1.0-beta.5`, the mint served no job. The
   defects are T-164 to T-174; T-164 to T-167 are done; T-169 and T-175 (a runner is not bound to its job) block the live
