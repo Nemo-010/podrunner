@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 189 entries: 19 open, 9 partial, 6 blocked, 155 done.
+`TODO/INDEX.md` holds 191 entries: 21 open, 8 partial, 6 blocked, 156 done.
 
 ## State
 
@@ -37,7 +37,6 @@ The queue, most valuable first:
 
    The LIVE-1 report:: the blockers of the mint from the LIVE-1 report (GitHub #74, 2026-11-15). With the release binaries the mint served no job. Then T-168, T-170, T-171 (P2), T-172, T-173 (P3). T-174 is later. A new beta for LIVE-1 and LIVE-2 follows the P1 fixes.
 
-2. T-101 (M, partial): the `program` source kind is in; its pair with GitHub runs on the host of LIVE-2 (GitHub #75) when githome gives its program.
 
 3. T-162 (M, open): G-12 limits: `--ulimit nproc=` and `as=` hold on podvm `run -d` now (PodUtils/podvm#382); the incus keys come with the next podvm release.
 4. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.

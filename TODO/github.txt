@@ -110,7 +110,7 @@
 104 issue closed
 105 issue closed
 106 issue closed
-107 issue open
+107 issue closed
 108 issue closed
 109 issue closed
 110 issue open

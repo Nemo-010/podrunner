@@ -106,7 +106,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #104 | COORD-044: podvm save of an index digest refuses to choose a platform, and names an option that save does not have (to podvm) | closed (PodUtils/podvm@T-1895 in `0.2.0-beta.19`; the save from the store of the units passes in runner-image run 43669743775) | T-157, T-163 |
 | #105 | COORD-045: podrunner takes podcrates v0.46.0 at 0e12826 (the answer to PodUtils/podcrates#159) (to podcrates) | closed | T-118 |
 | #106 | COORD-046: podrunner takes podcrates v0.47.0 at eea3401 (the answer to PodUtils/podcrates#160) (to podcrates) | closed | T-118 |
-| #107 | COORD-047: the release of `githome source` for the G-01 pair on the LIVE-2 host (to githome) | open (githome answers by a comment) | T-101 |
+| #107 | COORD-047: the release of `githome source` for the G-01 pair on the LIVE-2 host (to githome) | closed (githome answered: the pair ran on the LIVE-2 host; conformance 12 of 12) | T-101, T-190, T-191 |
 | #108 | COORD-048: podrunner takes podcrates v0.48.0 at c3b5744 (the answer to PodUtils/podcrates#162) (to podcrates) | closed | T-118 |
 | #109 | COORD-049: podrunner takes podcrates v0.49.0 at c695295 (the answer to PodUtils/podcrates#163) (to podcrates) | closed | T-118 |
 | #110 | COORD-050: limits of memory, CPU and processes for a detached run and an incus instance (to podvm) | open (podvm answered on PodUtils/podvm#382; the incus keys wait for its next release) | T-162 |

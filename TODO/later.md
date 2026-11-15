@@ -559,7 +559,7 @@ The text below was the Blocker before the ruling: The owner: Q4 of `TODO/PROGRES
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -579,10 +579,11 @@ The 12 source conformance tests pass against a program of the test that speaks t
 
 ## Done
 
+2026-11-15: githome answered on GitHub #107 (COORD-047): on the LIVE-2 host one `serve` held the `remote` source of the scale set and two `program` sources of githome (one for each tier, each with its own host token and 1 slot); `podrunner source-conformance` passed 12 of 12 against `githome source`; githome's jobs ran on the podvm, incus and microvm kinds and got their reports. The notes of githome are T-190 (the conformance binary) and T-191 (an owner that is a person).
+
 Partial, 2026-11-13, this commit. The `[[source]]` kind `program` (`program`, `program_args`, an optional `key_file` whose path the program gets in `PODRUNNER_SOURCE_KEY_FILE`); `serve` runs it through `SidecarSource::program`, the restart and reply deadlines of the sidecar with no `sign` channel. `podrunner fake-source --script FILE` serves the fake source on stdio. `crates/podrunner/tests/program_source.rs`: the 12 source conformance tests pass against `podrunner fake-source` as a program source. `a_program_source_needs_its_program` holds the keys. `docs/configuration.md` ("A program source") and `docs/cli.md` say so. `status --json` lists each source with its jobs (`schemas/status.v1.json`), and slots holds the slots of each source whatever its kind (`g01_no_source_holds_more_than_its_slots`, two sources of 2 slots, 10 jobs each). Open: the same with a `program` source in `serve`. A `program` source is a forge source, so its jobs need the trusted or untrusted tier (trust facts, a signed pin list, a kind at the floor), which no fake kind of `serve` meets; the pair runs on the host of LIVE-2 (GitHub #75) when githome gives its program (its plan on #75).
 
 State (2026-11-14): COORD-047 (GitHub #107) asks githome for the release of `githome source`, its conformance output and the configuration of the pair on the LIVE-2 host. githome answers by a comment.
-
 
 # T-102: G-13: a table of the events of a job in the tier rule
 

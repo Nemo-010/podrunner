@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**189 entries: 19 open, 9 partial, 6 blocked, 155 done.**
+**191 entries: 21 open, 8 partial, 6 blocked, 156 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 6 | 0 | 36 | 44 |
+| P1 | 2 | 5 | 0 | 37 | 44 |
 | P2 | 10 | 2 | 3 | 68 | 83 |
-| P3 | 7 | 1 | 3 | 51 | 62 |
-| **All** | 19 | 9 | 6 | 155 | 189 |
+| P3 | 9 | 1 | 3 | 51 | 64 |
+| **All** | 21 | 8 | 6 | 156 | 191 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -148,7 +148,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-098](later.md) | P3 | S | later | feature | done | Q4: a Docker action in a job with no container (the order rule of the hook server) |
 | [T-099](core.md) | P2 | S | later | defect | done | The confined conformance test 27 hung to its time limit on podvm beta.6 |
 | [T-100](core.md) | P2 | S | later | chore | done | The beta release carries the scale-set sidecar and its notes |
-| [T-101](later.md) | P1 | M | later | feature | partial | G-01: a source kind for an external program that speaks the source wire |
+| [T-101](later.md) | P1 | M | later | feature | done | G-01: a source kind for an external program that speaks the source wire |
 | [T-102](later.md) | P2 | S | later | feature | done | G-13: a table of the events of a job in the tier rule |
 | [T-103](later.md) | P2 | L | later | feature | done | G-09: a container engine inside the unit, and the census of the verbs (DR-8) |
 | [T-104](later.md) | P2 | S | later | feature | done | G-10: the source conformance tests as a command for another source program |
@@ -237,3 +237,5 @@ acceptance, later The crate dependencies later than v1.
 | [T-187](live.md) | P3 | S | later | defect | open | The local mode refuses the netns hold |
 | [T-188](live.md) | P3 | S | M-C | defect | open | The tier intake names each parse failure of an offer `event-not-allowed`, and the offer schema of the design differs from the parser |
 | [T-189](live.md) | P2 | S | M-C | defect | open | A program source re-offers a refused job at the head of each `next` |
+| [T-190](live.md) | P3 | S | later | defect | open | `source-conformance` needs two offers on the first `next` of each test, and its claims stay |
+| [T-191](live.md) | P3 | S | later | defect | open | The tier rule takes only an organization as the owner of a trusted repository |

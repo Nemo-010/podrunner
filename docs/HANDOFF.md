@@ -117,10 +117,6 @@ is done.
   processes once; `destroy` now logs the cause (`podrunner: destroy UNIT:
   no count of processes: ...`). Conformance test 26 prints it on purpose.
   Read it at the next real failure.
-- T-101 (partial): the `program` source kind is released; COORD-047
-  (#107) asks githome for `githome source`, its conformance output and
-  the configuration of the pair on the LIVE-2 host. githome answers by a
-  comment on #107 (the owner, 2026-11-14).
 - The live gates: GitHub #74 (LIVE-1, the remote mint and the App key)
   and #75 (LIVE-2, the unit host and the test jobs) name `v0.1.0-beta.5`
   and the runner-image run 43658370121 of its tag. Read their comments;
@@ -149,7 +145,6 @@ is done.
 | Who | What | Entries |
 | --- | --- | --- |
 | LIVE-1 and LIVE-2 | the report of GitHub #75, and a new run on the next beta | T-032, T-033, T-040 |
-| githome | `githome source`, for the pair on the host of LIVE-2 (#107) | T-101 |
 | podvm | the incus keys of the limits (PodUtils/podvm@T-1897, next release) | T-162 |
 | podvm | a read-only bind on the detached run of a static image (#111) | T-158 |
 | podcrates | `pod-unit`, `pod-release` (none planned for v1) | T-043 |
@@ -160,7 +155,7 @@ is done.
 - GitHub #65, #66, #67: the trackers of the asks of cfb, githome and the
   CI plan that podrunner owns. Their bodies have the current state
   (2026-11-15); T-001 holds them.
-- COORD issues open: #107 (COORD-047, to githome); #110 (COORD-050, to
+- COORD issues open: #110 (COORD-050, to
   podvm); #111 (COORD-051, to podvm). No podcrates release notice is open; podrunner takes
   podcrates `v0.50.0`.
 - GitHub #9, #32, #33, #40: wait for the live gates (#74, #75). GitHub

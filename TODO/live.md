@@ -1231,3 +1231,53 @@ Send `withdraw` with the refusal code to the source for each job that podrunner 
 ## Prove
 
 `cargo test -p podrunner-slots refused`: with a fake source, a refused job gets one `withdraw`, and the next job runs.
+
+# T-190: `source-conformance` needs two offers on the first `next` of each test, and its claims stay
+
+**Source:** githome's answer on GitHub #107 (COORD-047, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner source-conformance` needs "two offers or more" on the first `next` of each test, not only of the first test, and each test claims and mints real jobs of the source. Against a live source, one run needs about 8 queued jobs, and the jobs that a test claims stay claimed until the source ends the claim (githome: after 15 min).
+
+## Premise
+
+The answer of githome on GitHub #107, read on 2026-11-15, after its live run with podrunner `v0.1.0-beta.5`.
+
+## Approach
+
+Take the offers of the first `next` once and share them between the tests that need an offer; `release` each job that a test claimed at the end of the test. Say in `docs/cli.md` how many jobs a live run takes.
+
+## Prove
+
+`cargo test -p podrunner-source conformance`: a fixture source that gives two offers once passes the 12 tests, and each claimed job gets `release`.
+
+# T-191: The tier rule takes only an organization as the owner of a trusted repository
+
+**Source:** githome's answer on GitHub #107 (COORD-047, 2026-11-15)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`[trust] organizations` names organizations only. githome's test repository belongs to a person, so githome put the login of the person in `organizations`. A repository of a person on githome has no organization (call C3 refuses a personal account only for the GitHub scale set, which needs "Administration: write").
+
+## Premise
+
+The answer of githome on GitHub #107, read on 2026-11-15, after its live run with podrunner `v0.1.0-beta.5`.
+
+## Approach
+
+Add `[trust] users` (a login and an optional id) for a source whose forge allows a repository of a person (the `program` kind); keep the GitHub scale set to organizations (call C3). The facts of a trusted job are the same: no fork, an actor `member` (for a person: the person or a collaborator that the source names).
+
+## Prove
+
+`cargo test -p podrunner-tier users`: a trusted job of a listed user passes on a `program` source and is refused on a `github-scaleset` source.
