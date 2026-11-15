@@ -158,7 +158,8 @@ is done.
   podcrates `v0.50.0`.
 - GitHub #9, #32, #33, #40: wait for the live gates (#74, #75). GitHub
   #43 waits for podcrates.
-- No question for the owner is open (`TODO/PROGRESS.md`).
+- Q7 is open (`TODO/PROGRESS.md`): the App permission to cancel the run
+  of a refused job (T-169).
 
 ## Talk between sessions
 

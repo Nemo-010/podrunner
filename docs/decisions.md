@@ -89,7 +89,8 @@ C13 to C16 are rulings since 2026-11-11 ("Confirm, keep swappable").
 ## Questions for the owner
 
 `TODO/PROGRESS.md`, "Questions for the owner", has each open question
-with its recommendation. None is open.
+with its recommendation. Q7 is open (2026-11-15): the App permission
+"Actions: read and write" to cancel the run of a refused job (T-169).
 
 ## Superseded
 

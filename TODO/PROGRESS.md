@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 191 entries: 20 open, 10 partial, 5 blocked, 156 done.
+`TODO/INDEX.md` holds 191 entries: 19 open, 10 partial, 6 blocked, 156 done.
 
 ## State
 
@@ -33,7 +33,7 @@ then take the next one.
 
 The queue, most valuable first:
 
-1. T-169, T-175 (P1, open) and the P1 entries of the LIVE-2 report (GitHub #75): T-176 (a failed start spends the credential), T-177 (`serve` pulls no image by digest), T-178 (`HOME=/root` on incus and microvm), T-179 (H0: the seccomp hold and the egress module time out). Then the P2 entries T-180 to T-184, T-189.
+1. T-175 (P1, partial) and the P1 entries of the LIVE-2 report (GitHub #75): T-176 (a failed start spends the credential), T-177 (`serve` pulls no image by digest), T-178 (`HOME=/root` on incus and microvm), T-179 (H0: the seccomp hold and the egress module time out). Then the P2 entries T-180 to T-184, T-189.
 
    The LIVE-1 report:: the blockers of the mint from the LIVE-1 report (GitHub #74, 2026-11-15). With the release binaries the mint served no job. Then T-168, T-170, T-171 (P2), T-172, T-173 (P3). T-174 is later. A new beta for LIVE-1 and LIVE-2 follows the P1 fixes.
 
@@ -46,10 +46,12 @@ The local mode against act and runner.server (`docs/local-mode.md`) has no open 
 
 Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040).
 
-Blocked: T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
+Blocked: T-169 (Q7), T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
 
 ## Questions for the owner
 
-None is open. The owner answered Q6 and U15 on 2026-11-14 (`docs/decisions.md`).
+**Q7 (T-169, T-176):** a job that the tier rule refuses (a pull request from a fork that names a trusted set), or whose unit does not start, stays assigned to the scale set at GitHub and holds its capacity: in LIVE-1 no other job ran for 20 minutes (GitHub #74, defect 7). The scale-set API has no call that gives a job back, and a runner that fails the job can get another job instead (T-175). Recommendation: give the App the repository permission "Actions: read and write", and let the sidecar cancel the run of a refused job (`POST /repos/O/R/actions/runs/N/cancel`), with an audit line. It changes G-H3 of the live gates (DR-7: "Actions: read"). The other way: the operator cancels such runs by hand, and a set has more capacity than its slots.
+
+Before Q7: The owner answered Q6 and U15 on 2026-11-14 (`docs/decisions.md`).
 
 The owner answered Q1 to Q3 (DR-4, DR-5, DR-6) on 2026-11-11, and Q4, Q5 and DR-7 on 2026-11-13 (`docs/decisions.md`).

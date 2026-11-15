@@ -704,7 +704,7 @@ Go tests: each class gives its word, and a canary token in the error text appear
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** blocked
 
 ## Problem
 
@@ -718,9 +718,17 @@ The LIVE-1 report on GitHub #74 (issuecomment-6889758668), read on 2026-11-15. T
 
 Find the call of the scale-set API that gives an assigned job back, or that ends it: measure it on the test organization. When none exists, run the job to an end at once with a refusal: a unit with no secret that reports the job failed with the refusal code, so GitHub frees the capacity. Keep the capacity that the sidecar sends to GitHub as the free slots, not counting a withdrawn job.
 
+## Decision
+
+No call of the scale-set API gives an assigned job back (`actions/scaleset` v0.5.0 has `AcquireJobs`, no release of a job). A runner that runs the refused job to an end with a failure does not work: GitHub gives an assigned job to any runner of the set (T-175), so that runner can get another job, and fail it. The way that holds is to cancel the run of the refused job: `POST /repos/O/R/actions/runs/N/cancel`, which needs the repository permission "Actions: read and write" of the App. The live gate G-H3 checks that the App has "Actions: read" only (DR-7). That is a change of a ruling: Q7.
+
 ## Prove
 
 A test of the mint: a withdrawn job frees its slot in the next `next`. A live check (GitHub #74, #75): after a refused fork job, the next trusted job runs within one poll.
+
+## Blocker
+
+The owner: Q7 of `TODO/PROGRESS.md` (the App permission "Actions: read and write" to cancel the run of a refused job).
 
 # T-170: A withdrawal by the tier rule leaves no trace in the mint
 
