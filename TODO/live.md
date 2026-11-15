@@ -908,7 +908,7 @@ A test of slots with a driver whose start fails: the source gets `release` of th
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -925,6 +925,8 @@ In `prepare` of the podvm driver (`start_container`), pull an image that the sto
 ## Prove
 
 `cargo test -p podrunner-podvm container`: with a fake podvm, an image that is not in the store is pulled once, and a failed pull names its cause in the refusal.
+
+State (2026-11-15): `prepare` of the podvm driver pulls an image that the store of the images does not have (`podvm pull -q --platform P NAME@sha256:...`), once, then saves it; a failed pull names the cause of the save and of the pull. `Hooks::take` writes the text of each refusal of the driver to the stderr of `serve` with the unit (`podrunner: UNIT: a hook call was refused: the driver: ...`); the runner still gets the code only. `crates/podrunner-podvm/tests/pull.rs` (2 tests) fails on the code of before. Next: a `container:` job by digest under `serve` in `runner-image.yml`, then W2 of GitHub #75 on the next beta.
 
 # T-178: A job on the incus and microvm kinds has `HOME=/root` for a runner that is not root: `actions/checkout` fails
 

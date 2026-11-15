@@ -56,6 +56,11 @@ impl Hooks {
         let open = self.open.lock().expect("the sockets");
         let Some(o) = open.get(unit.as_str()) else { return Default::default() };
         let Ok(mut u) = o.unit.lock() else { return Default::default() };
+        // The runner gets the code only; the log of `serve` names the cause
+        // of each refusal of the driver (T-177).
+        for e in std::mem::take(&mut u.driver_errors) {
+            eprintln!("podrunner: {unit}: a hook call was refused: the driver: {e}");
+        }
         (std::mem::take(&mut u.refusals), std::mem::take(&mut u.events))
     }
 

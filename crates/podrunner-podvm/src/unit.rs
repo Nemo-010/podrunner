@@ -197,7 +197,15 @@ impl UnitDriver for PodvmUnit {
         if !tar.exists() {
             fs::create_dir_all(tar.parent().expect("a directory")).map_err(|e| host("the image cache", e))?;
             let part = tar.with_extension("part");
-            self.podvm(&self.images, &["save", "-o", &part.to_string_lossy(), reference], None)?;
+            let save = |u: &PodvmUnit| u.podvm(&u.images, &["save", "-o", &part.to_string_lossy(), reference], None);
+            if let Err(first) = save(self) {
+                // An image that a digest pins and that the store does not
+                // have yet (a `container:` job of `serve`, T-177): pull it
+                // once by its digest, then save it.
+                self.podvm(&self.images, &["pull", "-q", "--platform", platform, reference], None)
+                    .map_err(|e| UnitError::new(e.code, format!("{}; then podvm pull: {}", first.detail, e.detail)))?;
+                save(self)?;
+            }
             fs::rename(&part, &tar).map_err(|e| host("the image cache", e))?;
         }
         Ok(Prepared { digest: digest.to_string(), platform: platform.into() })
