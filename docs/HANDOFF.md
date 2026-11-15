@@ -8,7 +8,7 @@ is done.
 
 ## Where podrunner stands
 
-- Pins: podcrates `v0.49.0` (`Cargo.toml`); podvm `v0.2.0-beta.19`
+- Pins: podcrates `v0.50.0` (`Cargo.toml`); podvm `v0.2.0-beta.19`
   (`images/podvm.toml`; the podvm kind takes `probe::LOWEST` and later,
   the microvm kind `LOWEST_GUEST` (beta.10), the incus kind
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
@@ -159,7 +159,7 @@ is done.
   (2026-11-15); T-001 holds them.
 - COORD issues open: #107 (COORD-047, to githome); #110 (COORD-050, to
   podvm); #111 (COORD-051, to podvm). No podcrates release notice is open; podrunner takes
-  podcrates `v0.49.0`.
+  podcrates `v0.50.0`.
 - GitHub #9, #32, #33, #40: wait for the live gates (#74, #75). GitHub
   #43 waits for podcrates.
 - No question for the owner is open (`TODO/PROGRESS.md`).

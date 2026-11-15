@@ -7,7 +7,7 @@
 - The plan is GitHub #1; one entry for each issue. The owner answered
   DR-1 to DR-7 and GitHub #8 (`docs/decisions.md`); DR-7 is yes
   (2026-11-13): the live gates run on GitHub #74 and #75.
-- Pins: podcrates `v0.49.0`, podvm `v0.2.0-beta.19`, podnet
+- Pins: podcrates `v0.50.0`, podvm `v0.2.0-beta.19`, podnet
   `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.5` (release
   run 43656918895, `34d56b5`; it pins podcrates `v0.47.0`). Last green
   `runner-image.yml`: 43663327458 (`c695295`); 43669743775 (`fa84341`) is red only at the static image (T-158); the tag `v0.1.0-beta.5` has run 43658370121 with its archives.
