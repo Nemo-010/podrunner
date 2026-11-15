@@ -1201,7 +1201,7 @@ Tests of `check` and `status` for the two cases, and a probe test of the incus k
 **Milestone:** M-C
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -1218,6 +1218,8 @@ Find whether `destroy` of the microvm kind or podvm leaves it. Remove it at `des
 ## Prove
 
 A test of the microvm driver on a real guest: no `machine/run-*` stays after `destroy`.
+
+State (2026-11-15): the microvm kind runs podvm on the store of the operator, and a podvm that `destroy` kills cannot remove the run directory of its guest. `destroy` now removes `machine/run-PID-*` of the killed podvm (`remove_runs_of` of `crates/podrunner-microvm/src/lib.rs`); a run of another podvm stays. `tests::destroy_removes_the_run_directory_of_the_guest` fails without it. The name `run-PID-` with the PID of podvm comes from the report of #75: next, check it on real guests in `runner-image.yml` (the microvm step), and ask podvm by a COORD issue if the name is another.
 
 # T-187: The local mode refuses the netns hold
 

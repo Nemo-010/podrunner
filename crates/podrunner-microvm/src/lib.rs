@@ -295,8 +295,12 @@ impl UnitDriver for MicrovmUnit {
             return Ok(Residue { processes: Count::Known(procs::tagged(&tag).len() as u64), files });
         };
         let left = procs::kill_tagged(&r.tag, KILL_LIMIT);
+        let podvm = r.child.id();
         let _ = r.child.kill();
         let _ = r.child.wait();
+        // A killed podvm leaves the run directory of its guest in the store
+        // (`machine/run-PID-*`, T-186).
+        remove_runs_of(&self.images, podvm);
         if let Some(keep) = &self.kept_logs {
             let _ = fs::create_dir_all(keep);
             let _ = fs::copy(r.dir.join("guest.log"), keep.join(format!("{unit}.log")));
@@ -347,3 +351,15 @@ fn no_container() -> UnitError {
 
 #[cfg(test)]
 mod tests;
+
+/// Remove the run directories that the podvm process `pid` made in the
+/// store `images` (`machine/run-PID-*`).
+fn remove_runs_of(images: &Path, pid: u32) {
+    let prefix = format!("run-{pid}-");
+    let Ok(entries) = fs::read_dir(images.join("machine")) else { return };
+    for e in entries.flatten() {
+        if e.file_name().to_string_lossy().starts_with(&prefix) {
+            let _ = fs::remove_dir_all(e.path());
+        }
+    }
+}

@@ -239,3 +239,26 @@ fn the_payload_has_the_home_of_the_runner() {
     let _ = std::fs::remove_dir_all(&d);
     assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "/home/runner runner runner", "{out:?}");
 }
+
+/// T-186: the run directory that the killed podvm of a guest left in the
+/// store goes at `destroy`; a run of another podvm stays.
+#[test]
+fn destroy_removes_the_run_directory_of_the_guest() {
+    let (u, d) = driver("runs", "mkdir -p \"$PODVM_STORE/machine/run-$$-1\"; exec sleep 30");
+    let other = d.join("images/machine/run-1-1");
+    fs::create_dir_all(&other).unwrap();
+    let s = spec("u-1");
+    u.start(&s).unwrap();
+    let machine = d.join("images/machine");
+    let t = std::time::Instant::now();
+    while fs::read_dir(&machine).map(|r| r.count()).unwrap_or(0) < 2 && t.elapsed() < std::time::Duration::from_secs(5)
+    {
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+    assert_eq!(fs::read_dir(&machine).unwrap().count(), 2);
+    u.destroy(&s.unit).unwrap();
+    let left: Vec<String> =
+        fs::read_dir(&machine).unwrap().map(|e| e.unwrap().file_name().into_string().unwrap()).collect();
+    assert_eq!(left, ["run-1-1"]);
+    let _ = fs::remove_dir_all(&d);
+}
