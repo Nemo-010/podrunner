@@ -49,10 +49,13 @@ fn the_runner_in_a_podvm_unit_runs_a_canned_job() {
 
     let broker = Broker::start().unwrap();
     broker.queue(Job::scripts("in-podvm", &["echo podrunner-podvm-$((6*7))"]));
-    let files = runner_files(&broker.base, "runner-u-1", &common::rsaparams())
+    // T-175: the placed job (the fake broker gives example-org/app, run 1):
+    // the job-started hook of the image lets it run.
+    let mut files: Vec<CredentialFile> = runner_files(&broker.base, "runner-u-1", &common::rsaparams())
         .into_iter()
         .map(|(name, text)| CredentialFile { name, content: Secret::new(text) })
         .collect();
+    files.push(CredentialFile { name: ".podrunner-job".into(), content: Secret::new("example-org/app 1\n") });
     let id = UnitId::parse("u-1").unwrap();
     let spec = StartSpec {
         unit: id.clone(),
@@ -173,5 +176,48 @@ fn a_container_job_runs_through_the_hooks_of_a_podvm_unit() {
     assert_eq!(done[0].conclusion, "succeeded", "{refusals:?}\n{logs}");
     assert!(logs.contains("podrunner-podvm-container-42"), "{logs}");
     assert!(refusals.is_empty(), "{refusals:?}");
+    assert!(residue.is_clean(), "{residue:?}");
+}
+
+/// T-175: a runner that gets another job than the placed one: the
+/// job-started hook of the runner image ends it before its first step.
+#[test]
+#[ignore]
+fn a_foreign_job_ends_before_its_first_step_in_a_podvm_unit() {
+    let state = std::env::temp_dir().join(format!("podrunner-podvm-foreign-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&state);
+    let podvm = Podvm { binary: PathBuf::from(env("PODRUNNER_PODVM")) };
+    let unit = PodvmUnit::new(podvm, &state, &PathBuf::from(env("PODRUNNER_PODVM_IMAGES"))).unwrap();
+    let platform = if std::env::consts::ARCH == "aarch64" { "linux/arm64" } else { "linux/amd64" };
+    let prepared = unit.prepare(&env("PODRUNNER_RUNNER_IMAGE"), platform, false).unwrap();
+    let broker = Broker::start().unwrap();
+    broker.queue(Job::scripts("foreign", &["echo podrunner-foreign-$((6*7))"]));
+    let mut files: Vec<CredentialFile> = runner_files(&broker.base, "runner-u-2", &common::rsaparams())
+        .into_iter()
+        .map(|(name, text)| CredentialFile { name, content: Secret::new(text) })
+        .collect();
+    files.push(CredentialFile { name: ".podrunner-job".into(), content: Secret::new("example-org/other 7\n") });
+    let id = UnitId::parse("u-2").unwrap();
+    let spec = StartSpec {
+        unit: id.clone(),
+        image: prepared,
+        argv: vec!["/home/runner/run.sh".into()],
+        env: Default::default(),
+        credential: Credential { files },
+        sockets: None,
+        mounts: Vec::new(),
+    };
+    unit.start(&spec).unwrap();
+    let _ = unit.wait(&id, Duration::from_secs(300)).unwrap();
+    let t = Instant::now();
+    while broker.completions().is_empty() && t.elapsed() < Duration::from_secs(5) {
+        std::thread::sleep(Duration::from_millis(100));
+    }
+    let (done, logs) = (broker.completions(), broker.logs());
+    let residue = unit.destroy(&id).unwrap();
+    let _ = std::fs::remove_dir_all(&state);
+    assert_eq!(done.len(), 1, "{:?}\n{logs}", broker.seen());
+    assert_eq!(done[0].conclusion, "failed", "{logs}");
+    assert!(!logs.contains("podrunner-foreign-42"), "a step of the foreign job ran: {logs}");
     assert!(residue.is_clean(), "{residue:?}");
 }

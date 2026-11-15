@@ -888,6 +888,8 @@ A conformance test: a unit whose runner gets the message of another job runs no 
 
 State (2026-11-15): step 2 is in. Measured on the official runner v2.338.2 with the fake broker: the job-started hook sees `GITHUB_REPOSITORY` and `GITHUB_RUN_ID`, a hook that exits 1 fails the job, and no step runs; a relative path of the hook is not found (the job fails). So the runner image carries the hook (`images/runner/podrunner-job-started.sh` in `/home/runner/hooks/`, `ENV ACTIONS_RUNNER_HOOK_JOB_STARTED`), and slots stages `.podrunner-job` (`OWNER/REPO RUN_ID`) with the credential files (`job_file` of `crates/podrunner-slots/src/run.rs`); the image links it into `/home/runner`, as `.runner`. `a_job_started_hook_ends_a_foreign_job_before_its_first_step` (`crates/podrunner-broker-fake/tests/runner.rs`) runs the shipped script: the own job (another case of the letters) runs; another repository or another run fails with no step; with no file the job runs. Next: a runner-image run that builds the image and runs a foreign job in a podvm unit; then step 1 and step 3 on the test organization.
 
+State (2026-11-15, later): `crates/podrunner-broker-fake/tests/podvm.rs` runs the image of `runner-image.yml` in a podvm unit: the canned job with the placed job (`.podrunner-job` `example-org/app 1`) passes, and `a_foreign_job_ends_before_its_first_step_in_a_podvm_unit` (another repository and run) must give `failed` with no output of its step. They run in the step "The runner in a podvm unit runs a canned job and a container job".
+
 # T-176: The JIT configuration is minted before the unit starts: a failed start spends it and leaves the job assigned
 
 **Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)

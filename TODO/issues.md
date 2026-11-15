@@ -111,7 +111,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #109 | COORD-049: podrunner takes podcrates v0.49.0 at c695295 (the answer to PodUtils/podcrates#163) (to podcrates) | closed | T-118 |
 | #110 | COORD-050: limits of memory, CPU and processes for a detached run and an incus instance (to podvm) | open (podvm answered on PodUtils/podvm#382; the incus keys wait for its next release) | T-162 |
 | #111 | COORD-051: a read-only bind (`-v SRC:DST:ro`) on the detached run of a static image where chroot is denied (to podvm) | open (podvm `0.2.0-beta.21` has PodUtils/podvm@T-1901 and is pinned; closes on the green run) | T-158 |
-| #112 | [gh action] requested | open (the gate, the secrets scan and `runner-image.yml` of `main` at `ed54ccb`: the account of the session starts no run) | T-164, T-165, T-166, T-167, T-158 |
+| #112 | [gh action] requested | closed (gate 43683347311 and secrets 43683349837 green on `ed54ccb`; runner-image 43683637902 on `6ac1c42` red only at the static image, T-158) | T-164, T-165, T-166, T-167, T-158 |
 | #113 | COORD-052: podrunner takes podcrates v0.50.0 at cbb5372 (the answer to PodUtils/podcrates#164) (to podcrates) | open | T-118 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
