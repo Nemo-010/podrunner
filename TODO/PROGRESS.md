@@ -40,7 +40,7 @@ The queue, most valuable first:
 4. T-158 (S, partial) and T-163 (S, partial): podvm `0.2.0-beta.19` is pinned; close both on the green run of `runner-image.yml`.
 5. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 
-The local mode against act and runner.server (`docs/local-mode.md`) has no open entry; T-158 waits for podvm.
+The local mode against act and runner.server (`docs/local-mode.md`) has no open entry.
 
 Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040).
 
