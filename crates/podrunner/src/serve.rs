@@ -93,6 +93,9 @@ pub(crate) fn scaleset(
     clock: Arc<dyn Clock>,
 ) -> Result<podrunner_mint::SidecarSource, Failure> {
     use std::os::unix::fs::PermissionsExt;
+    if s.token_file.is_some() {
+        return crate::pat::scaleset(s);
+    }
     let get = |v: &Option<String>| v.clone().unwrap_or_default();
     let key_file = get(&s.key_file);
     let meta = std::fs::metadata(&key_file)

@@ -35,3 +35,43 @@ func TestATokenGivenAgainKeepsItsOwnExp(t *testing.T) {
 		t.Fatalf("kept until %v, want %v", s.until, time.Unix(exp, 0))
 	}
 }
+
+// T-174: the token of the organization comes once from descriptor 3, and
+// the trust lookups use it.
+func TestTheTokenOfTheOrganizationComesOnce(t *testing.T) {
+	fds, err := syscall.Socketpair(syscall.AF_UNIX, syscall.SOCK_STREAM, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ours, theirs := os.NewFile(uintptr(fds[0]), "ours"), os.NewFile(uintptr(fds[1]), "theirs")
+	defer ours.Close()
+	defer theirs.Close()
+	asked := make(chan string, 4)
+	go func() {
+		r := bufio.NewReader(theirs)
+		for {
+			line, err := r.ReadBytes('\n')
+			if err != nil {
+				return
+			}
+			asked <- string(line)
+			fmt.Fprintln(theirs, `{"token":"made-up-pat-77"}`)
+		}
+	}()
+	s := newSigner(ours, "")
+	tr := &trust{signer: s, pat: true}
+	for i := 0; i < 2; i++ {
+		tok, err := tr.installationToken()
+		if err != nil || tok != "made-up-pat-77" {
+			t.Fatal(tok, err)
+		}
+	}
+	if got := <-asked; got != "{\"op\":\"pat\"}\n" {
+		t.Fatalf("asked %q", got)
+	}
+	select {
+	case again := <-asked:
+		t.Fatalf("asked again: %q", again)
+	default:
+	}
+}

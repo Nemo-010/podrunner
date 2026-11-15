@@ -28,6 +28,14 @@ tier = "trusted"             # "untrusted", "trusted" or "local"
 arch = "x86_64"              # or "aarch64"
 operator_controlled = true   # the full report; else the public report
 slots = 4                    # the most units of this source at one time
+sidecar = "scaleset-sidecar" # github-scaleset: the sidecar in driver_dir
+config_url = "https://github.com/example-org"
+scale_set = "podrunner"
+app_id = "12345"             # the App: its id, its installation and its key file (mode 0400 or 0600) ...
+installation_id = 678
+key_file = "/etc/podrunner/app.pem"
+# token_file = "/etc/podrunner/org.token"  # ... or a fine-grained token of the organization (mode 0400
+                             # or 0600) in place of the three; the sidecar gets it on its descriptor 3
 
 [unit.podvm]                 # one table for each unit kind: fake, podvm, microvm, incus
 slots = 2

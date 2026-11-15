@@ -17,6 +17,7 @@ pub mod pins;
 pub mod placement;
 pub mod policy;
 mod run;
+mod sources;
 mod spool;
 pub mod state;
 pub mod status;

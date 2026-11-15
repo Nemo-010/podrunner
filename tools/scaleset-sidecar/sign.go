@@ -19,6 +19,8 @@ type signer struct {
 	iss    string
 	cached string
 	until  time.Time
+	// The fine-grained token of the organization (T-174).
+	patToken string
 }
 
 func newSigner(f *os.File, iss string) *signer {
@@ -68,3 +70,31 @@ func (s *signer) token(int64) (string, error) {
 
 // farFuture keeps a test token valid.
 var farFuture = time.Now().Add(24 * time.Hour)
+
+// pat asks podrunner for the fine-grained token of the organization once
+// (T-174): `{"op":"pat"}` out on descriptor 3, `{"token":...}` back.
+func (s *signer) pat() (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.patToken != "" {
+		return s.patToken, nil
+	}
+	if s.f == nil {
+		return "", fmt.Errorf("no sign channel")
+	}
+	if _, err := s.f.Write([]byte("{\"op\":\"pat\"}\n")); err != nil {
+		return "", fmt.Errorf("the sign channel: %w", err)
+	}
+	line, err := s.r.ReadBytes('\n')
+	if err != nil {
+		return "", fmt.Errorf("the sign channel: %w", err)
+	}
+	var rep struct {
+		Token string `json:"token"`
+	}
+	if err := json.Unmarshal(line, &rep); err != nil || rep.Token == "" {
+		return "", fmt.Errorf("the token of the organization: none")
+	}
+	s.patToken = rep.Token
+	return s.patToken, nil
+}

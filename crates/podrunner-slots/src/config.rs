@@ -59,6 +59,10 @@ pub struct SourceConfig {
     pub scale_set: Option<String>,
     #[serde(default)]
     pub key_file: Option<String>,
+    /// `github-scaleset`: a fine-grained token of the organization (mode
+    /// 0400 or 0600) in place of the App (T-174).
+    #[serde(default)]
+    pub token_file: Option<String>,
     /// `remote`: the address of the mint (`host:port`), the pin of its key
     /// (`sha256/BASE64`), and the certificate of this host (its key is
     /// `key_file`, a P-256 key at mode 0600).
@@ -396,17 +400,7 @@ impl Config {
                 return Err(format!("[[source]] {:?} is fake: set allow_fake = true", s.name));
             }
             if s.kind == SourceKind::GithubScaleset {
-                let missing = [
-                    ("sidecar", s.sidecar.is_none()),
-                    ("config_url", s.config_url.is_none()),
-                    ("installation_id", s.installation_id.is_none()),
-                    ("app_id", s.app_id.is_none()),
-                    ("scale_set", s.scale_set.is_none()),
-                    ("key_file", s.key_file.is_none()),
-                ];
-                if let Some((key, _)) = missing.iter().find(|(_, m)| *m) {
-                    return Err(format!("[[source]] {:?}: a github-scaleset source needs {key}", s.name));
-                }
+                crate::sources::check_scaleset(s)?;
             }
             if s.kind == SourceKind::Remote {
                 let missing = [

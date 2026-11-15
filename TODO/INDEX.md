@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**196 entries: 1 open, 13 partial, 8 blocked, 174 done.**
+**196 entries: 0 open, 13 partial, 8 blocked, 175 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 4 | 1 | 40 | 45 |
 | P2 | 0 | 6 | 4 | 74 | 84 |
-| P3 | 1 | 3 | 3 | 60 | 67 |
-| **All** | 1 | 13 | 8 | 174 | 196 |
+| P3 | 0 | 3 | 3 | 61 | 67 |
+| **All** | 0 | 13 | 8 | 175 | 196 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -221,7 +221,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-171](live.md) | P2 | S | M-C | defect | done | No command checks a mint file before `mint-serve` |
 | [T-172](live.md) | P3 | S | M-C | defect | done | The audit of `sign` lives only in memory |
 | [T-173](live.md) | P3 | S | M-C | defect | done | `podrunner --version` does not name the beta |
-| [T-174](live.md) | P3 | S | later | defect | open | A trusted source cannot use a fine-grained organization PAT |
+| [T-174](live.md) | P3 | S | later | defect | done | A trusted source cannot use a fine-grained organization PAT |
 | [T-175](live.md) | P1 | M | M-C | defect | partial | A runner of the scale set is not bound to its job: a foreign job is found only at `started` |
 | [T-176](live.md) | P1 | M | M-C | defect | done | The JIT configuration is minted before the unit starts: a failed start spends it and leaves the job assigned |
 | [T-177](live.md) | P1 | S | M-C | defect | done | `serve` does not pull an image that a digest pins: a `container:` job fails with no cause in the log |

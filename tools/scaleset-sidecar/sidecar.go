@@ -59,10 +59,21 @@ type sidecar struct {
 }
 
 func newSidecar(ctx context.Context, o options, signer *signer) (*sidecar, error) {
-	client, err := scaleset.NewClientWithJWTProvider(
-		scaleset.ClientWithJWTProviderConfig{GitHubConfigURL: o.configURL, InstallationID: o.installationID},
-		scaleset.JWTProviderFunc(func(ctx context.Context) (string, error) { return signer.token(o.installationID) }),
-	)
+	var client *scaleset.Client
+	var err error
+	if o.pat {
+		// T-174: a fine-grained token of the organization, from descriptor 3.
+		var tok string
+		if tok, err = signer.pat(); err != nil {
+			return nil, err
+		}
+		client, err = scaleset.NewClientWithPersonalAccessToken(scaleset.NewClientWithPersonalAccessTokenConfig{GitHubConfigURL: o.configURL, PersonalAccessToken: tok})
+	} else {
+		client, err = scaleset.NewClientWithJWTProvider(
+			scaleset.ClientWithJWTProviderConfig{GitHubConfigURL: o.configURL, InstallationID: o.installationID},
+			scaleset.JWTProviderFunc(func(ctx context.Context) (string, error) { return signer.token(o.installationID) }),
+		)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("the client: %w", err)
 	}
@@ -79,7 +90,7 @@ func newSidecar(ctx context.Context, o options, signer *signer) (*sidecar, error
 	if err != nil {
 		return nil, fmt.Errorf("the message session: %s", statusOf(err))
 	}
-	t := &trust{api: o.apiURL, installation: o.installationID, signer: signer, cache: map[int64]trustInputs{}, budget: o.trustBudget}
+	t := &trust{api: o.apiURL, installation: o.installationID, signer: signer, pat: o.pat, cache: map[int64]trustInputs{}, budget: o.trustBudget}
 	owner := strings.TrimSuffix(o.configURL, "/")
 	owner = owner[strings.LastIndex(owner, "/")+1:]
 	if err := t.organization(owner); err != nil {

@@ -861,7 +861,7 @@ A test of the release script: a build with the tag `v0.1.0-beta.9` prints `podru
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -878,6 +878,10 @@ Add a `token_file` form to the source of the mint, read at start with mode 0600,
 ## Prove
 
 A test of the configuration: a source with `token_file` is accepted, and one with both forms is refused. The source conformance suite passes with a PAT stub.
+
+## Done
+
+2026-11-15: a `github-scaleset` source takes `token_file` (mode 0400 or 0600) in place of `app_id`, `installation_id` and `key_file`, never both (`crates/podrunner-slots/src/sources.rs`, `a_scaleset_source_has_the_app_or_a_token`). `serve` and `mint-serve` give the sidecar `-pat` and the token on its descriptor 3 (`crates/podrunner/src/pat.rs`, `SidecarSource::with_token`; `a_token_comes_on_descriptor_3_and_not_in_argv`). The sidecar builds its client with `NewClientWithPersonalAccessToken` and uses the token for the trust lookups (`TestTheTokenOfTheOrganizationComesOnce`: it asks once). `docs/configuration.md` names the keys. A live run with a token waits for a token of the test organization.
 
 # T-175: A runner of the scale set is not bound to its job: a foreign job is found only at `started`
 

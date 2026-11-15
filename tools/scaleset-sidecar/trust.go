@@ -40,11 +40,13 @@ type trust struct {
 	mu           sync.Mutex
 	api          string
 	installation int64
-	signer       *signer
-	token        string
-	expires      time.Time
-	cache        map[int64]trustInputs
-	http         http.Client
+	// pat: the token of descriptor 3 is the token of the lookups (T-174).
+	pat     bool
+	signer  *signer
+	token   string
+	expires time.Time
+	cache   map[int64]trustInputs
+	http    http.Client
 	// The lookups of the hour that runs, and its start: a lookup past the
 	// budget is not made, and its inputs are "unknown" (throttled).
 	budget    int
@@ -54,6 +56,9 @@ type trust struct {
 }
 
 func (t *trust) installationToken() (string, error) {
+	if t.pat {
+		return t.signer.pat()
+	}
 	if t.token != "" && time.Until(t.expires) > 5*time.Minute {
 		return t.token, nil
 	}

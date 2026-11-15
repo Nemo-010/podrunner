@@ -98,6 +98,9 @@ pub struct SidecarSource {
     env: Vec<(String, String)>,
     /// `sign` on descriptor 3: the sidecar only.
     signer: Option<Arc<Mutex<Signer>>>,
+    /// Or a fine-grained token of the organization on descriptor 3, in place
+    /// of `sign` (T-174): the sidecar asks for it once (`{"op":"pat"}`).
+    token: Option<Arc<String>>,
     caller: String,
     running: Option<Running>,
     backoff: Duration,
@@ -107,6 +110,27 @@ pub struct SidecarSource {
     pub starts: u64,
     /// The reply deadline of each call (`REPLY_LIMIT`).
     limit: Duration,
+}
+
+/// What descriptor 3 of a sidecar answers.
+enum Answer {
+    Sign(Arc<Mutex<Signer>>),
+    Token(Arc<String>),
+}
+
+/// Answer each request of one sidecar with the token until its channel
+/// closes (T-174).
+fn serve_token(stream: UnixStream, token: &str) {
+    let Ok(mut w) = stream.try_clone() else { return };
+    for line in BufReader::new(stream).lines() {
+        if line.is_err() {
+            return;
+        }
+        let reply = serde_json::json!({ "token": token });
+        if w.write_all(format!("{reply}\n").as_bytes()).is_err() {
+            return;
+        }
+    }
 }
 
 /// Answer the sign requests of one sidecar until its channel closes.
@@ -137,6 +161,7 @@ impl SidecarSource {
             args,
             env: Vec::new(),
             signer: Some(signer),
+            token: None,
             caller: caller.into(),
             running: None,
             backoff: BACKOFF_FIRST,
@@ -156,6 +181,7 @@ impl SidecarSource {
             args,
             env,
             signer: None,
+            token: None,
             caller: caller.into(),
             running: None,
             backoff: BACKOFF_FIRST,
@@ -164,6 +190,15 @@ impl SidecarSource {
             starts: 0,
             limit: REPLY_LIMIT,
         }
+    }
+
+    /// The sidecar with a fine-grained token of the organization on its
+    /// descriptor 3, in place of `sign` (T-174). The token never goes in
+    /// argv or in the environment.
+    pub fn with_token(program: &str, args: Vec<String>, token: String, caller: &str) -> SidecarSource {
+        let mut s = SidecarSource::program(program, args, Vec::new(), caller);
+        s.token = Some(Arc::new(token));
+        s
     }
 
     fn start(&mut self) -> Result<(), SourceError> {
@@ -175,8 +210,13 @@ impl SidecarSource {
         let mut cmd = Command::new(&self.program);
         cmd.args(&self.args).envs(self.env.iter().map(|(k, v)| (k, v)));
         cmd.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::inherit());
-        let channel = match &self.signer {
-            Some(signer) => {
+        let answer: Option<Answer> = match (&self.signer, &self.token) {
+            (Some(signer), _) => Some(Answer::Sign(signer.clone())),
+            (None, Some(token)) => Some(Answer::Token(token.clone())),
+            _ => None,
+        };
+        let channel = match answer {
+            Some(answer) => {
                 let (ours, theirs) = UnixStream::pair().map_err(|e| down("the sign channel", e))?;
                 let fd = theirs.as_raw_fd();
                 // SAFETY: dup2 in the child before exec, with a descriptor
@@ -188,15 +228,18 @@ impl SidecarSource {
                         },
                     );
                 }
-                Some((ours, theirs, signer.clone()))
+                Some((ours, theirs, answer))
             }
             None => None,
         };
         let mut child = cmd.spawn().map_err(|e| down("the sidecar", e))?;
-        if let Some((ours, theirs, signer)) = channel {
+        if let Some((ours, theirs, answer)) = channel {
             drop(theirs);
             let caller = self.caller.clone();
-            std::thread::spawn(move || serve_sign(ours, signer, caller));
+            std::thread::spawn(move || match answer {
+                Answer::Sign(signer) => serve_sign(ours, signer, caller),
+                Answer::Token(token) => serve_token(ours, &token),
+            });
         }
         let (stdin, stdout) = (child.stdin.take().expect("stdin"), child.stdout.take().expect("stdout"));
         let pipe = Pipe { reader: BufReader::new(stdout), writer: stdin, limit: REPLY_LIMIT };
@@ -355,6 +398,24 @@ mod tests {
         assert_eq!(ok.backoff, BACKOFF_FIRST * 8);
         ok.next(1, Duration::ZERO).unwrap();
         assert_eq!(ok.backoff, BACKOFF_FIRST);
+    }
+
+    /// T-174: a sidecar with a token gets it on its descriptor 3, and the
+    /// token is in no argument of the sidecar.
+    #[test]
+    fn a_token_comes_on_descriptor_3_and_not_in_argv() {
+        let hello = r#"{"schema":1,"reply":"hello","source":"s","operator_controlled":true}"#;
+        let got = std::env::temp_dir().join(format!("podrunner-pat-{}", std::process::id()));
+        let body = format!(
+            "echo '{{\"op\":\"pat\"}}' >&3; read t <&3; printf '%s' \"$t\" > '{}'; read l; echo '{hello}'; sleep 5",
+            got.display()
+        );
+        let mut s = SidecarSource::with_token("sh", vec!["-c".into(), body.clone()], "made-up-pat-55".into(), "test");
+        assert!(!body.contains("made-up-pat-55"));
+        s.hello("p", "0").unwrap();
+        let text = std::fs::read_to_string(&got).unwrap();
+        let _ = std::fs::remove_file(&got);
+        assert_eq!(text, r#"{"token":"made-up-pat-55"}"#);
     }
 
     #[test]
