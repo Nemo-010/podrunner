@@ -1079,7 +1079,7 @@ A measure in `runner-image.yml`: name resolution in a confined podvm unit. A tes
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** blocked
 
 ## Problem
 
@@ -1096,6 +1096,10 @@ Give the runner a machine name of the unit: set `--hostname` of `podvm run` wher
 ## Prove
 
 A test of the podvm driver: the argv or the environment of the unit names the unit, not the host. The log of a canned job in `runner-image.yml` holds no host name of the runner VM.
+
+## Blocker
+
+podvm: `podvm run -d --hostname NAME` on the rungs with no UTS namespace (COORD-053, GitHub #115). .NET reads the machine name from `uname`, with no variable to set it, and podvm `0.2.0-beta.21` has no `--hostname`. When a podvm release has it, the driver gives `--hostname podrunner-UNIT`.
 
 # T-183: The tree-kill self-test of a held podvm unit fails, and its units stay after it
 

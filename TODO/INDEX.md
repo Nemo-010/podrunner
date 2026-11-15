@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**191 entries: 11 open, 11 partial, 6 blocked, 163 done.**
+**191 entries: 10 open, 11 partial, 7 blocked, 163 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 5 | 1 | 37 | 44 |
-| P2 | 4 | 4 | 3 | 72 | 83 |
+| P2 | 3 | 4 | 4 | 72 | 83 |
 | P3 | 6 | 2 | 2 | 54 | 64 |
-| **All** | 11 | 11 | 6 | 163 | 191 |
+| **All** | 10 | 11 | 7 | 163 | 191 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -229,7 +229,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-179](live.md) | P1 | M | M-C | defect | open | On an H0 host the runner times out on the broker under the seccomp hold and the egress module |
 | [T-180](live.md) | P2 | S | M-C | defect | partial | As PID 1 of a container, `serve` reaps no orphan: the zombies stop the supervisor |
 | [T-181](live.md) | P2 | M | M-C | defect | open | `--podvm-confine` stops name resolution in a podvm unit: the runner cannot reach the broker |
-| [T-182](live.md) | P2 | S | M-C | defect | open | A podvm unit has the host name of the host: the job log of GitHub shows it |
+| [T-182](live.md) | P2 | S | M-C | defect | blocked | A podvm unit has the host name of the host: the job log of GitHub shows it |
 | [T-183](live.md) | P2 | S | M-C | defect | open | The tree-kill self-test of a held podvm unit fails, and its units stay after it |
 | [T-184](live.md) | P2 | S | M-C | defect | open | `status` answers `busy` while the supervisor waits on a call of a source |
 | [T-185](live.md) | P3 | S | M-C | defect | open | `check`, `doctor` and `status` give a capacity that `serve` does not have |

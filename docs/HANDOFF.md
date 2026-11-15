@@ -144,6 +144,7 @@ is done.
 
 | Who | What | Entries |
 | --- | --- | --- |
+| podvm | `run -d --hostname` (#115) | T-182 |
 | LIVE-1 and LIVE-2 | the report of GitHub #75, and a new run on the next beta | T-032, T-033, T-040 |
 | podcrates | `pod-unit`, `pod-release` (none planned for v1) | T-043 |
 | actions/runner | a release with `Microsoft.AspNetCore.WebUtilities` 8.0.34 or later | T-082 |
