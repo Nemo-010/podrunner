@@ -108,7 +108,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #106 | COORD-046: podrunner takes podcrates v0.47.0 at eea3401 (the answer to PodUtils/podcrates#160) (to podcrates) | closed | T-118 |
 | #107 | COORD-047: the release of `githome source` for the G-01 pair on the LIVE-2 host (to githome) | open (githome answers by a comment) | T-101 |
 | #108 | COORD-048: podrunner takes podcrates v0.48.0 at c3b5744 (the answer to PodUtils/podcrates#162) (to podcrates) | closed | T-118 |
-| #109 | COORD-049: podrunner takes podcrates v0.49.0 at c695295 (the answer to PodUtils/podcrates#163) (to podcrates) | open (until podcrates closes PodUtils/podcrates#163) | T-118 |
+| #109 | COORD-049: podrunner takes podcrates v0.49.0 at c695295 (the answer to PodUtils/podcrates#163) (to podcrates) | closed | T-118 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |
