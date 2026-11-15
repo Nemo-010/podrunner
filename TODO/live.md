@@ -708,7 +708,7 @@ Go tests: each class gives its word, and a canary token in the error text appear
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** M
-**Status:** blocked
+**Status:** partial
 
 ## Problem
 
@@ -730,9 +730,7 @@ No call of the scale-set API gives an assigned job back (`actions/scaleset` v0.5
 
 A test of the mint: a withdrawn job frees its slot in the next `next`. A live check (GitHub #74, #75): after a refused fork job, the next trusted job runs within one poll.
 
-## Blocker
-
-The owner: Q7 of `TODO/PROGRESS.md` (the App permission "Actions: read and write" to cancel the run of a refused job).
+State (2026-11-15): the owner ruled Q7: cancel the run. The sidecar cancels the run of a job that podrunner withdraws with a refusal code (`cancel.go` of `tools/scaleset-sidecar`), once for each run, with a line of its log; a wait that ran out (`wait-deadline`), a job that GitHub cancelled and a test of the conformance suite cancel nothing. `TestARefusedJobCancelsItsRunOnce` fails without it. The App needs "Actions: read and write". Next: LIVE-1 gives the App that permission (GitHub #74), and the live check: after a refused fork job, the next trusted job runs.
 
 # T-170: A withdrawal by the tier rule leaves no trace in the mint
 

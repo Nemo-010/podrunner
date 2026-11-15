@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**197 entries: 0 open, 14 partial, 8 blocked, 175 done.**
+**197 entries: 0 open, 15 partial, 7 blocked, 175 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 0 | 4 | 1 | 40 | 45 |
+| P1 | 0 | 5 | 0 | 40 | 45 |
 | P2 | 0 | 7 | 4 | 74 | 85 |
 | P3 | 0 | 3 | 3 | 61 | 67 |
-| **All** | 0 | 14 | 8 | 175 | 197 |
+| **All** | 0 | 15 | 7 | 175 | 197 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -216,7 +216,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-166](live.md) | P1 | M | M-C | defect | done | The scale-set sidecar reads no `JobAssigned` message |
 | [T-167](live.md) | P1 | S | M-C | defect | done | The trust lookup reads `visibility`, which a run gives as null |
 | [T-168](live.md) | P2 | S | M-C | defect | done | The sidecar names each non-HTTP error "no answer", and never closes its message session |
-| [T-169](live.md) | P1 | M | M-C | defect | blocked | A withdrawn job holds the capacity of the scale set |
+| [T-169](live.md) | P1 | M | M-C | defect | partial | A withdrawn job holds the capacity of the scale set |
 | [T-170](live.md) | P2 | S | M-C | defect | done | A withdrawal by the tier rule leaves no trace in the mint |
 | [T-171](live.md) | P2 | S | M-C | defect | done | No command checks a mint file before `mint-serve` |
 | [T-172](live.md) | P3 | S | M-C | defect | done | The audit of `sign` lives only in memory |

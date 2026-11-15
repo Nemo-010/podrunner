@@ -36,6 +36,9 @@ type job struct {
 	state    jobState
 	// The runner of the JIT configuration: a release removes it.
 	runner int64
+	// The run of the job, to cancel it after a refusal (T-169).
+	owner, repo string
+	run         int64
 }
 
 type sidecar struct {
@@ -54,6 +57,8 @@ type sidecar struct {
 	// messages of one job name it by its runner request, or only by its
 	// jobId (T-166).
 	byJobID map[string]string
+	// The runs that the sidecar cancelled (T-169).
+	cancelled map[int64]bool
 	// The counts of status.
 	TrustLookupFailed int
 }
@@ -224,6 +229,10 @@ func (s *sidecar) handle(line []byte) map[string]any {
 		j := s.jobs[jobID]
 		if j != nil && j.state == claimed {
 			return errorReply("already-claimed", "release a claimed job")
+		}
+		if j != nil {
+			reason, _ := req["reason"].(string)
+			s.cancelRefused(j, reason)
 		}
 		s.forget(jobID)
 		return map[string]any{"reply": "done"}
@@ -418,7 +427,8 @@ func (s *sidecar) enqueue(b *scaleset.JobMessageBase, assigned bool) {
 	if b.JobID != "" {
 		s.byJobID[b.JobID] = id
 	}
-	j := &job{request: b.RunnerRequestID, assigned: assigned && b.RunnerRequestID == 0, state: offered}
+	j := &job{request: b.RunnerRequestID, assigned: assigned && b.RunnerRequestID == 0, state: offered,
+		owner: b.OwnerName, repo: b.RepositoryName, run: b.WorkflowRunID}
 	s.queue = append(s.queue, queued{id: id, job: j, offer: s.offer(id, b)})
 }
 

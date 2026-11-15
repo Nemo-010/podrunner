@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 197 entries: 0 open, 14 partial, 8 blocked, 175 done.
+`TODO/INDEX.md` holds 197 entries: 0 open, 15 partial, 7 blocked, 175 done.
 
 ## State
 
@@ -44,11 +44,9 @@ The local mode against act and runner.server (`docs/local-mode.md`) has no open 
 
 Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040).
 
-Blocked: T-169 (Q7), T-193 (Q8), T-182 (podvm `--hostname`, #115), T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
+Blocked: T-193 (Q8: githome gives its reasons on #151), T-182 (podvm `--hostname`, #115), T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
 
 ## Questions for the owner
-
-**Q7 (T-169, T-176):** a job that the tier rule refuses (a pull request from a fork that names a trusted set), or whose unit does not start, stays assigned to the scale set at GitHub and holds its capacity: in LIVE-1 no other job ran for 20 minutes (GitHub #74, defect 7). The scale-set API has no call that gives a job back, and a runner that fails the job can get another job instead (T-175). Recommendation: give the App the repository permission "Actions: read and write", and let the sidecar cancel the run of a refused job (`POST /repos/O/R/actions/runs/N/cancel`), with an audit line. It changes G-H3 of the live gates (DR-7: "Actions: read"). The other way: the operator cancels such runs by hand, and a set has more capacity than its slots.
 
 **Q8 (T-193, GitHub #136):** a `redirect` host serves one repository (DR-4: the files of a shared uid outlive a job). githome asks for a `repository` for each source, so that one host holds the scale set of an organization and a `program` source at `redirect`. That puts two repositories on one uid: a job of one can read what a job of the other left. Recommendation: keep one repository for each `redirect` host, and run such a pair at `confined` (the incus kind) or on two hosts, as githome did in the live run. The other way: a `repository` for each source, with a wipe of the home of the uid between two jobs of different repositories, which no kind proves now.
 
