@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**196 entries: 0 open, 13 partial, 8 blocked, 175 done.**
+**197 entries: 0 open, 14 partial, 8 blocked, 175 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 4 | 1 | 40 | 45 |
-| P2 | 0 | 6 | 4 | 74 | 84 |
+| P2 | 0 | 7 | 4 | 74 | 85 |
 | P3 | 0 | 3 | 3 | 61 | 67 |
-| **All** | 0 | 13 | 8 | 175 | 196 |
+| **All** | 0 | 14 | 8 | 175 | 197 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -244,3 +244,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-194](live.md) | P3 | S | later | feature | done | An emulated aarch64 host (QEMU user mode) serves no tier |
 | [T-195](live.md) | P3 | S | M-C | defect | done | Issue #75 names the expiry of the artifacts without the time, and not `runner-full-x86_64` |
 | [T-196](later.md) | P2 | S | later | defect | done | The level2 corpus fails on podcrates jobs that read live state |
+| [T-197](live.md) | P2 | S | M-C | defect | partial | A unit that `start_s` ends names no cause, and a slow host needs a larger `start_s` |

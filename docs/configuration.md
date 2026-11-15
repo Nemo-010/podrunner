@@ -65,6 +65,8 @@ prepare_s = 600
 claim_s = 60
 mint_s = 60
 start_s = 120
+                             # an emulated host (an aarch64 VM under TCG) starts the runner in about
+                             # 3 minutes: give it start_s = 900 (T-197)
 running_s = 21600
 grace_s = 30
 destroy_s = 60

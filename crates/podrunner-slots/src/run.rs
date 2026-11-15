@@ -334,6 +334,14 @@ impl Slots {
                         && j.term_ms.is_none()
                         && now.saturating_sub(j.since_ms) >= d.start_s * 1000
                     {
+                        // The deadline is the cause (T-197): a slow host (an
+                        // emulated one) needs a larger `[deadlines] start_s`.
+                        let why = format!(
+                            "the runner did not take the job in [deadlines] start_s ({} s): a slow host needs a larger start_s",
+                            d.start_s
+                        );
+                        eprintln!("podrunner: {u}: {why}");
+                        self.audit(audit::Kind::Refuse, key.0, &key.1, None, Some(why));
                         self.end(&key, ExitReason::UnitFailed, Signal::Kill, now);
                     } else if j.term_ms.is_none() && elapsed >= wall_s * 1000 {
                         self.end(&key, ExitReason::Timeout, Signal::Term, now);

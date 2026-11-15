@@ -131,7 +131,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #129 | Live run 2026-11-15: the unit host calls next of a remote mint about 10 times each second | closed (T-164 is done) | T-164 |
 | #130 | Live run 2026-11-15: the audit of sign is kept in memory only | closed (T-172 is done) | T-172 |
 | #131 | Live run 2026-11-15: podrunner --version does not name the beta | closed (T-173 is done) | T-173 |
-| #132 | Live run 2026-11-15: no PAT path for a github-scaleset source, although the spec allows one | open (T-174 is open) | T-174 |
+| #132 | Live run 2026-11-15: no PAT path for a github-scaleset source, although the spec allows one | closed (T-174 is done) | T-174 |
 | #133 | Live run 2026-11-15: issue #75 names the expiry of the runner image a day early, and not runner-full-x86_64 | closed (T-195 is done) | T-195 |
 | #134 | Live run 2026-11-15: the design copy of job-offer.v1 differs from the parser, and a parse failure reads as event-not-allowed | closed (T-188 is done) | T-188 |
 | #135 | Live run 2026-11-15: serve does not pull a digest-pinned container image, and the hook hides the cause | closed (T-177 is done) | T-177 |
@@ -148,6 +148,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #146 | Live run 2026-11-15: an aarch64 host under QEMU user mode serves no tier | closed (T-194 is done) | T-194 |
 | #147 | Live run 2026-11-15: a podvm unit has the host name of the host | open (T-182 is blocked) | T-182 |
 | #148 | [gh action] requested | open (the gate, secrets, `runner-image.yml` and `level2.yml` of `main` at `04ff34f` or later) | T-162, T-183, T-192 |
+| #149 | Live run 2026-11-15: on an emulated aarch64 host, start_s (120 s) kills the first unit, and nothing names the deadline | open | T-197 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

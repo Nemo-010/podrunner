@@ -26,3 +26,20 @@ fn a_failed_start_releases_the_job_and_names_the_cause() {
     let audit = std::fs::read_to_string(bed.slots.state_dir.join("audit.jsonl")).unwrap();
     assert!(audit.contains("start: "), "the audit names no cause: {audit}");
 }
+
+/// T-197: a unit whose runner does not take its job in `start_s` ends
+/// `unit-failed`, and the audit names the deadline.
+#[test]
+fn the_start_deadline_names_itself() {
+    let cap = capability(Boundary::Confined, Principal::Distinct, EgressHold::Advisory);
+    let mut bed = Bed::new(
+        config("[deadlines]\nstart_s = 3\n"),
+        vec![("a", "trusted", None, vec![offer(0, "j-2", json!({}))])],
+        vec![KindSpec { name: "fake", slots: 1, capability: cap, command: sh("sleep 30") }],
+    );
+    bed.until(30, |s| s.jobs().all(|j| j.state.is_final()) && s.jobs().count() == 1);
+    let r = bed.slots.reports.iter().find(|r| r.job_id.as_str() == "j-2").expect("a report");
+    assert_eq!(r.exit_reason, podrunner_schema::ExitReason::UnitFailed, "{r:?}");
+    let audit = std::fs::read_to_string(bed.slots.state_dir.join("audit.jsonl")).unwrap();
+    assert!(audit.contains("[deadlines] start_s (3 s)"), "{audit}");
+}

@@ -1515,3 +1515,32 @@ Amend the body of #75: the time of the expiry, and the use of `runner-full-x86_6
 ## Done
 
 2026-11-15: the body of #75 says "2026-12-15T00:08Z (UTC)" and what `runner-full-x86_64` is (the larger image of T-129; the gates need `runner-x86_64` only).
+
+# T-197: A unit that `start_s` ends names no cause, and a slow host needs a larger `start_s`
+
+**Source:** the owner's issue of the live run, 2026-11-15 (GitHub #149)
+**Category:** defect
+**Milestone:** M-C
+**Priority:** P2
+**Effort:** S
+**Status:** partial
+
+## Problem
+
+On an emulated aarch64 host (a Debian 13 VM under `qemu-system-aarch64` with no KVM), the first job unit ended `unit-failed` after 180 s: the default `[deadlines] start_s` (120 s) ended it before its runner took the job; the payload takes about 2 min 45 s to start there. Nothing named the deadline: the log of `serve` had only the line of T-159, and `status` said `degraded` for the residue. With `start_s = 900` the job passed (GitHub #149, #75).
+
+## Premise
+
+The issue of the owner, read on 2026-11-15; `crates/podrunner-slots/src/run.rs` ends a unit in `Started` after `start_s`.
+
+## Approach
+
+1. Name the deadline in the log of `serve` and in the audit when it ends a unit.
+2. `doctor`, or the tree-kill self-test, measures the start of the pinned payload on the host and warns when it is near `start_s`.
+3. Keep the tail of the `_diag` log of the runner of a unit that a deadline ended, for the report.
+
+## Prove
+
+`cargo test -p podrunner-slots start_deadline`: a unit that `start_s` ends names the deadline in the audit. A test of `doctor` with a slow fake payload warns.
+
+State (2026-11-15): step 1 is in: the log of `serve` and the audit say "the runner did not take the job in [deadlines] start_s (N s): a slow host needs a larger start_s" (`tests::start::the_start_deadline_names_itself`, which fails on the code of before). `docs/configuration.md` gives `start_s = 900` for an emulated host. Next: steps 2 and 3.
