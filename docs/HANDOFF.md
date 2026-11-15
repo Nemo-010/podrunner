@@ -14,7 +14,7 @@ is done.
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
   beta.14, T-112); podnet `v0.4.0-beta.8` (`images/podnet.toml`); the
   official runner v2.338.2 (`images/runner/runner.toml`). Last beta of
-  podrunner: `v0.1.0-beta.5` (release run 43656918895, `34d56b5`).
+  podrunner: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`).
 - The record: `cargo todo check` gives the counts. The last green
   `runner-image.yml` run is 43663327458 (`c695295`): the podvm suites,
   the held tests, the local suite on each kind, the parity suite in
@@ -120,8 +120,8 @@ is done.
   fix each defect they find.
 - The account of this session starts no GitHub Actions run: neither a
   push nor a dispatch. Ask the local agent with an issue `[gh action]
-  requested` (`docs/maintenance.md`, "A run of a workflow"). #148 asks
-  for the gate, secrets, `runner-image.yml` and `level2.yml` of `04ff34f`.
+  requested` (`docs/maintenance.md`, "A run of a workflow"). #150 ran the
+  runs of `88cc4d7` and released `v0.1.0-beta.6`.
 - podvm answers COORD issues `(to podvm)` in its repository with
   `(to podrunner)`. podssh is on break.
 - The x86_64 job of `runner-image.yml` takes up to 120 minutes; it has

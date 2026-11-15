@@ -8,8 +8,7 @@
   DR-1 to DR-7 and GitHub #8 (`docs/decisions.md`); DR-7 is yes
   (2026-11-13): the live gates run on GitHub #74 and #75.
 - Pins: podcrates `v0.51.0`, podvm `v0.2.0-beta.21`, podnet
-  `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.5` (release
-  run 43656918895, `34d56b5`; it pins podcrates `v0.47.0`). Last green
+  `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`; its runner image is the archive of runner-image run 43704601731). Last green
   `runner-image.yml`: 43663327458 (`c695295`); 43669743775 (`fa84341`) is red only at the static image (T-158); the tag `v0.1.0-beta.5` has run 43658370121 with its archives.
 - M-A and M-B hold. M-C: T-027 to T-030 done; the gate T-032 waits for
   the live gates (GitHub #74, #75). M-D: T-031 and T-045 done; the gate
@@ -33,7 +32,7 @@ then take the next one.
 
 The queue, most valuable first:
 
-1. The live reports (GitHub #74, #75, and the issues #116 to #147 of the owner): T-192 (P1: `serve` stops after a unit ends `unit-failed`), T-179 (P1: H0, the seccomp hold and the egress module time out), then T-181, T-183 (P2), T-186 (P3). The partial entry T-162 waits for its measure in `runner-image.yml`; T-175 waits for its step on the test organization. A new beta for LIVE-1 and LIVE-2 follows.
+1. The live reports (GitHub #74, #75, and the issues #116 to #147 of the owner): T-192 (P1: `serve` stops after a unit ends `unit-failed`), T-179 (P1: H0, the seccomp hold and the egress module time out), then T-181, T-183 (P2), T-186 (P3). The partial entry T-162 waits for its measure in `runner-image.yml`; T-175 waits for its step on the test organization. `v0.1.0-beta.6` is out for LIVE-1 and LIVE-2 (#74, #75) and githome (#151).
 
 
 3. T-162 (M, open): G-12 limits: `--ulimit nproc=` and `as=` hold on podvm `run -d` now (PodUtils/podvm#382); the incus keys come with the next podvm release.
