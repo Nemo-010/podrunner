@@ -3974,3 +3974,32 @@ The ruling "Installer" (`docs/decisions.md`): one POSIX installer for each proje
 ## Prove
 
 `sh scripts/test-install.sh` runs each shell and the cut run; `user-gate.yml` (T-243) runs the installer in each lab with a limit of time.
+
+# T-250: The state of each issue comes from the record by a tool
+
+**Source:** the ruling "Issues" of the owner (2026-11-15, PodUtils/podcrates#183); COORD-065 (GitHub #184)
+**Category:** chore
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+The state column of `TODO/issues.md` and the bodies and comments of the issues are written by hand, and drift: the housekeeping of 2026-11-15 amended 12 issues, and a tester read a state that was old.
+
+## Premise
+
+podcrates writes a reusable workflow and the check in `pod-todo` (PodUtils/podcrates@T-703): an issue is open exactly when an entry of it is not done, and a block of its body holds its state, from the record.
+
+## Approach
+
+Take the workflow and the check of podcrates when they are out; give it the map of `TODO/issues.md` (COORD-065, GitHub #184); drop the state column that is written by hand.
+
+## Prove
+
+`cargo todo check` fails on an open issue whose entries are all done; the workflow writes the block of a test issue.
+
+## Blocker
+
+2026-11-15: podcrates: the workflow and the check of PodUtils/podcrates@T-703 (PodUtils/podcrates#183).

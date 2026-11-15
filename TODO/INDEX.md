@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**249 entries: 19 open, 16 partial, 12 blocked, 202 done.**
+**250 entries: 19 open, 16 partial, 13 blocked, 202 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 3 | 6 | 3 | 44 | 56 |
-| P2 | 11 | 7 | 6 | 85 | 109 |
+| P2 | 11 | 7 | 7 | 85 | 110 |
 | P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 19 | 16 | 12 | 202 | 249 |
+| **All** | 19 | 16 | 13 | 202 | 250 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -297,3 +297,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-247](later.md) | P2 | S | later | release | open | The notes of a release name the level of the proof of each claim |
 | [T-248](later.md) | P1 | M | later | feature | blocked | The help and the manual of podrunner from the shared crate of PodUtils |
 | [T-249](later.md) | P1 | M | later | feature | open | The installer on each host class, and the shared core of podcrates |
+| [T-250](later.md) | P2 | S | later | chore | blocked | The state of each issue comes from the record by a tool |
