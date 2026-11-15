@@ -2484,3 +2484,30 @@ Read `TODO/plan.md` (the table of non-goals) and `docs/unknowns.md` (U15) on 202
 ## Prove
 
 A new page of `docs/` has the census and the call; one canned job of the fake broker passes with the alternate payload in a unit.
+
+# T-162: G-12: limits of CPU, memory and processes on the podvm and incus kinds
+
+**Source:** githome's G-12 (GitHub #66): limits of CPU, memory and processes on container and microVM units, and a hard end within 60 s
+**Category:** feature
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+G-12 asks for limits of CPU, memory and processes on each unit. podrunner enforces the wall time (a hard end, T-021) and the disk (T-074) on each kind, and the memory and the vCPUs of a guest of the `microvm` kind (`[unit.microvm] mem`, `cpus`). A unit of the `podvm` kind and an instance of the `incus` kind have no limit of CPU, memory or processes: a job can take the memory of the host.
+
+## Premise
+
+Read `docs/configuration.md` and the drivers on 2026-11-15. The `incus` tier of podvm refuses `--podvm-mem`. Not measured: which limits the userland and supervise rungs of podvm can hold with no root (rlimits, a cgroup that the user owns), and which keys of incusd podvm passes (`limits.cpu`, `limits.memory`, `limits.processes`).
+
+## Approach
+
+1. Measure on the CI host: the limits that podvm applies to a `run -d` with no root, and the keys of an incus instance.
+2. Ask podvm by a COORD issue for each limit that it lacks (a cgroup v2 leaf of the user, or rlimits for `RLIMIT_AS` and `RLIMIT_NPROC`; the incus keys).
+3. Add `cpu`, `mem` and `pids` to `[unit.podvm]` and `[unit.incus]`, and to the limits of an offer; `slots` refuses an offer whose limit a kind cannot hold.
+
+## Prove
+
+A unit conformance test on each kind: a payload that forks past `pids`, and one that allocates past `mem`, end with the code `limit`; `runner-image.yml` runs it on the podvm and incus kinds.

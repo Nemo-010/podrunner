@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 161 entries: 1 open, 4 partial, 6 blocked, 150 done.
+`TODO/INDEX.md` holds 162 entries: 2 open, 4 partial, 6 blocked, 150 done.
 
 ## State
 
@@ -34,10 +34,11 @@ The queue, most valuable first:
 
 1. T-101 (M, partial): the `program` source kind is in; its pair with GitHub runs on the host of LIVE-2 (GitHub #75) when githome gives its program.
 
-The local mode against act and runner.server (`docs/local-mode.md`), the features that most workflows need first:
+2. T-162 (M, open): G-12, limits of CPU, memory and processes on the podvm and incus kinds: measure, then ask podvm.
+3. T-161 (M, open): an alternate payload (U15, allowed on 2026-11-14): the census of the calls of the runner, then the choice.
+4. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 
-2. T-161 (M, open): an alternate payload (U15, allowed on 2026-11-14): the census of the calls of the runner, then the choice.
-3. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
+The local mode against act and runner.server (`docs/local-mode.md`) has no open entry; T-158 waits for podvm.
 
 Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040).
 
