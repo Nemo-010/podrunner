@@ -89,47 +89,70 @@ is done.
 
 ## In flight
 
-- podvm is available (the owner, 2026-11-13): it answers COORD issues
-  `(to podvm)`. podssh is on break.
+- **First:** read the runner-image run 43669743775 (`fa84341`, podvm
+  `0.2.0-beta.19`). When it is green: close T-158 (the job `static` of
+  `tags.yml`) and T-163 (the mirror saves from the store of the units),
+  then close COORD-040 (#100) and COORD-044 (#104) with a comment. When
+  it is red: read the failed step; Docker Hub can answer HTTP 429 (its
+  limit for a host with no login), which is not a defect of podrunner.
+- T-162 (open, G-12): podvm answered on PodUtils/podvm#382. `--ulimit
+  nproc=N` and `--ulimit as=BYTES` hold on `run -d` now: add
+  `[unit.podvm] mem` and `pids` with them, and the conformance tests of
+  its Prove. The incus keys (`--memory`, `--cpus`, `--pids-limit`) come
+  with the next podvm release (PodUtils/podvm@T-1897). COORD-050 (#110)
+  stays open until then.
+- T-161 (partial): `docs/alternate-payload.md` has the census of the
+  calls of the runner and the call: measure an existing third-party
+  runner against the fake broker first.
 - T-159 (partial): the destroy of a podvm unit gave an unknown count of
-  processes once; `destroy` now logs the cause. Read it at the next failure.
-- T-161 (open): an alternate payload; the owner allowed it (U15,
-  2026-11-14). The plan names its trigger: a target that no official
-  runner serves.
-- T-101 (partial): the `program` source kind is in; its pair with GitHub
-  runs on the host of LIVE-2 when githome gives its program (GitHub #66).
-- The live gates: two agents on two constrained hosts, GitHub #74
-  (LIVE-1, the remote mint and the App key) and #75 (LIVE-2, the unit
-  host and the test jobs). Read their comments; fix each defect they
-  find.
-- The x86_64 job of `runner-image.yml` takes up to 120 minutes with the
-  parity suite in guests with an engine and the measures; it has 150 minutes.
-- The gate queues for many minutes, and a newer push cancels a queued
-  run. Push less often. Close an entry on the green run of a later commit
-  that holds the work. A push that changes only `TODO/` or `docs/` runs
-  the gate only; `runner-image.yml` and `level2.yml` run on their paths.
+  processes once; `destroy` now logs the cause (`podrunner: destroy UNIT:
+  no count of processes: ...`). Conformance test 26 prints it on purpose.
+  Read it at the next real failure.
+- T-101 (partial): the `program` source kind is released; COORD-047
+  (#107) asks githome for `githome source`, its conformance output and
+  the configuration of the pair on the LIVE-2 host. githome answers by a
+  comment on #107 (the owner, 2026-11-14).
+- The live gates: GitHub #74 (LIVE-1, the remote mint and the App key)
+  and #75 (LIVE-2, the unit host and the test jobs) name `v0.1.0-beta.5`
+  and the runner-image run 43658370121 of its tag. Read their comments;
+  fix each defect they find.
+- podvm answers COORD issues `(to podvm)` in its repository with
+  `(to podrunner)`. podssh is on break.
+- The x86_64 job of `runner-image.yml` takes up to 120 minutes; it has
+  150 minutes.
+- A push that changes only `TODO/` or `docs/` runs the gate only;
+  `runner-image.yml` and `level2.yml` run on their paths. A newer push
+  cancels a queued gate run. Run `cargo todo check` with no pipe before
+  a commit: a pipe hides its exit code.
+- The disk of a cloud session is small: run the checks with
+  `CARGO_BUILD_JOBS=4 CARGO_INCREMENTAL=0
+  CARGO_PROFILE_DEV_DEBUG=line-tables-only
+  CARGO_PROFILE_TEST_DEBUG=line-tables-only`, and remove
+  `target/x86_64-unknown-linux-musl/debug` and `target/debug` when a link
+  fails with no space.
 
 ## What waits on whom
 
 | Who | What | Entries |
 | --- | --- | --- |
 | LIVE-1 and LIVE-2 | the reports of GitHub #74 and #75 | T-032, T-033, T-040 |
-| githome | its source program, for the pair on the host of LIVE-2 | T-101 |
+| githome | `githome source`, for the pair on the host of LIVE-2 (#107) | T-101 |
+| podvm | the incus keys of the limits (PodUtils/podvm@T-1897, next release) | T-162 |
 | podcrates | `pod-unit`, `pod-release` (none planned for v1) | T-043 |
 | actions/runner | a release with `Microsoft.AspNetCore.WebUtilities` 8.0.34 or later | T-082 |
 
 ## Open issues and asks
 
 - GitHub #65, #66, #67: the trackers of the asks of cfb, githome and the
-  CI plan that podrunner owns (from PodUtils/podcrates#35, #36, #47).
-  Their lines map to the entries; T-001 holds them.
-- The asks of the local mode to podcrates are closed (#94, #95, #97, #98):
-  podrunner uses `pod-actions-store` and `pod-actions-results` of
-  `v0.45.0`. GitHub #96 (COORD-036): the take
-  of `v0.42.0`. GitHub #100 (COORD-040, to podvm): a glibc image where
-  chroot is denied.
+  CI plan that podrunner owns. Their bodies have the current state
+  (2026-11-15); T-001 holds them.
+- COORD issues open: #100 (COORD-040) and #104 (COORD-044) close on the
+  green run of `fa84341`; #107 (COORD-047, to githome); #110 (COORD-050,
+  to podvm). No podcrates release notice is open; podrunner takes
+  podcrates `v0.49.0`.
 - GitHub #9, #32, #33, #40: wait for the live gates (#74, #75). GitHub
   #43 waits for podcrates.
+- No question for the owner is open (`TODO/PROGRESS.md`).
 
 ## Talk between sessions
 

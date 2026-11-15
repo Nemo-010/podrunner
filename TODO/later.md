@@ -2499,7 +2499,7 @@ State (2026-11-15): steps 1 and 2: `docs/alternate-payload.md` has the census of
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** blocked
+**Status:** open
 
 ## Problem
 
@@ -2521,9 +2521,7 @@ A unit conformance test on each kind: a payload that forks past `pids`, and one 
 
 State (2026-11-15): step 1 is read from the limits page of podvm: the CLI refuses `--memory` and `--cpus` with exit 125 (no cgroup that the runtime grants), and the incus tier refuses `--ulimit` and `--podvm-mem`. So no limit of memory, CPU or processes exists for the native tiers or the incus tier. Step 2: COORD-050 (GitHub #110) asks podvm for rlimits on `run -d`, a cgroup leaf where the host delegates one, the incus keys, and a report of the held limits.
 
-## Blocker
-
-podvm: the limits of COORD-050 (GitHub #110).
+State (2026-11-15, later): podvm answered on PodUtils/podvm#382. (1) `--ulimit nproc=N` and `--ulimit as=BYTES` already hold on `run -d` of the native tiers (also where chroot is denied); each child keeps them. The cgroup half (`--memory`, `--cpus`, `--pids-limit` on a delegated subtree) is PodUtils/podvm@T-1747, open. (2) The incus tier: `--memory`, `--cpus` and `--pids-limit` become `limits.memory`, `limits.cpu` and `limits.processes` (PodUtils/podvm@T-1897, on podvm `main`, in the next release). (3) The `limits` field of `--report` names the held limits. Next: `[unit.podvm] mem` and `pids` as `--ulimit as=` and `--ulimit nproc=`, with the conformance tests of the Prove; the incus keys after the podvm release with PodUtils/podvm@T-1897.
 
 
 # T-163: Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units
