@@ -138,7 +138,8 @@ line where the block stopped. The local agent runs the block once and
 answers on the issue. Read the runs, then close the issue. Each request is
 a new issue: the local agent does not read a comment on an issue that is
 there already (the owner, 2026-11-15). When a request changes, close the
-old issue and open a new one.
+old issue and open a new one. The same holds for an answer to another project: a
+new COORD issue, not a comment on an older one.
 
 ## A release
 
