@@ -1349,7 +1349,7 @@ Add `[trust] users` (a login and an optional id) for a source whose forge allows
 **Milestone:** M-C
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -1363,9 +1363,15 @@ The issue of the owner, read on 2026-11-15 (podrunner `v0.1.0-beta.5`, podvm `0.
 
 Find the lock that the main thread waits for after a failed unit: the locks of the podvm driver (`units`), of the hooks (`Hooks::open` and the lock of each `HookUnit`, which a server thread holds while it reads its socket), and of the egress module. Reproduce with a fake kind whose payload ends at once and a hook socket that a client holds open. Hold no lock across a read of a socket.
 
+## Decision
+
+The wait of the main thread fits `Hooks::close`: it joined the thread of the hook socket, and that thread serves one connection at a time with no read deadline, so a relay that sent half a request (a unit that failed in a call), or a call of the driver that does not end, held the join for ever (the futex), with the thread in a socket receive. Now each connection has a read deadline (`server::READ_LIMIT`, 10 s), `close` waits for the thread for `CLOSE_WAIT` (2 s) and then leaves it, and `take` and `take_images` take the lock of the unit with `try_lock`: a step holds it for its whole run, and the supervisor takes the events at a later tick.
+
 ## Prove
 
 `cargo test -p podrunner --test serve`: a unit that ends `unit-failed` while a client holds its hook socket open; `status` answers, and the next job runs.
+
+State (2026-11-15): `hooks::tests::close_returns_while_a_client_holds_half_a_request` (`crates/podrunner/src/hooks/tests.rs`): `close` returns while a client holds half a request, and `take` does not wait; on the code of before, `close` did not return in 14 s. Next: the failure of GitHub #144 on the next beta.
 
 # T-193: A `redirect` host serves one repository only, so it cannot hold two sources
 

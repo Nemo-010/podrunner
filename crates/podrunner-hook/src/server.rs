@@ -140,6 +140,9 @@ pub fn serve(listener: UnixListener, unit: Arc<Mutex<dyn Unit>>) {
     serve_until(listener, unit, Arc::default());
 }
 
+/// The longest wait for the request of one connection.
+pub const READ_LIMIT: std::time::Duration = std::time::Duration::from_secs(10);
+
 /// Serve until `stop` is set: a connection after it ends the loop.
 pub fn serve_until(listener: UnixListener, unit: Arc<Mutex<dyn Unit>>, stop: Arc<AtomicBool>) {
     for conn in listener.incoming() {
@@ -147,6 +150,9 @@ pub fn serve_until(listener: UnixListener, unit: Arc<Mutex<dyn Unit>>, stop: Arc
             return;
         }
         let Ok(stream) = conn else { return };
+        // A client that sends half a request does not hold the thread: the
+        // relay writes its request at once (T-192).
+        let _ = stream.set_read_timeout(Some(READ_LIMIT));
         let Ok(mut w) = stream.try_clone() else { continue };
         let (status, headers, body) = match read_request(&mut BufReader::new(stream)) {
             Err(e) => bad(e),

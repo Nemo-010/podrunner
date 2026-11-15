@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use std::thread::JoinHandle;
 
 use podrunner_schema::RefusalCode;
 use podrunner_unit::{UnitDriver, UnitId};
@@ -18,8 +17,12 @@ struct Open {
     unit: Arc<Mutex<HookUnit>>,
     stop: Arc<AtomicBool>,
     socket: PathBuf,
-    thread: JoinHandle<()>,
+    /// Gets a message when the thread ends.
+    done: std::sync::mpsc::Receiver<()>,
 }
+
+/// The longest wait of `close` for the thread of a socket.
+pub const CLOSE_WAIT: std::time::Duration = std::time::Duration::from_secs(2);
 
 /// The open sockets, by unit id.
 #[derive(Default)]
@@ -43,10 +46,12 @@ impl Hooks {
         let hook = Arc::new(Mutex::new(HookUnit::new(driver, unit.clone(), policy, None, logs.to_path_buf())));
         let stop: Arc<AtomicBool> = Arc::default();
         let (u, s): (Arc<Mutex<dyn Unit>>, _) = (hook.clone(), stop.clone());
-        let thread = std::thread::Builder::new()
-            .name(format!("podrunner-ctl-{unit}"))
-            .spawn(move || serve_until(listener, u, s))?;
-        let open = Open { unit: hook, stop, socket: socket.to_path_buf(), thread };
+        let (end, done) = std::sync::mpsc::channel();
+        let _thread = std::thread::Builder::new().name(format!("podrunner-ctl-{unit}")).spawn(move || {
+            serve_until(listener, u, s);
+            let _ = end.send(());
+        })?;
+        let open = Open { unit: hook, stop, socket: socket.to_path_buf(), done };
         self.open.lock().expect("the sockets").insert(unit.to_string(), open);
         Ok(())
     }
@@ -55,7 +60,9 @@ impl Hooks {
     pub fn take(&self, unit: &UnitId) -> (Vec<RefusalCode>, Vec<JobEvent>) {
         let open = self.open.lock().expect("the sockets");
         let Some(o) = open.get(unit.as_str()) else { return Default::default() };
-        let Ok(mut u) = o.unit.lock() else { return Default::default() };
+        // A step holds the unit for its whole run: the supervisor does not
+        // wait for it, and takes the events at a later tick (T-192).
+        let Ok(mut u) = o.unit.try_lock() else { return Default::default() };
         // The runner gets the code only; the log of `serve` names the cause
         // of each refusal of the driver (T-177).
         for e in std::mem::take(&mut u.driver_errors) {
@@ -69,7 +76,7 @@ impl Hooks {
     pub fn take_images(&self, unit: &UnitId) -> Vec<String> {
         let open = self.open.lock().expect("the sockets");
         let Some(o) = open.get(unit.as_str()) else { return Vec::new() };
-        o.unit.lock().map(|mut u| std::mem::take(&mut u.images)).unwrap_or_default()
+        o.unit.try_lock().map(|mut u| std::mem::take(&mut u.images)).unwrap_or_default()
     }
 
     /// End the socket of `unit`: its thread ends, and the socket file goes.
@@ -78,7 +85,12 @@ impl Hooks {
         o.stop.store(true, Ordering::SeqCst);
         // A connection wakes the accept, and the loop sees the stop.
         let _ = crate::server::connect(&o.socket);
-        let _ = o.thread.join();
+        // The thread can be in a call of the driver that does not end (a
+        // unit that failed): the supervisor waits for it a short time only,
+        // and the thread ends at the end of that call (T-192).
+        if o.done.recv_timeout(CLOSE_WAIT).is_err() {
+            eprintln!("podrunner: {unit}: the hook thread did not end in {CLOSE_WAIT:?}: it is left");
+        }
         let _ = std::fs::remove_file(&o.socket);
     }
 }

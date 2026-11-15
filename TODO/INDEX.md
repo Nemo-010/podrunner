@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**195 entries: 12 open, 11 partial, 7 blocked, 165 done.**
+**195 entries: 11 open, 12 partial, 7 blocked, 165 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 5 | 1 | 37 | 45 |
+| P1 | 1 | 6 | 1 | 37 | 45 |
 | P2 | 2 | 4 | 4 | 73 | 83 |
 | P3 | 8 | 2 | 2 | 55 | 67 |
-| **All** | 12 | 11 | 7 | 165 | 195 |
+| **All** | 11 | 12 | 7 | 165 | 195 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -239,7 +239,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-189](live.md) | P2 | S | M-C | defect | done | A program source re-offers a refused job at the head of each `next` |
 | [T-190](live.md) | P3 | S | later | defect | open | `source-conformance` needs two offers on the first `next` of each test, and its claims stay |
 | [T-191](live.md) | P3 | S | later | defect | open | The tier rule takes only an organization as the owner of a trusted repository |
-| [T-192](live.md) | P1 | M | M-C | defect | open | `serve` stops after a unit ends `unit-failed` |
+| [T-192](live.md) | P1 | M | M-C | defect | partial | `serve` stops after a unit ends `unit-failed` |
 | [T-193](live.md) | P3 | M | later | feature | open | A `redirect` host serves one repository only, so it cannot hold two sources |
 | [T-194](live.md) | P3 | S | later | feature | open | An emulated aarch64 host (QEMU user mode) serves no tier |
 | [T-195](live.md) | P3 | S | M-C | defect | done | Issue #75 names the expiry of the artifacts without the time, and not `runner-full-x86_64` |

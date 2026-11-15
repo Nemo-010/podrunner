@@ -105,3 +105,39 @@ fn a_unit_reaches_its_socket_through_the_relay() {
     let _ = fake.destroy(&id);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-192: a client that sends half a request and holds its socket open
+/// (a relay in a unit that failed) does not stop `close`: the supervisor
+/// goes on.
+#[test]
+fn close_returns_while_a_client_holds_half_a_request() {
+    use std::io::Write;
+    let dir = std::env::temp_dir().join(format!("podrunner-hooks-half-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let fake: Arc<dyn UnitDriver> = Arc::new(FakeUnit::new(&dir.join("fake"), capability(), "linux/amd64"));
+    let id = UnitId::parse("u-2").unwrap();
+    let policy = podrunner_hook::policy::Policy {
+        container: ContainerRoute::Hooks,
+        shared_host_net: false,
+        registries: vec![],
+        work_root: String::new(),
+    };
+    let hooks = Arc::new(HooksOf::new([("fake".to_string(), policy)].into()));
+    let socket = dir.join("ctl").join("u-2.ctl");
+    hooks.open("fake", fake, &id, &socket, None).unwrap();
+    let mut half = std::os::unix::net::UnixStream::connect(&socket).unwrap();
+    half.write_all(b"POST /hook HTTP/1.1\r\nContent-Length: 100\r\n\r\n{").unwrap();
+    let (tx, rx) = std::sync::mpsc::channel();
+    let (h, i) = (hooks.clone(), id.clone());
+    std::thread::spawn(move || {
+        h.close(&i);
+        let _ = tx.send(());
+    });
+    let limit =
+        podrunner_hook::server::READ_LIMIT + podrunner_hook::hooks::CLOSE_WAIT + std::time::Duration::from_secs(2);
+    assert!(rx.recv_timeout(limit).is_ok(), "close did not return in {limit:?}");
+    // The main thread takes no lock that a step holds.
+    assert_eq!(hooks.take(&id).0, []);
+    drop(half);
+    let _ = std::fs::remove_dir_all(&dir);
+}
