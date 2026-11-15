@@ -1023,7 +1023,7 @@ The H0 step of `runner-image.yml`: a canned job of the official runner passes in
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -1037,9 +1037,15 @@ The LIVE-2 report on GitHub #75, read on 2026-11-15: a full host (WSL2, user nam
 
 When `serve` is PID 1, become a subreaper that reaps each orphan (`waitpid(-1, WNOHANG)` on each tick), or refuse to start as PID 1 with a message that names `--init`.
 
+## Decision
+
+`serve` does not reap with `waitpid(-1)` itself: that takes the exit status of a process that a driver waits for. As PID 1 it forks first (`crates/podrunner/src/init.rs`): the parent reaps each child and passes each signal on, as `tini` does, and exits with the code of the child; the child runs `serve`.
+
 ## Prove
 
 A test that starts `serve` as PID 1 of a new PID namespace where one exists (or a unit test of the reaper with a subreaper): no zombie stays after a unit ends.
+
+State (2026-11-15): the reaper is in. `tests/pid1.rs` runs `serve` as PID 1 of a new PID namespace (`unshare -Urpf`; it skips where the host refuses one): the code and the text of `serve` are the same as with no namespace. Next: a test that an orphan of a unit is reaped (a fake kind whose payload leaves a child), and the H0 container of GitHub #75 on the next beta.
 
 # T-181: `--podvm-confine` stops name resolution in a podvm unit: the runner cannot reach the broker
 

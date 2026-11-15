@@ -125,6 +125,8 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
             o.only(&["--config", "--state", "--socket"])?;
             let state = o.need("--state")?;
             let socket = o.get("--socket").unwrap_or_else(|| crate::serve::socket_of(&state));
+            // As PID 1 of a container, a parent reaps the orphans (T-180).
+            crate::init::reap_as_pid1();
             crate::serve::run(&o.need("--config")?, &state, &socket).map_err(|f| err(f.class, f.detail))?;
             Ok(ok(String::new()))
         }

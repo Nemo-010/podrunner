@@ -8,6 +8,7 @@ pub mod doctor;
 pub mod hooks;
 pub mod image;
 pub mod incus_kind;
+pub mod init;
 pub mod lock;
 pub mod microvm_kind;
 pub mod mint_serve;
