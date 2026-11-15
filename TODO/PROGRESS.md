@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 163 entries: 1 open, 7 partial, 5 blocked, 150 done.
+`TODO/INDEX.md` holds 163 entries: 1 open, 5 partial, 6 blocked, 151 done.
 
 ## State
 
@@ -10,7 +10,7 @@
 - Pins: podcrates `v0.49.0`, podvm `v0.2.0-beta.19`, podnet
   `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.5` (release
   run 43656918895, `34d56b5`; it pins podcrates `v0.47.0`). Last green
-  `runner-image.yml`: 43663327458 (`c695295`); the tag `v0.1.0-beta.5` has run 43658370121 with its archives.
+  `runner-image.yml`: 43663327458 (`c695295`); 43669743775 (`fa84341`) is red only at the static image (T-158); the tag `v0.1.0-beta.5` has run 43658370121 with its archives.
 - M-A and M-B hold. M-C: T-027 to T-030 done; the gate T-032 waits for
   the live gates (GitHub #74, #75). M-D: T-031 and T-045 done; the gate
   T-033 waits for the live gates. L2 holds: T-034 to T-039 done
@@ -37,14 +37,13 @@ The queue, most valuable first:
 
 2. T-162 (M, open): G-12 limits: `--ulimit nproc=` and `as=` hold on podvm `run -d` now (PodUtils/podvm#382); the incus keys come with the next podvm release.
 3. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.
-4. T-158 (S, partial) and T-163 (S, partial): podvm `0.2.0-beta.19` is pinned; close both on the green run of `runner-image.yml`.
-5. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
+4. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 
 The local mode against act and runner.server (`docs/local-mode.md`) has no open entry.
 
 Partial, closed by their gates: T-001 (closes with GitHub #1), T-009 (the live rows wait for T-040).
 
-Blocked: T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates).
+Blocked: T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runner release with WebUtilities 8.0.34), T-043 (crates of podcrates), T-158 (a read-only bind of podvm for a static image, COORD-051, GitHub #111).
 
 ## Questions for the owner
 

@@ -89,12 +89,12 @@ is done.
 
 ## In flight
 
-- **First:** read the runner-image run 43669743775 (`fa84341`, podvm
-  `0.2.0-beta.19`). When it is green: close T-158 (the job `static` of
-  `tags.yml`) and T-163 (the mirror saves from the store of the units),
-  then close COORD-040 (#100) and COORD-044 (#104) with a comment. When
-  it is red: read the failed step; Docker Hub can answer HTTP 429 (its
-  limit for a host with no login), which is not a defect of podrunner.
+- The runner-image run 43669743775 (`fa84341`, podvm `0.2.0-beta.19`)
+  is red only at the job `static` of `tags.yml` (T-158): podvm refuses
+  the mount `/__e:ro` on the detached run of a static image. T-158 is
+  blocked on COORD-051 (#111, to podvm). Each other step is green; T-163
+  is done. To get a green run before podvm answers, do not drop the
+  `:ro`: the hook policy keeps `/__e` read-only on purpose.
 - T-162 (open, G-12): podvm answered on PodUtils/podvm#382. `--ulimit
   nproc=N` and `--ulimit as=BYTES` hold on `run -d` now: add
   `[unit.podvm] mem` and `pids` with them, and the conformance tests of
@@ -138,6 +138,7 @@ is done.
 | LIVE-1 and LIVE-2 | the reports of GitHub #74 and #75 | T-032, T-033, T-040 |
 | githome | `githome source`, for the pair on the host of LIVE-2 (#107) | T-101 |
 | podvm | the incus keys of the limits (PodUtils/podvm@T-1897, next release) | T-162 |
+| podvm | a read-only bind on the detached run of a static image (#111) | T-158 |
 | podcrates | `pod-unit`, `pod-release` (none planned for v1) | T-043 |
 | actions/runner | a release with `Microsoft.AspNetCore.WebUtilities` 8.0.34 or later | T-082 |
 
@@ -146,9 +147,8 @@ is done.
 - GitHub #65, #66, #67: the trackers of the asks of cfb, githome and the
   CI plan that podrunner owns. Their bodies have the current state
   (2026-11-15); T-001 holds them.
-- COORD issues open: #100 (COORD-040) and #104 (COORD-044) close on the
-  green run of `fa84341`; #107 (COORD-047, to githome); #110 (COORD-050,
-  to podvm). No podcrates release notice is open; podrunner takes
+- COORD issues open: #107 (COORD-047, to githome); #110 (COORD-050, to
+  podvm); #111 (COORD-051, to podvm). No podcrates release notice is open; podrunner takes
   podcrates `v0.49.0`.
 - GitHub #9, #32, #33, #40: wait for the live gates (#74, #75). GitHub
   #43 waits for podcrates.

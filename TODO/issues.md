@@ -99,17 +99,18 @@ numbers. `TODO/RULES.md` gives the rules.
 | #97 | COORD-037: pod-actions-workflow: the filters of on: (types, branches, tags, paths and their -ignore forms) (to podcrates) | closed (taken in `v0.44.0`; T-125 is done) | T-125 |
 | #98 | COORD-038: pod-actions-workflow: the expansion of a reusable workflow (jobs.ID.uses) into jobs of the run (to podcrates) | closed (taken in `v0.44.0`; T-131 is done) | T-131 |
 | #99 | COORD-039: podrunner takes podcrates v0.43.0 at 51f9e6b, and the additions for pod-actions-store and pod-actions-results (the answer to PodUtils/podcrates#149) (to podcrates) | closed (podcrates recorded the take on PodUtils/podcrates#149; PodUtils/podcrates@T-587 and PodUtils/podcrates@T-588 import the additions) | T-118 |
-| #100 | COORD-040: podvm run of busybox:1.37.0 (glibc) fails where chroot is denied: libdl.so.2 is not in the image (to podvm) | open (the glibc case is fixed in podvm `0.2.0-beta.18`; podvm answered the static case on PodUtils/podvm#376: PodUtils/podvm@T-1896 in `0.2.0-beta.19`) | T-156, T-158 |
+| #100 | COORD-040: podvm run of busybox:1.37.0 (glibc) fails where chroot is denied: libdl.so.2 is not in the image (to podvm) | closed (the glibc case is fixed in podvm `0.2.0-beta.18`; the detached run of a static image is in `0.2.0-beta.19`, PodUtils/podvm#376; its read-only bind is COORD-051, #111) | T-156, T-158 |
 | #101 | COORD-041: podrunner takes podcrates v0.44.0 at 8ef1730 (the answer to PodUtils/podcrates#154) (to podcrates) | closed (podcrates closed PodUtils/podcrates#154 when each project took the tag) | T-125 |
 | #102 | COORD-042: a guest of another architecture in the machine tier (linux/arm64 on x86_64) (to podvm) | closed (podvm answered no on PodUtils/podvm#366; T-151 is done) | T-151 |
 | #103 | COORD-043: podrunner takes podcrates v0.45.0 at b3502d6 and uses its two crates at 5096a3b (the answer to PodUtils/podcrates#157) (to podcrates) | closed | T-118 |
-| #104 | COORD-044: podvm save of an index digest refuses to choose a platform, and names an option that save does not have (to podvm) | open (podvm answered on PodUtils/podvm#375: PodUtils/podvm@T-1895 in `0.2.0-beta.19`) | T-157, T-163 |
+| #104 | COORD-044: podvm save of an index digest refuses to choose a platform, and names an option that save does not have (to podvm) | closed (PodUtils/podvm@T-1895 in `0.2.0-beta.19`; the save from the store of the units passes in runner-image run 43669743775) | T-157, T-163 |
 | #105 | COORD-045: podrunner takes podcrates v0.46.0 at 0e12826 (the answer to PodUtils/podcrates#159) (to podcrates) | closed | T-118 |
 | #106 | COORD-046: podrunner takes podcrates v0.47.0 at eea3401 (the answer to PodUtils/podcrates#160) (to podcrates) | closed | T-118 |
 | #107 | COORD-047: the release of `githome source` for the G-01 pair on the LIVE-2 host (to githome) | open (githome answers by a comment) | T-101 |
 | #108 | COORD-048: podrunner takes podcrates v0.48.0 at c3b5744 (the answer to PodUtils/podcrates#162) (to podcrates) | closed | T-118 |
 | #109 | COORD-049: podrunner takes podcrates v0.49.0 at c695295 (the answer to PodUtils/podcrates#163) (to podcrates) | closed | T-118 |
 | #110 | COORD-050: limits of memory, CPU and processes for a detached run and an incus instance (to podvm) | open (podvm answered on PodUtils/podvm#382; the incus keys wait for its next release) | T-162 |
+| #111 | COORD-051: a read-only bind (`-v SRC:DST:ro`) on the detached run of a static image where chroot is denied (to podvm) | open (podrunner waits for the answer of podvm) | T-158 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**163 entries: 1 open, 7 partial, 5 blocked, 150 done.**
+**163 entries: 1 open, 5 partial, 6 blocked, 151 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 0 | 2 | 0 | 32 | 34 |
 | P2 | 1 | 2 | 3 | 68 | 74 |
-| P3 | 0 | 3 | 2 | 50 | 55 |
-| **All** | 1 | 7 | 5 | 150 | 163 |
+| P3 | 0 | 1 | 3 | 51 | 55 |
+| **All** | 1 | 5 | 6 | 151 | 163 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -205,9 +205,9 @@ acceptance, later The crate dependencies later than v1.
 | [T-155](later.md) | P3 | S | later | defect | done | An intermittent failure of the workspace tests that the check script hid |
 | [T-156](later.md) | P3 | S | later | defect | done | Local mode: a glibc image by tag in a podvm unit where chroot is denied |
 | [T-157](later.md) | P3 | M | later | feature | done | Local mode: load the images of a job from the store into the engine of the guest |
-| [T-158](later.md) | P3 | S | later | defect | partial | Local mode: a static image as a container of a podvm unit |
+| [T-158](later.md) | P3 | S | later | defect | blocked | Local mode: a static image as a container of a podvm unit |
 | [T-159](later.md) | P2 | S | later | defect | partial | An intermittent unknown count of processes at the destroy of a podvm unit |
 | [T-160](later.md) | P3 | S | later | feature | done | Local mode: a shell in a paused job of the incus kind |
 | [T-161](later.md) | P3 | M | later | research | partial | An alternate payload: a runner other than the official one |
 | [T-162](later.md) | P2 | M | later | feature | open | G-12: limits of CPU, memory and processes on the podvm and incus kinds |
-| [T-163](later.md) | P3 | S | later | chore | partial | Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units |
+| [T-163](later.md) | P3 | S | later | chore | done | Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units |
