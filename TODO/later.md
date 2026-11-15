@@ -2469,7 +2469,7 @@ State (2026-11-14): `IncusUnit::enter` is in; `egress.rs` keeps the payload up a
 **Milestone:** later
 **Priority:** P3
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -2487,7 +2487,10 @@ Read `TODO/plan.md` (the table of non-goals) and `docs/unknowns.md` (U15) on 202
 
 ## Prove
 
-A new page of `docs/` has the census and the call; one canned job of the fake broker passes with the alternate payload in a unit.
+`docs/alternate-payload.md` has the census and the call; one canned job of the fake broker passes with the alternate payload in a unit.
+
+State (2026-11-15): steps 1 and 2: `docs/alternate-payload.md` has the census of the calls of the official runner (from the routes of the fake broker) and two candidates; the call (`docs/decisions.md`) measures an existing third-party runner first. Next: step 3, the candidate and its measure against one canned job of the fake broker.
+
 
 # T-162: G-12: limits of CPU, memory and processes on the podvm and incus kinds
 

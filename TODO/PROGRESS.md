@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 163 entries: 1 open, 6 partial, 6 blocked, 150 done.
+`TODO/INDEX.md` holds 163 entries: 0 open, 7 partial, 6 blocked, 150 done.
 
 ## State
 
@@ -35,7 +35,7 @@ The queue, most valuable first:
 
 1. T-101 (M, partial): the `program` source kind is in; its pair with GitHub runs on the host of LIVE-2 (GitHub #75) when githome gives its program.
 
-2. T-161 (M, open): an alternate payload (U15, allowed on 2026-11-14): the census of the calls of the runner, then the choice.
+2. T-161 (M, partial): an alternate payload: the census and the call are in `docs/alternate-payload.md`; next, the measure of a third-party runner.
 3. T-158 (S, partial) and T-163 (S, partial): podvm `0.2.0-beta.19` is pinned; close both on the green run of `runner-image.yml`.
 4. T-159 (S, partial): an intermittent unknown count of processes at the destroy of a podvm unit; read the cause in the next failed log.
 
