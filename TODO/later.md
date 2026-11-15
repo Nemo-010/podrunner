@@ -2496,7 +2496,7 @@ A new page of `docs/` has the census and the call; one canned job of the fake br
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** blocked
 
 ## Problem
 
@@ -2515,6 +2515,13 @@ Read `docs/configuration.md` and the drivers on 2026-11-15. The `incus` tier of 
 ## Prove
 
 A unit conformance test on each kind: a payload that forks past `pids`, and one that allocates past `mem`, end with the code `limit`; `runner-image.yml` runs it on the podvm and incus kinds.
+
+State (2026-11-15): step 1 is read from the limits page of podvm: the CLI refuses `--memory` and `--cpus` with exit 125 (no cgroup that the runtime grants), and the incus tier refuses `--ulimit` and `--podvm-mem`. So no limit of memory, CPU or processes exists for the native tiers or the incus tier. Step 2: COORD-050 (GitHub #110) asks podvm for rlimits on `run -d`, a cgroup leaf where the host delegates one, the incus keys, and a report of the held limits.
+
+## Blocker
+
+podvm: the limits of COORD-050 (GitHub #110).
+
 
 # T-163: Take podvm 0.2.0-beta.19 and save the images of the mirror from the store of the units
 
