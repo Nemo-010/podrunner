@@ -2396,7 +2396,7 @@ Ask podvm for a detached run of the memfd family (GitHub #100, COORD-040). Take 
 
 ## Blocker
 
-podvm: a detached run of the memfd family (GitHub #100, COORD-040).
+podvm: the release `0.2.0-beta.19` with PodUtils/podvm@T-1896 (PodUtils/podvm#376): a static payload of x86_64 goes to the native-static rung, which now has a detached driver (`run -d`, `stop`, `wait`, `logs`). Then pin it (with T-163) and add `busybox:1.37.0-musl` to `tags.yml`.
 
 # T-159: An intermittent unknown count of processes at the destroy of a podvm unit
 
