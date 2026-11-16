@@ -491,17 +491,3 @@ fn a_local_repository_serves_an_action() {
     assert!(run(&args(&[&w, "--local-repository", "me/tool"])).stderr.contains("OWNER/REPO@REF=DIR"));
     let _ = std::fs::remove_dir_all(&dir);
 }
-
-/// The dry run on `--podvm` refuses a job with services, as its run does
-/// (T-272).
-#[test]
-fn a_dry_run_on_podvm_refuses_services() {
-    use podrunner_local::drive::Executor;
-    let mut dry = inspect::DryRun { host: false, podvm: true, actions: None, pins: Default::default() };
-    let mut job = podrunner_local::Job::scripts("a", &["true"]);
-    let id = JobId::new("a.0").unwrap();
-    assert!(dry.run(&id, job.clone(), std::time::Duration::from_secs(1)).is_ok());
-    job.overrides.insert("jobServiceContainers".into(), serde_json::json!({ "type": 2, "map": [] }));
-    let e = dry.run(&id, job, std::time::Duration::from_secs(1)).unwrap_err();
-    assert!(e.contains("services") && e.contains("--microvm"), "{e}");
-}

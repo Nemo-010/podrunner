@@ -224,3 +224,17 @@ fn the_values_of_the_github_context_are_checked() {
     assert!(with(&["--sha", "zz"]).unwrap_err().contains("not a commit"));
     assert!(with(&["--sha", &"a".repeat(40)]).is_ok());
 }
+
+/// The dry run on `--podvm` refuses a job with services, as its run does
+/// (T-272).
+#[test]
+fn a_dry_run_on_podvm_refuses_services() {
+    use podrunner_local::drive::Executor;
+    let mut dry = inspect::DryRun { host: false, podvm: true, actions: None, pins: Default::default() };
+    let mut job = podrunner_local::Job::scripts("a", &["true"]);
+    let id = podrunner_schema::JobId::new("a.0").unwrap();
+    assert!(dry.run(&id, job.clone(), std::time::Duration::from_secs(1)).is_ok());
+    job.overrides.insert("jobServiceContainers".into(), serde_json::json!({ "type": 2, "map": [] }));
+    let e = dry.run(&id, job, std::time::Duration::from_secs(1)).unwrap_err();
+    assert!(e.contains("services") && e.contains("--microvm"), "{e}");
+}
