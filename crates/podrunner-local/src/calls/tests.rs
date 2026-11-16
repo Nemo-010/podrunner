@@ -48,6 +48,28 @@ fn a_local_call_runs_the_jobs_of_its_workflow_with_its_inputs_and_secrets() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+/// `--job` of a job that needs a call selects the jobs of the call, and
+/// `--job` of the call selects them too (T-271).
+#[test]
+fn a_job_filter_selects_the_jobs_of_a_call() {
+    let root = std::env::temp_dir().join(format!("podrunner-calls-filter-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join(".github/workflows")).unwrap();
+    std::fs::write(root.join(".github/workflows/called.yml"), CALLED).unwrap();
+    for pick in ["after", "call"] {
+        let texts = Arc::new(Texts::new(root.clone(), None, BTreeMap::new()));
+        let mut s =
+            LocalSource::new_with("l", CALLER, Base::default(), "x86_64", Box::new(|_, _| unreachable!()), Some(texts))
+                .unwrap();
+        s.set_secrets(vec![("API_KEY".into(), "made-up-api-key".into())], None);
+        s.set_filter(&[pick.into()], &[]).unwrap();
+        let first = offers(&mut s);
+        assert_eq!(first.iter().map(JobId::as_str).collect::<Vec<_>>(), ["call__build.0"], "--job {pick}");
+        assert_eq!(s.not_selected(&first[0]), None, "--job {pick}");
+    }
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 #[test]
 fn the_ids_and_the_secrets_of_calls() {
     assert_eq!(cell_id("call/build", 0).unwrap().as_str(), "call__build.0");

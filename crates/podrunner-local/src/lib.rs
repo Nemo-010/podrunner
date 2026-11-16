@@ -258,8 +258,12 @@ impl LocalSource {
     /// Why the filter keeps a cell out (T-127), or `None`.
     pub fn not_selected(&self, job: &JobId) -> Option<String> {
         let cell = self.cells.get(job)?;
+        // A job of a called workflow (`CALLER/CALLEE`, `CALLER[N]/CALLEE`)
+        // goes with its caller (T-271).
+        let caller = cell.job.split(['/', '[']).next().unwrap_or(&cell.job);
         if let Some(set) = &self.selected
             && !set.contains(&cell.job)
+            && !set.contains(caller)
         {
             return Some("not selected (--job)".into());
         }

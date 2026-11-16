@@ -4504,7 +4504,7 @@ The resolve of the actions marks an action of `runs.using: docker` (also a `dock
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4521,6 +4521,10 @@ The selection of `--job` takes the jobs of a call as members of the calling job:
 ## Prove
 
 `cargo test -p podrunner-local`: A test of the selection with a workflow whose job needs a call.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/lib.rs` (`not_selected`): a cell of a called workflow (`CALLER/CALLEE`, `CALLER[N]/CALLEE`) is selected when its caller is; test `a_job_filter_selects_the_jobs_of_a_call` (`--job` of a job that needs the call, and of the call).
 
 # T-272: `--dry-run` on `--podvm` plans a `services:` job and does not check the image
 

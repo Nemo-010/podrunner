@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**282 entries: 31 open, 20 partial, 12 blocked, 219 done.**
+**282 entries: 30 open, 20 partial, 12 blocked, 220 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 18 | 8 | 7 | 95 | 128 |
+| P2 | 17 | 8 | 7 | 96 | 128 |
 | P3 | 12 | 3 | 3 | 73 | 91 |
-| **All** | 31 | 20 | 12 | 219 | 282 |
+| **All** | 30 | 20 | 12 | 220 | 282 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -315,7 +315,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-268](later.md) | P2 | S | later | defect | done | The lock of the actions goes into the next checkout as a new file |
 | [T-269](later.md) | P2 | S | later | defect | done | The made-up token fails `actions/setup-python` with a 404, and the run names no fix |
 | [T-270](later.md) | P2 | S | later | defect | done | A Dockerfile action on `--runner-dir` starts the job and calls the docker of the host |
-| [T-271](later.md) | P2 | S | later | defect | open | `--job` does not select a need that calls a reusable workflow |
+| [T-271](later.md) | P2 | S | later | defect | done | `--job` does not select a need that calls a reusable workflow |
 | [T-272](later.md) | P2 | S | later | defect | done | `--dry-run` on `--podvm` plans a `services:` job and does not check the image |
 | [T-273](later.md) | P2 | S | later | defect | done | A SIGHUP leaves the runner running and breaks the runner directory |
 | [T-274](later.md) | P2 | S | later | defect | done | Two runs on one runner directory at the same time break each other |
