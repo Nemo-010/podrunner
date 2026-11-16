@@ -14,6 +14,12 @@ pub(super) fn in_guest(a: &Args, state: &std::path::Path) -> Result<InUnit, Out>
     let (Some((microvm, binary)), Some(images), Some(image)) = (&a.guest, &a.images, &a.image) else {
         return Err(fail(Class::Usage, super::USAGE));
     };
+    // The checks of --podvm before a guest starts: the image is in the store
+    // (no pull), and the machine tier has /dev/kvm (T-297).
+    if *microvm {
+        kvm().map_err(|e| fail(Class::Unavailable, e))?;
+        super::doctor::image_in_store(binary, images, image).map_err(|e| fail(Class::Config, e))?;
+    }
     let u = UnitConfig {
         slots: 1,
         command: vec!["./run.sh".into()],
@@ -68,4 +74,11 @@ pub(super) fn mirror_pins(
             pins.clone()
         }
     }
+}
+
+/// `/dev/kvm` opens for reading and writing: the machine tier needs it.
+pub(super) fn kvm() -> Result<(), String> {
+    std::fs::OpenOptions::new().read(true).write(true).open("/dev/kvm").map(|_| ()).map_err(|e| {
+        format!("--microvm: /dev/kvm: {e}; fix: a host with KVM, and a user that can open /dev/kvm (the group kvm), or --podvm")
+    })
 }

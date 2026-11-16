@@ -37,6 +37,11 @@ pub(super) fn build(
                 let host = a.podvm.is_none() && a.guest.is_none() && a.platforms.is_empty() && a.runner_dir.is_some();
                 let podvm = a.podvm.is_some() && a.guest.is_none() && a.platforms.is_empty();
                 // Each runner image of the run is in the store (T-272).
+                if let (Some((true, binary)), Some(store), Some(image)) = (&a.guest, &a.images, &a.image) {
+                    super::guest::kvm().map_err(|e| super::fail(pod_core::failure::Class::Unavailable, e))?;
+                    super::doctor::image_in_store(binary, store, image)
+                        .map_err(|e| super::fail(pod_core::failure::Class::Config, e))?;
+                }
                 if let (Some(binary), Some(store), None) = (&a.podvm, &a.images, &a.guest) {
                     let images = a.image.iter().chain(a.platforms.iter().map(|(_, t)| t).filter(|t| *t != "host"));
                     for image in images {

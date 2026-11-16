@@ -5163,7 +5163,7 @@ The `github` context of a job has `api_url` `https://api.github.com` and `graphq
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5180,6 +5180,10 @@ The runner gets `PR_SET_PDEATHSIG` (SIGKILL) at its start, so it ends with podru
 ## Prove
 
 `cargo test -p podrunner-local`
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/exec/host.rs`: a run writes the process group of its runner to `.podrunner-run.group`; the next run, with the lock, ends that group when its leader still works in the runner directory (`end_stale`), and clears `_diag/blocks` with `_diag/pages`. Proven on this sandbox: a SIGKILL of podrunner during `sleep 60` left 4 runner processes; the next run ended them by name and passed.
 
 # T-295: A rerun with a matrix filter rewrites a failed cell as skipped
 
@@ -5238,7 +5242,7 @@ Write each result line when its job ends, and flush it; with `--json`, the dump 
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5255,6 +5259,10 @@ The check of T-272 (`image_in_store`) for `--microvm` and `--incus` too, and a c
 ## Prove
 
 `cargo test -p podrunner`
+
+## Done
+
+2026-11-16: `crates/podrunner/src/run_local/guest.rs` (`kvm`, the check of the image), the dry run (`slots.rs`) and `doctor --run` (`kvm` opens `/dev/kvm`). Proven on this sandbox (no KVM): `run --microvm` fails at once with the fix of `/dev/kvm`.
 
 # T-298: The P3 findings of the second QA, agent B
 

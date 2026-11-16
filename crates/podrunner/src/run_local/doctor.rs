@@ -207,14 +207,7 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
         }
     }
     if matches!(a.guest, Some((true, _))) {
-        out.push(check(
-            "kvm",
-            if Path::new("/dev/kvm").exists() {
-                Ok("/dev/kvm".into())
-            } else {
-                Err("no /dev/kvm: the microvm kind needs KVM; fix: run on a host with KVM".into())
-            },
-        ));
+        out.push(check("kvm", super::guest::kvm().map(|()| "/dev/kvm opens".into())));
         if let Some(e) = &a.engine {
             out.push(check(
                 "engine",

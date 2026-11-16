@@ -75,6 +75,26 @@ fn prune_diag(dir: &std::path::Path) {
     }
 }
 
+/// The file of the process group of the runner of the last job.
+const GROUP: &str = ".podrunner-run.group";
+
+/// End the runner that a run which died (a SIGKILL of podrunner) left in
+/// `dir` (T-294): its process group, when its leader still works in `dir`.
+fn end_stale(dir: &std::path::Path) {
+    let Ok(text) = std::fs::read_to_string(dir.join(GROUP)) else { return };
+    let Ok(pgid) = text.trim().parse::<i32>() else { return };
+    let here = dir.canonicalize().ok();
+    let cwd = std::fs::read_link(format!("/proc/{pgid}/cwd")).ok();
+    if pgid > 1 && here.is_some() && cwd == here {
+        eprintln!(
+            "podrunner: {}: the runner of a run that died is still there (group {pgid}); it ends now",
+            dir.display()
+        );
+        end_group(pgid as u32);
+    }
+    let _ = std::fs::remove_file(dir.join(GROUP));
+}
+
 /// The lock file of a run in a runner directory.
 const LOCK: &str = ".podrunner-run.lock";
 
@@ -121,6 +141,7 @@ impl RunnerDir {
             return Err(e);
         }
         let lock = lock(&dir)?;
+        end_stale(&dir);
         Ok(RunnerDir {
             _lock: lock,
             quiet: false,
@@ -209,12 +230,14 @@ impl RunnerDir {
         // The pages of a runner that a signal ended make the next runner
         // fail ("The file ... already exists", T-273).
         crate::work::clear(&self.dir.join("_diag").join("pages"))?;
+        crate::work::clear(&self.dir.join("_diag").join("blocks"))?;
         prune_diag(&self.dir);
         // A scratch home for each job: a step must not change the home of
         // the user (T-266); the next job clears it with `_work`.
         let home = self.dir.join("_work").join("_home");
         std::fs::create_dir_all(&home).map_err(|e| format!("{}: {e}", home.display()))?;
         let mut child = start_runner_with(&self.dir, &broker, &host_env(&home, std::env::vars()), !self.quiet)?;
+        let _ = std::fs::write(self.dir.join(GROUP), child.id().to_string());
         // The limit of the job (`timeout-minutes`, T-115): at its end, the
         // whole process group of the runner ends, as the unit of `InUnit`.
         let end = Instant::now() + limit;
