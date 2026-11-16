@@ -27,13 +27,25 @@ impl PodvmUnit {
     /// Hold the egress of each unit with `podnet` (T-065, T-041). Refused
     /// when `podnet pod doctor --json` gives no hold of at least
     /// `advisory` on this host.
-    pub fn with_podnet(mut self, podnet: &Path) -> Result<PodvmUnit, UnitError> {
+    pub fn with_podnet(self, podnet: &Path) -> Result<PodvmUnit, UnitError> {
+        self.held(podnet, false)
+    }
+
+    /// [`Self::with_podnet`] with the `seccomp` backend also where `netns`
+    /// holds: the local mode serves its broker on the loopback of the host,
+    /// which a unit in a network namespace cannot reach (T-095, the QA
+    /// finding A2 of T-246).
+    pub fn with_podnet_seccomp(self, podnet: &Path) -> Result<PodvmUnit, UnitError> {
+        self.held(podnet, true)
+    }
+
+    fn held(mut self, podnet: &Path, seccomp: bool) -> Result<PodvmUnit, UnitError> {
         let out = Command::new(podnet)
             .args(["pod", "doctor", "--json"])
             .stdin(Stdio::null())
             .output()
             .map_err(|e| host("podnet pod doctor", e))?;
-        let (backend, hold, level) = choose(&out.stdout).map_err(|why| UnitError::new(UnitCode::Host, why))?;
+        let (backend, hold, level) = choose(&out.stdout, seccomp).map_err(|why| UnitError::new(UnitCode::Host, why))?;
         self.capability.egress_hold = hold;
         let proof = self.capability.boundary_proof.take().unwrap_or_default();
         self.capability.boundary_proof = Some(format!("{proof}; hold: podnet pod {backend} {level}"));
@@ -91,11 +103,11 @@ fn level(v: &Value, name: &str) -> Option<String> {
 }
 
 /// The backend and the hold from `podnet pod doctor --json`: `netns` only
-/// when it says `enforced`; `seccomp` is `advisory` at most, whatever it
-/// says (it does not hold loopback TCP).
-fn choose(out: &[u8]) -> Result<(&'static str, EgressHold, String), String> {
+/// when it says `enforced` and `seccomp` is not asked; `seccomp` is
+/// `advisory` at most, whatever it says (it does not hold loopback TCP).
+fn choose(out: &[u8], seccomp: bool) -> Result<(&'static str, EgressHold, String), String> {
     let v: Value = serde_json::from_slice(out).map_err(|_| "podnet pod doctor gives no JSON".to_string())?;
-    if level(&v, "netns").as_deref() == Some("enforced") {
+    if !seccomp && level(&v, "netns").as_deref() == Some("enforced") {
         return Ok(("netns", EgressHold::Enforced, "enforced".into()));
     }
     match level(&v, "seccomp") {
@@ -124,14 +136,17 @@ mod tests {
     #[test]
     fn the_hold_comes_from_pod_doctor() {
         let h0 = br#"{"netns":{"level":"none"},"seccomp":{"level":"advisory","not_held":["unix sockets"]}}"#;
-        assert_eq!((choose(h0).unwrap().0, choose(h0).unwrap().1), ("seccomp", EgressHold::Advisory));
+        let pick = |o: &[u8], s| choose(o, s).map(|(b, h, _)| (b, h));
+        assert_eq!(pick(h0, false).unwrap(), ("seccomp", EgressHold::Advisory));
         let ns = br#"{"hold":{"netns":{"level":"enforced"},"seccomp":{"level":"advisory"}}}"#;
-        assert_eq!((choose(ns).unwrap().0, choose(ns).unwrap().1), ("netns", EgressHold::Enforced));
+        assert_eq!(pick(ns, false).unwrap(), ("netns", EgressHold::Enforced));
+        // The local mode asks for seccomp also where netns holds.
+        assert_eq!(pick(ns, true).unwrap(), ("seccomp", EgressHold::Advisory));
         // A plant: seccomp that claims `enforced` gives `advisory` only.
         let plant = br#"{"netns":{"level":"none"},"seccomp":{"level":"enforced"}}"#;
-        assert_eq!((choose(plant).unwrap().0, choose(plant).unwrap().1), ("seccomp", EgressHold::Advisory));
-        assert!(choose(br#"{"seccomp":{"level":"none"}}"#).is_err());
-        assert!(choose(b"no json").is_err());
+        assert_eq!(pick(plant, false).unwrap(), ("seccomp", EgressHold::Advisory));
+        assert!(choose(br#"{"seccomp":{"level":"none"}}"#, false).is_err());
+        assert!(choose(b"no json", false).is_err());
     }
 
     /// T-183: a held driver gives a self-test unit a socket directory with

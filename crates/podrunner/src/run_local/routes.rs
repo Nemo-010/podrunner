@@ -114,10 +114,10 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
     let mut unit = PodvmUnit::new(podvm, state, images).map_err(|e| fail(Class::Config, format!("podvm: {e}")))?;
     let mut egress = None;
     if let Some(podnet) = &a.podnet {
-        unit = unit.with_podnet(podnet).map_err(|e| fail(Class::Unsupported, format!("--podnet: {e}")))?;
-        let hold = unit.probe().map_err(|e| fail(Class::Unavailable, format!("probe: {e}")))?.egress_hold;
         // The fake broker listens on the loopback of the host: the seccomp
         // hold lets a unit reach it; the netns hold does not (T-095).
+        unit = unit.with_podnet_seccomp(podnet).map_err(|e| fail(Class::Unsupported, format!("--podnet: {e}")))?;
+        let hold = unit.probe().map_err(|e| fail(Class::Unavailable, format!("probe: {e}")))?.egress_hold;
         if hold != podrunner_schema::EgressHold::Advisory {
             return Err(fail(
                 Class::Unsupported,

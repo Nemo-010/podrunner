@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**296 entries: 22 open, 21 partial, 15 blocked, 238 done.**
+**305 entries: 30 open, 21 partial, 15 blocked, 239 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 14 | 8 | 9 | 107 | 138 |
-| P3 | 7 | 4 | 4 | 80 | 95 |
-| **All** | 22 | 21 | 15 | 238 | 296 |
+| P1 | 3 | 9 | 2 | 52 | 66 |
+| P2 | 19 | 8 | 9 | 107 | 143 |
+| P3 | 8 | 4 | 4 | 80 | 96 |
+| **All** | 30 | 21 | 15 | 239 | 305 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -344,3 +344,12 @@ acceptance, later The crate dependencies later than v1.
 | [T-297](later.md) | P2 | S | later | defect | done | `--microvm` does not check its image and `/dev/kvm` before the run |
 | [T-298](later.md) | P3 | M | later | defect | open | The P3 findings of the second QA, agent B |
 | [T-299](later.md) | P2 | S | later | defect | done | In the lane proxy-only, the lint of rq on `--runner-dir` fails |
+| [T-300](later.md) | P1 | M | later | defect | open | A job in a podvm unit writes into the home of the user on the host |
+| [T-301](later.md) | P1 | S | later | defect | open | With podvm 0.2.0-beta.25 the runner of a podvm unit ends with no result |
+| [T-302](later.md) | P1 | S | later | defect | done | The egress hold of the installer refuses each run where user namespaces exist |
+| [T-303](later.md) | P2 | S | later | defect | open | An executor flag does not replace the executor of run.toml |
+| [T-304](later.md) | P2 | S | later | defect | open | The checkout of the tree answers 404 to later jobs of a run |
+| [T-305](later.md) | P2 | S | later | defect | open | actions/setup-python v7 fails with the made-up token |
+| [T-306](later.md) | P2 | S | later | defect | open | On --runner-dir, a Python of setup-python cannot load libpython |
+| [T-307](later.md) | P2 | S | later | defect | open | The documents load the larger image into the wrong store |
+| [T-308](later.md) | P3 | M | later | defect | open | The P3 findings of the third QA, agent A |

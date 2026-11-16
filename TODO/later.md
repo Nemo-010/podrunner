@@ -4047,6 +4047,9 @@ Evaluate the image of each cell with the contexts that GitHub allows there, befo
 
 A test of `crates/podrunner-local`: a service image `valkey/valkey:${{ matrix.v }}` gives `valkey/valkey:9.0` for the cell `v=9.0` in the collect of the images; `podrunner run ... --dry-run` of the corpus row `rq-valkey` (`scripts/corpus/user-gate.tsv`) plans the cell on `--podvm`.
 
+State (2026-11-16): the third QA, agent A (finding A4): on `--podvm`, the image `ghcr.io/...:${{ matrix.postgres }}` of a service refuses the whole run before any job, exit 78, also with `--job lint`, and `--validate` says `valid` (brianc/node-postgres at `2a5850fb`). Each job with no such image must run, and the refusal must name its cell.
+
+
 # T-251: The gate and the host of an agent run shellcheck of other versions
 
 **Source:** gate 43730995552 on `037cb35` (the request of `v0.1.0-beta.7`, GitHub #154, #179)
@@ -5351,3 +5354,233 @@ State (2026-11-16): the fake broker sends `actions.runner.usenode24bydefault` (`
 ## Done
 
 2026-11-16, `f2d7b66`: `actions.runner.usenode24bydefault` in the job message and `NODE_USE_ENV_PROXY=1` with a proxy. Proven in CI: user-gate 43816078517 on `12a1300`: `corpus:rq-lint:runner-dir` passes in the lane `proxy-only` (and in the four other lanes).
+
+# T-300: A job in a podvm unit writes into the home of the user on the host
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+A static binary in a podvm unit (Go up to 1.20, and the toolchains of finding A5: uv, cross, the installer of uv) reaches the files of the host: with `GOCACHE=/home/qa1/ESCAPED-gocache`, the directory comes on the host with 257 directories; with `GOCACHE=/tmp/qa1-gocache`, in the `/tmp` of the host. In the unit: uid 30033 (qa1), `LD_PRELOAD=.../rootfs/.podvm/interpose.so`, `uid_map` `0 0 4294967295`: no user namespace. Go 1.23 stays in the unit. The same class gives `stat /root/go/pkg/mod: permission denied` (cobra), `Could not persist temporary file` (uv), `interpose.so cannot be preloaded` (cross), `Unable to find /proc/self/exe`, and the host path `/tmp/podrunner-run-units-PID/...` in the job log (A5).
+
+## Premise
+
+Finding A1 and A5 of agent A. Reproduced by the lead session as `qa1` with the workflow of the agent (`setup-go` 1.20, `go build` of a program): podvm `0.2.0-beta.24` makes `/home/qa1/ESCAPED-gocache` and `/tmp/qa1-gocache` on the host. With podvm `0.2.0-beta.25` neither comes, and `podvm inspect` of a `run -d` names the rung `namespace` (beta.24: `userland`). The unit of podrunner then fails to start (T-301).
+
+## Approach
+
+Take podvm `0.2.0-beta.25` or later, which runs `run -d` of a user with no root on the namespace rung (a mount namespace of its own), when T-301 holds. Add a row to the user-path gate: a static binary of a job writes an absolute path of the home of the user, and the gate checks that the host has no such file. Until then, the notes of the release name the class.
+
+## Prove
+
+The new row of `scripts/user-gate.py` passes in each lane; `cargo test -p podrunner-podvm`.
+
+# T-301: With podvm 0.2.0-beta.25 the runner of a podvm unit ends with no result
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With podvm `0.2.0-beta.25`, `podrunner run hello.yml --podvm` as a user with no root fails: `u-1: unit-start-failed: podvm run: exit 125: podvm run: --hostname needs the handler of the native-static rung or the interposer of the loader family, and this entry has neither and no UTS namespace`, then the start again with no `--hostname`, then `failure hello: the runner in u-1 ended with no result (exit Some(Code(0)))`. No job log.
+
+## Premise
+
+Measured by the lead session as `qa1` on the QA host (user namespaces, no KVM) with the image `runner@sha256:0aae39da...` and podvm `0.2.0-beta.25`; podvm `0.2.0-beta.24` passes the same run. The pin of beta.25 is on `main` (`ede07ea`); runner-image run 43828189959 runs it.
+
+## Approach
+
+Read the output of the unit (`podvm logs`) after the start with no `--hostname`; compare the tree that `podvm extract` gives (where the driver writes the credential files) with the root of the `run -d` on the namespace rung. Fix the driver, or write a COORD issue to podvm. Then `--hostname` on the namespace rung: ask podvm for a UTS namespace there.
+
+## Prove
+
+`podrunner run hello.yml --podvm` passes as a user with no root with podvm `0.2.0-beta.25`; runner-image.yml green on the pin.
+
+# T-302: The egress hold of the installer refuses each run where user namespaces exist
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** done
+
+## Problem
+
+With the `podnet` and `allow` lines of `run.toml` on, as its comment says, each run fails: `--podnet: the hold is Enforced; the local mode takes only the seccomp hold (advisory) now`, exit 80, and `doctor --run` says `ok podnet`. On a host with user namespaces the driver takes the `netns` backend, which the local mode refuses (its broker is on the loopback of the host).
+
+## Premise
+
+Finding A2 of agent A; the code: `crates/podrunner-podvm/src/unit/hold.rs` (`choose`), `crates/podrunner/src/run_local/routes.rs`.
+
+## Approach
+
+The local mode asks the driver for the `seccomp` backend also where `netns` holds (`with_podnet_seccomp`).
+
+## Prove
+
+`cargo test -p podrunner-podvm`; as a user with no root on a host with user namespaces, `podrunner run hello.yml` with `--podnet` passes and refuses each host that `--allow` does not name.
+
+## Done
+
+2026-11-16: the local mode asks the driver for the `seccomp` backend (`PodvmUnit::with_podnet_seccomp`; `choose` takes the ask). Unit test: `the_hold_comes_from_pod_doctor`. Proven on a constrained host as a user: on the QA host (user namespaces, a proxy only) as `qa1`, `podrunner run hello.yml --podvm --podnet --allow github.com` gives `ok hello`, and the unit's connects to `archive.ubuntu.com` and `security.ubuntu.com` fail at the policy.
+
+
+# T-303: An executor flag does not replace the executor of run.toml
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With the `run.toml` of the installer (`podvm = ...`), `podrunner run ... --runner-dir DIR` fails: `--runner-dir and --podvm are two executors: give one, or map labels to each with --platform`, exit 64, and the whole usage. `--microvm` gives the same. The message names neither the file nor `--no-config`.
+
+## Premise
+
+Finding A3 of agent A.
+
+## Approach
+
+An executor on the command line replaces the executor of `run.toml`; the other keys of the file stay. A refusal that comes from the file names the file.
+
+## Prove
+
+`cargo test -p podrunner --test local`: a run with `run.toml` and `--runner-dir` uses the runner directory.
+
+# T-304: The checkout of the tree answers 404 to later jobs of a run
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+Two runs on one tree, 80 s apart (`--podvm --jobs 2` and `--runner-dir`): from one time on, each later job of both runs got `curl: (22) ... 404` on `_checkout.tar.gz`, then `gzip: stdin: unexpected end of file` (15 cells). The result lines say only `failure`; no line of podrunner names the cause. Five more tries did not show it again.
+
+## Premise
+
+Finding A6 of agent A; the logs `cobra-podvm-full.txt` and `cobra-rd.txt` of the QA host. Not reproduced.
+
+## Approach
+
+Read the life of the tarball of the checkout (where it is written, when it is removed, whether two runs share a path); give each run its own; when the route answers 404, write a line of podrunner that names it.
+
+## Prove
+
+`cargo test -p podrunner --test local`: two runs on one tree at once; each job of both gets the tree.
+
+# T-305: actions/setup-python v7 fails with the made-up token
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`actions/setup-python` v7 fails at `Failed to fetch the Python versions manifest` on the default path: `raw.githubusercontent.com` answers 404 to a made-up token and 200 to no token. The fix (`--github-token-env NAME`) comes only after each job ends. With an empty variable the job passes on `--runner-dir`.
+
+## Premise
+
+Finding A7 of agent A; T-254 kept the made-up token.
+
+## Approach
+
+Do not give the made-up token where it changes an answer of a real host: for example, an empty `github.token` when the user gives none and the action takes an empty one, or name the fix in the job when a step fails with such a line.
+
+## Prove
+
+A test of `setup-python` v7 on `--runner-dir` with no flag passes.
+
+# T-306: On --runner-dir, a Python of setup-python cannot load libpython
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With `update-environment: false`, the Python of `actions/setup-python` on `--runner-dir` fails: `error while loading shared libraries: libpython3.14.so.1.0` (the tool cache is not at `/opt/hostedtoolcache`). `--env LD_LIBRARY_PATH=RUNNER/_work/_tool/Python/3.14.10/x64/lib` works.
+
+## Premise
+
+Finding A8 of agent A.
+
+## Approach
+
+Give `RUNNER_TOOL_CACHE` a path that the builds of setup-python take, or set the path of the libraries; else document the limit and the work-around in `docs/local-mode.md`.
+
+## Prove
+
+A job with `setup-python` and `update-environment: false` runs `python --version` on `--runner-dir`.
+
+# T-307: The documents load the larger image into the wrong store
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podvm load -i runner-full-x86_64.tar`, as the documents give it, loads into `~/.local/share/podvm`; then `--platform ubuntu-latest=runner@sha256:...` fails, and its fix (`PODVM_STORE=.../images podvm load -i ...`) works. `podvm load` prints no digest; `podvm images --digests` gives it.
+
+## Premise
+
+Finding A9 of agent A.
+
+## Approach
+
+`docs/local-mode.md` and the notes give the store (`PODVM_STORE` of the installer) and the command for the digest.
+
+## Prove
+
+`python3 -I scripts/user-gate.py`: the row `install:full` runs the commands of the documents as written and a job on the larger image.
+
+# T-308: The P3 findings of the third QA, agent A
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+A10: setup-node@v4 cannot reach the cache service (actions/cache@v4 can). A11 and A12: live lines out of order (`Cleaning up orphan processes` first); with `--jobs 2` the steps print above their header. A13: refusals on `--runner-dir` say "not pinned by digest" for a job that needs containers. A14: `--platform windows-latest=host` gives a green job; "a unit is Linux" on `--runner-dir`. A15: `--dry-run` exits 76 at `fromJSON` of an output of a needed job. A16: a dry run writes the lock into the tree and pulls a service image that it refuses. A17: `github.workflow` is the file name, `github.workflow_ref` is empty. A18: a run that a concurrency group cancels does not name the group. A19: `_home` and `_work` stay after a run (2.7 GiB). A20: the runner credential files stay after a SIGHUP. A21: they have mode 0664 under umask 002. A22: a spurious `egress: job podrunner-run-fetch github.com:443 failed at connect`. A23: the line of the hold prints before a refusal. A24: the images lack tools of ubuntu-latest (make, python3, sudo, cargo, yarn), and the documents do not list them. A25: a cell that fail-fast cancels has no reason. A26: the notes say to run the installer in the bundle, which unpacks into a subdirectory. A27: a failed mirror install leaves files, and install.md does not list the files of a mirror. A28: `pins 1 references`; doctor says ok for a busy runner directory; step logs named by UUID; `if: success()` for a dependent of a job that `--job` leaves out. Also, the lead session: with `--podnet`, a line `egress: job u-1 null:null failed at proxy (usage)`.
+
+## Premise
+
+The report of agent A (the commands and outputs are in it).
+
+## Approach
+
+Fix each one; a finding that the code cannot change goes into the documents.
+
+## Prove
+
+`cargo test -p podrunner -p podrunner-local`
