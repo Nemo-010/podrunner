@@ -79,8 +79,20 @@ jobs:
           if [ -n "$IMAGES_RUN" ]; then
             case $IMAGES_RUN in *[!0-9]*) echo "images_run is the id of a run (digits)"; exit 1 ;; esac
             got=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$IMAGES_RUN" --jq '"\(.path) \(.head_sha) \(.conclusion)"')
-            [ "$got" = ".github/workflows/runner-image.yml $sha success" ] ||
-              { echo "run $IMAGES_RUN is not a green runner-image.yml run of $sha: $got"; exit 1; }
+            # The image is built from images/ only: a green run of an older
+            # commit serves when images/ is the same at both commits.
+            # shellcheck disable=SC2086 # three words: path, sha, conclusion
+            set -- $got
+            if [ "$1 $3" != ".github/workflows/runner-image.yml success" ]; then
+              echo "run $IMAGES_RUN is not a green runner-image.yml run: $got"; exit 1
+            fi
+            if [ "$2" != "$sha" ]; then
+              git fetch -q --depth=200 origin "$2" ||
+                { echo "run $IMAGES_RUN is of $2, which this checkout cannot fetch"; exit 1; }
+              git diff --quiet "$2" "$sha" -- images/ ||
+                { echo "run $IMAGES_RUN is of $2, and images/ changed since: run runner-image.yml on $sha"; exit 1; }
+              echo "run $IMAGES_RUN is of $2; images/ is the same at $sha"
+            fi
             images=$IMAGES_RUN
           else
             images=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/runner-image.yml/runs?head_sha=$sha&status=success" \

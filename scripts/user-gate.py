@@ -356,6 +356,8 @@ class Lane:
     def hello(self, executor: str):
         ok, detail = self.podrunner([self.data / "hello.yml", *self.flags(executor)], self.work, f"hello-{executor}", True)
         known = HELLO_XFAIL.get(executor)
+        if executor == "microvm" and not ok:
+            detail += " | probe: " + self.microvm_probe()
         if known and ok:
             raise GateError(f"hello on {executor} passes now (an xfail of HELLO_XFAIL): remove it")
         if known:
@@ -363,6 +365,17 @@ class Lane:
         if not ok:
             raise GateError(detail)
         return detail
+
+    def microvm_probe(self) -> str:
+        """`podvm run --verbose` of the runner image on the machine tier, as
+        the unit does it: the last lines name the cause of an early end
+        (PodUtils/podvm#442)."""
+        podvm = self.data / "bin" / "podvm"
+        argv = [podvm, "run", "--verbose", "--rm", "--podvm-tier=machine", "--podvm-mem", "4G", self.image, "true"]
+        env = self.env(self.home, PODVM_STORE=str(self.data / "images"))
+        rc, _ = self.run(argv, env, self.work, "microvm-probe", timeout=600)
+        err = (self.out / "logs" / "microvm-probe.err").read_text(errors="replace").splitlines()
+        return f"exit {rc}: " + " / ".join(line.strip() for line in err[-4:])
 
     def clone(self, repo: str, sha: str) -> pathlib.Path:
         d = self.work / "src" / f"{repo.replace('/', '_')}-{sha[:12]}"

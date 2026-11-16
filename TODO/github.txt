@@ -195,5 +195,5 @@
 189 issue open
 190 issue closed
 191 issue open
-192 issue open
+192 issue closed
 193 issue open

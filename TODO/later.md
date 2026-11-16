@@ -4240,7 +4240,7 @@ The rows `click-py313` and `rq-lint` on `podvm` pass in the user-path gate.
 
 ## Blocker
 
-2026-11-16: waits for the release of podvm that binds a volume on the namespace rung (PodUtils/podvm#439).
+2026-11-16: waits for the release of podvm that binds a volume on the namespace rung (PodUtils/podvm#439; on podvm `main` at `1298b66a`, PodUtils/podvm#442).
 
 # T-262: In a podvm unit, Node sometimes reads an invalid package.json
 
@@ -4271,7 +4271,7 @@ The row `express-lint` on `podvm` passes in each lane of two runs of the user-pa
 
 ## Blocker
 
-2026-11-16: user-gate 43787604846 on `12cb64e` (with `UV_USE_IO_URING=0`): the job fails in three lanes of four, at the first read of a `package.json` (of npm in the tool cache) by the module loader of Node 26; `UV_USE_IO_URING=0` is not the fix. The row is an xfail again; waits for podvm (COORD-068, GitHub #193).
+2026-11-16: user-gate 43787604846 on `12cb64e` (with `UV_USE_IO_URING=0`): the job fails in three lanes of four, at the first read of a `package.json` (of npm in the tool cache) by the module loader of Node 26; `UV_USE_IO_URING=0` is not the fix. The row is an xfail again; waits for podvm (COORD-068, GitHub #193). podvm (PodUtils/podvm#442): the cause is the loader family of #439; the fix (a volume as a bind mount on the namespace rung for a foreground `run`) is on podvm `main` (`1298b66a`) and comes in its next release; no variable closes it on beta.24.
 
 # T-263: The installer keeps a directory that the group can write
 
@@ -5096,4 +5096,4 @@ podvm names what the machine tier needs from a user with no root (COORD-068, Git
 
 ## Blocker
 
-2026-11-16: waits for the answer of podvm to COORD-068 (GitHub #193).
+2026-11-16: podvm (PodUtils/podvm#442) did not reproduce it as uid 1000 under TCG; its guess, a guest memory of 512 MiB, does not hold (podrunner gives `--podvm-mem 4G`). The gate now runs `podvm run --verbose` of the image on the machine tier when `hello:microvm` fails (`scripts/user-gate.py`, `microvm_probe`), for the last line of the emulator; podvm `main` prints that line with no `--verbose` in its next release. Waits for that line.
