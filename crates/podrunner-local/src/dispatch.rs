@@ -32,6 +32,27 @@ pub fn other_arch(label: &str, host: &str) -> Option<&'static str> {
     }
 }
 
+/// The refusal of a label that no unit of this host runs: Windows, macOS,
+/// or another architecture (T-151). The dry run applies it too (T-289).
+pub fn foreign(labels: &[String]) -> Result<(), String> {
+    let other_os = labels.iter().find(|l| {
+        let l = l.to_ascii_lowercase();
+        l.starts_with("windows") || l.starts_with("macos")
+    });
+    if let Some(l) = other_os {
+        return Err(format!("runs-on {l:?}: a unit is Linux; name a --platform for the label to run it there"));
+    }
+    // The units of this host have its architecture, and podvm runs no
+    // guest of another one yet.
+    if let Some((l, arch)) = labels.iter().find_map(|l| other_arch(l, std::env::consts::ARCH).map(|a| (l, a))) {
+        return Err(format!(
+            "runs-on {l:?}: a job of {arch}, and the units of this host are {}; podvm runs no guest of another architecture yet; name a --platform for the label to run it there",
+            if std::env::consts::ARCH == "aarch64" { "linux/arm64" } else { "linux/amd64" }
+        ));
+    }
+    Ok(())
+}
+
 impl Dispatch {
     pub fn new(routes: Vec<(String, Box<dyn Executor>)>, default: Option<Box<dyn Executor>>) -> Dispatch {
         Dispatch { routes, default, next: None }
@@ -44,21 +65,7 @@ impl Dispatch {
                 return Ok(Some(i));
             }
         }
-        let foreign = labels.iter().find(|l| {
-            let l = l.to_ascii_lowercase();
-            l.starts_with("windows") || l.starts_with("macos")
-        });
-        if let Some(l) = foreign {
-            return Err(format!("runs-on {l:?}: a unit is Linux; name a --platform for the label to run it there"));
-        }
-        // A label of another architecture (T-151): the units of this host have
-        // its architecture, and podvm runs no guest of another one yet.
-        if let Some((l, arch)) = labels.iter().find_map(|l| other_arch(l, std::env::consts::ARCH).map(|a| (l, a))) {
-            return Err(format!(
-                "runs-on {l:?}: a job of {arch}, and the units of this host are {}; podvm runs no guest of another architecture yet; name a --platform for the label to run it there",
-                if std::env::consts::ARCH == "aarch64" { "linux/arm64" } else { "linux/amd64" }
-            ));
-        }
+        foreign(labels)?;
         if self.default.is_none() {
             let names: Vec<&str> = self.routes.iter().map(|(r, _)| r.as_str()).collect();
             return Err(format!("runs-on {labels:?}: no --platform names a label of it (the platforms: {names:?})"));

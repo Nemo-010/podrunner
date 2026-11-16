@@ -109,9 +109,20 @@ pub(super) struct DryRun {
     pub pins: std::collections::BTreeMap<String, String>,
     /// The tarball of the tree of `--checkout`, for a `./` action.
     pub tree: Option<std::path::PathBuf>,
+    /// The labels of `--platform`.
+    pub platforms: Vec<String>,
 }
 
 impl Executor for DryRun {
+    // A label that the run refuses, the dry run refuses (T-289); a label
+    // that a --platform names is routed by the run.
+    fn select(&mut self, labels: &[String]) -> Result<(), String> {
+        match labels.iter().any(|l| self.platforms.iter().any(|p| p.eq_ignore_ascii_case(l))) {
+            true => Ok(()),
+            false => podrunner_local::dispatch::foreign(labels),
+        }
+    }
+
     fn run(&mut self, _job: &JobId, message: Job, _limit: Duration) -> Result<End, String> {
         if self.host && podrunner_local::exec::needs_containers(&message) {
             return Err("the job needs containers: run it in a unit (--podvm, or --microvm with --engine), not on a runner directory".into());

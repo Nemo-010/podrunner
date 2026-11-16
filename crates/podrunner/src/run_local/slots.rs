@@ -50,6 +50,7 @@ pub(super) fn build(
                     actions: common.actions.clone(),
                     pins: common.pins.clone(),
                     tree: common.checkout.clone(),
+                    platforms: a.platforms.iter().map(|(l, _)| l.clone()).collect(),
                 }) as Box<dyn Executor>
             }
             false => routes::build(a, common, &dir)?,

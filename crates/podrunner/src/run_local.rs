@@ -467,8 +467,16 @@ pub fn run(args: &[String]) -> Out {
     let out = match result {
         Ok(true) => Out { code: 0, stdout, stderr },
         Ok(false) => {
-            for (job, log) in &logs {
-                stderr.push_str(&format!("--- log of {job}\n{log}\n"));
+            // The live lines gave each log once; with -q, the logs come at
+            // the end (T-289).
+            match a.quiet {
+                true => {
+                    for (job, log) in &logs {
+                        stderr.push_str(&format!("--- log of {job}\n{log}\n"));
+                    }
+                }
+                false if a.dry_run => {}
+                false => stderr.push_str("podrunner: a job failed; its log is above (and in --log-dir DIR)\n"),
             }
             stderr.push_str(&logs::token_hint(&logs));
             Out { code: 1, stdout, stderr }

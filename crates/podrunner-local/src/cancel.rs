@@ -17,10 +17,14 @@ extern "C" fn on_signal(sig: libc::c_int) {
         // cleanup, so the output goes to /dev/null.
         // SAFETY: open and dup2 are async-signal-safe.
         unsafe {
+            // Only a terminal is gone: a file or a pipe keeps the lines.
             let null = libc::open(c"/dev/null".as_ptr(), libc::O_WRONLY);
             if null >= 0 {
-                libc::dup2(null, 1);
-                libc::dup2(null, 2);
+                for fd in [1, 2] {
+                    if libc::isatty(fd) == 1 {
+                        libc::dup2(null, fd);
+                    }
+                }
             }
         }
     }

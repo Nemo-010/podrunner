@@ -92,6 +92,10 @@ pub(super) fn hold(a: &Args) -> String {
 /// The runner reads each directory above its root, up to `/` (T-213).
 fn parents_readable(dir: &Path) -> Result<String, String> {
     let dir = std::path::absolute(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    // A path that is not there is the check of runner-dir (T-289).
+    if !dir.exists() {
+        return Ok(format!("{} is not there: see runner-dir", dir.display()));
+    }
     // From the root down: the first directory that cannot be read is the
     // cause, not a directory under it (T-277).
     let parents: Vec<&Path> = dir.ancestors().skip(1).collect();

@@ -5012,3 +5012,57 @@ Finding F2 of the report of the second QA.
 ## Done
 
 2026-11-16: `crates/podrunner-local/src/exec/docker.rs` (`Sources`, `tree_action_text`), used by `exec/host.rs` and the dry run (`run_local/inspect.rs`, `slots.rs`); test `a_docker_action_of_the_tree_is_found`.
+
+# T-289: The P3 findings of the second QA, agent A, part 1
+
+**Source:** the second adversarial QA of `f5d1de7`, agent A, findings F4, F5, F8 and F9 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** done
+
+## Problem
+
+The dry run planned a macOS cell that the run refuses (F4); after a SIGHUP with the output in a file, the `cancelled` lines and the end of the live log were lost (F5); after a failed job, the log of each job came again on stderr, also with the live lines on (F8); `doctor --run` with a runner directory that is not there asked for a read of a parent that is not there (F9).
+
+## Premise
+
+The report of the second QA, agent A (a user with no root on this sandbox).
+
+## Approach
+
+The dry run selects each cell as the dispatch of the run does (`dispatch::foreign`); SIGHUP sends only a terminal to /dev/null; with the live lines on, the end of a failed run names the failure and does not repeat the logs; `runner-dir-parents` leaves a path that is not there to the check `runner-dir`.
+
+## Prove
+
+`cargo test -p podrunner`; on this sandbox: `--dry-run` of a matrix of `ubuntu-latest` and `macos-latest` on `--runner-dir` gives the refusal of the macOS cell.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/dispatch.rs` (`foreign`), `run_local/inspect.rs` (`DryRun::select`), `cancel.rs` (`isatty`), `run_local.rs` (the end of a failed run), `run_local/doctor.rs` (`parents_readable`), `docs/cli.md`. Proven on this sandbox as root: the dry run refuses the macOS cell; `doctor --run` with `/nonexist/runner` gives one FAIL.
+
+# T-290: The P3 findings of the second QA, agent A, part 2
+
+**Source:** the second adversarial QA of `f5d1de7`, agent A, findings F3, F6, F7 and F10 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+On `--runner-dir`, a `services:` job with a tagged image is refused as "not pinned by digest" with the expression of the matrix (T-260, T-277 A7), and a pinned one is told to use `--podvm`, which refuses services too (F3); with `--job other`, the caller of a reusable workflow is skipped with the reason of `if:`, not "not selected", and a job inside a called workflow cannot be selected (F6); `--runner-dir` has no tool cache that a user can give (`--toolcache` is for units; `RUNNER_TOOL_CACHE` of `--env` has no effect) (F7); no document gives a user with no root a way to get a runner image before a release attaches it (F10).
+
+## Premise
+
+The report of the second QA, agent A.
+
+## Approach
+
+F3: on `--runner-dir`, the refusal of containers before the check of a digest, and the fix of `services:` names `--microvm` with `--engine`. F6: the line of a call that `--job` leaves out is "not selected"; `--job CALLER/CALLEE` selects one job of a call. F7: `--toolcache DIR` on `--runner-dir` sets `RUNNER_TOOL_CACHE` of the runner. F10: `docs/install.md` names the artifact of a green `runner-image.yml` run and `podvm load -i`, and says that a build needs docker buildx.
+
+## Prove
+
+`cargo test -p podrunner -p podrunner-local`: a test for F3, F6 and F7; `docs/install.md` for F10.
