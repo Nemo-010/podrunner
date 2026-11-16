@@ -5898,6 +5898,8 @@ The report of agent B (the commands and outputs are in it).
 
 Fix each one; a finding that the code cannot change goes into the documents.
 
+Fixed: B-18 (each return of a run removes its directories in `TMPDIR`).
+
 ## Prove
 
 `cargo test -p podrunner -p podrunner-local`
@@ -6112,6 +6114,8 @@ The report of agent B, round 4 (the commands and outputs are in it).
 ## Approach
 
 Fix each one; a finding that the code cannot change goes into the documents.
+
+Fixed: F38 (each return of a run removes its directories in `TMPDIR`).
 
 ## Prove
 

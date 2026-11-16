@@ -300,6 +300,9 @@ pub fn run(args: &[String]) -> Out {
     source.set_pins(guest::mirror_pins(&a, &pins, source.workflow()));
     stale::end_dead_runs();
     let scratch = std::env::temp_dir().join(format!("podrunner-run-tree-{}", std::process::id()));
+    let state = std::env::temp_dir().join(format!("podrunner-run-units-{}", std::process::id()));
+    // Each return removes both, also an early refusal (T-323 F38).
+    let _gone = stale::Gone(vec![scratch.clone(), state.clone()]);
     let tree = match &a.checkout {
         None => None,
         Some(dir) => match podrunner_local::tree::tarball(
@@ -361,7 +364,6 @@ pub fn run(args: &[String]) -> Out {
         && !a.dry_run
         && let Err(e) = pause::watch(a.runner_dir.is_none() || a.podvm.is_some() || a.guest.is_some())
     {
-        let _ = std::fs::remove_dir_all(&scratch);
         return fail(Class::Usage, e);
     }
     let web = match a.web.map(|addr| web::Web::start(addr, artifacts.clone())) {
@@ -371,7 +373,6 @@ pub fn run(args: &[String]) -> Out {
             Some(w)
         }
         Some(Err(e)) => {
-            let _ = std::fs::remove_dir_all(&scratch);
             return fail(Class::Config, e);
         }
     };
@@ -386,7 +387,6 @@ pub fn run(args: &[String]) -> Out {
         // A dry run runs no job: a job that would start is `planned`.
         emit(&mut stdout, &if dry && text.starts_with("ok ") { text.replacen("ok      ", "planned ", 1) } else { text })
     };
-    let state = std::env::temp_dir().join(format!("podrunner-run-units-{}", std::process::id()));
     let oidc = match routes::issuer(&a) {
         Ok(i) => i,
         Err(e) => return fail(Class::Config, e),
@@ -427,11 +427,7 @@ pub fn run(args: &[String]) -> Out {
         .and_then(|held| slots::build(&a, &common, &state, live, job_groups).map(|s| (held, s)));
     let (_run_held, execs) = match built {
         Ok(b) => b,
-        Err(o) => {
-            let _ = std::fs::remove_dir_all(&state);
-            let _ = std::fs::remove_dir_all(&scratch);
-            return o;
-        }
+        Err(o) => return o,
     };
     let (result, (logs, blobs)) = slots::run(&mut source, execs, &mut each);
     group_notes.extend(notes_sink.lock().map(|n| n.clone()).unwrap_or_default());
@@ -450,9 +446,7 @@ pub fn run(args: &[String]) -> Out {
             stderr.push_str(&format!("podrunner: --state {}: {e}\n", dir.display()));
         }
     }
-    let _ = std::fs::remove_dir_all(&state);
     let _ = std::fs::remove_dir_all(kept.join(".pending"));
-    let _ = std::fs::remove_dir_all(&scratch);
     // Each request with no route of the fake broker (T-145), named on
     // stderr whatever the result: it can explain a failed step.
     let missing: Vec<String> = logs

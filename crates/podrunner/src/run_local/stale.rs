@@ -9,6 +9,17 @@ use std::path::{Path, PathBuf};
 
 const PREFIXES: &[&str] = &["podrunner-run-units-", "podrunner-run-tree-"];
 
+/// The directories of this run: each one is removed when the run returns.
+pub(super) struct Gone(pub(super) Vec<PathBuf>);
+
+impl Drop for Gone {
+    fn drop(&mut self) {
+        for d in &self.0 {
+            let _ = std::fs::remove_dir_all(d);
+        }
+    }
+}
+
 /// Whether a process `pid` lives. Any process counts, not only one named
 /// podrunner: a run started through a link of another name stays safe.
 fn live_podrunner(pid: u32) -> bool {
