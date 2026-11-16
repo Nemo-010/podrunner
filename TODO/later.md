@@ -4803,7 +4803,7 @@ Findings F7 and F20 of the report of the QA. The reports are in the scratch dire
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4820,6 +4820,10 @@ Find the second source of the lines (the console of the runner and the feed of t
 ## Prove
 
 `cargo test -p podrunner-local`: A test: a step that prints one line gives one live line.
+
+## Done
+
+2026-11-16: the cause: the live lines read each blob of the broker, also the log of the whole job, which repeats each line of the step logs with a byte order mark. `crates/podrunner-broker-fake/src/lib.rs`: `take_new` reads the step logs only, with no byte order mark; `logs` gives the log of the whole job (in the order of the steps) and the step logs only when there is none; test `the_blobs_keep_their_kind_and_the_new_text_comes_once`. Proven on this sandbox: a failed job on `--runner-dir` gives each line once, no byte order mark on stderr, and the dump in the order of the steps.
 
 # T-283: `doctor` reports mount and chroot as denied where a user namespace mounts
 

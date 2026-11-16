@@ -205,8 +205,25 @@ impl Broker {
     /// as text, with no summary.
     pub fn logs(&self) -> String {
         let st = self.state.lock().expect("the broker");
-        let logs = st.blobs.iter().filter(|(k, _)| !k.starts_with("summary-"));
-        logs.map(|(_, b)| String::from_utf8_lossy(b).into_owned()).collect::<Vec<_>>().join("\n")
+        let text = |b: &Vec<u8>| String::from_utf8_lossy(b).replace('\u{feff}', "");
+        // The log of the whole job has each step in order; the step logs
+        // (named by a random id) only when the runner sent no job log (T-282).
+        let whole: Vec<String> = st
+            .blobs
+            .iter()
+            .filter(|(k, _)| !k.starts_with("summary-") && !k.starts_with("step-"))
+            .map(|(_, b)| text(b))
+            .collect();
+        match whole.is_empty() {
+            false => whole.join("\n"),
+            true => st
+                .blobs
+                .iter()
+                .filter(|(k, _)| k.starts_with("step-"))
+                .map(|(_, b)| text(b))
+                .collect::<Vec<_>>()
+                .join("\n"),
+        }
     }
 
     /// Each blob by its name (`step-ID`, `summary-ID`, the job log), as text
@@ -221,12 +238,14 @@ impl Broker {
     pub fn take_new(&self) -> Vec<(String, String)> {
         let mut st = self.state.lock().expect("the broker");
         let mut out = Vec::new();
-        let names: Vec<String> = st.blobs.keys().filter(|k| !k.starts_with("summary-")).cloned().collect();
+        // The step logs only: the log of the whole job repeats each line
+        // (T-282).
+        let names: Vec<String> = st.blobs.keys().filter(|k| k.starts_with("step-")).cloned().collect();
         for name in names {
             let len = st.blobs[&name].len();
             let from = st.read.get(&name).copied().unwrap_or(0).min(len);
             if from < len {
-                out.push((name.clone(), String::from_utf8_lossy(&st.blobs[&name][from..]).into_owned()));
+                out.push((name.clone(), String::from_utf8_lossy(&st.blobs[&name][from..]).replace('\u{feff}', "")));
                 st.read.insert(name, len);
             }
         }
@@ -477,9 +496,11 @@ mod tests {
             "no summary in the live lines"
         );
         put(&broker, "/blobs/step-1?sig=x", "line two\n");
+        put(&broker, "/blobs/GetJobLogsSignedBlobURL?sig=x", "\u{feff}line one\nline two\n");
         assert_eq!(broker.take_new(), [("step-1".to_string(), "line two\n".to_string())], "only the new text");
         assert!(broker.take_new().is_empty());
         assert!(!broker.logs().contains("summary"), "the logs have no summary");
+        assert_eq!(broker.logs(), "line one\nline two\n", "the job log once, with no byte order mark");
         assert!(broker.blobs().iter().any(|(k, v)| k == "summary-1" && v.contains("# the summary")));
     }
 
