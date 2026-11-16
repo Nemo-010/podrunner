@@ -47,12 +47,22 @@ pub fn install() {
 /// Ask the run to stop as a signal does: a change of the tree under
 /// `--watch` (T-142).
 pub fn request() {
+    BY_CHANGE.store(true, Ordering::SeqCst);
     SIGNALLED.store(true, Ordering::SeqCst);
+}
+
+/// Set by [`request`]: a change of the tree, not a signal, stopped the run.
+static BY_CHANGE: AtomicBool = AtomicBool::new(false);
+
+/// A change of the tree stopped the run, not a signal (T-278).
+pub fn by_change() -> bool {
+    BY_CHANGE.load(Ordering::SeqCst) && COUNT.load(Ordering::SeqCst) == 0
 }
 
 /// Clear a request, for the next run of `--watch` or `--schedule`.
 pub fn reset() {
     SIGNALLED.store(false, Ordering::SeqCst);
+    BY_CHANGE.store(false, Ordering::SeqCst);
     COUNT.store(0, Ordering::SeqCst);
 }
 

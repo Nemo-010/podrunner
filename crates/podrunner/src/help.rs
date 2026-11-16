@@ -7,6 +7,9 @@ use pod_core::failure::Class;
 use crate::cli::{Out, USAGE, err, ok};
 use crate::text::display;
 
+/// The page of each option, for a user who has no tree (T-278).
+const CLI_DOC: &str = "https://github.com/PodUtils/podrunner/blob/main/docs/cli.md";
+
 /// The answer to `help`, `version` or a `--help` of a command; `None` for
 /// each other command line.
 pub(crate) fn answer(cmd: &str, rest: &[String]) -> Option<Out> {
@@ -38,7 +41,12 @@ fn of(cmd: &str) -> Option<String> {
         // A command starts two spaces in; its next lines start four or more.
         if line.strip_prefix("  ").is_some_and(|l| l.split_whitespace().next() == Some(cmd)) {
             inside = true;
-            out.push_str(&format!("usage: podrunner {}\n", line.trim_start()));
+            // The usage on its line, its description under it (T-278).
+            let l = line.trim_start();
+            match l.split_once("   ") {
+                Some((usage, what)) => out.push_str(&format!("usage: podrunner {usage}\n    {}\n", what.trim())),
+                None => out.push_str(&format!("usage: podrunner {l}\n")),
+            }
         } else if inside && line.starts_with("    ") {
             out.push_str(&format!("{line}\n"));
         } else {
@@ -74,7 +82,9 @@ fn wrap(usage: &str) -> String {
         }
     }
     out.push_str(line.trim_end());
-    out.push_str("\n\nEach option is in docs/cli.md, \"podrunner run\". A key of run.toml is an option with no --.\n");
+    out.push_str(&format!(
+        "\n\nEach option is in {CLI_DOC}, \"podrunner run\". A key of run.toml is an option with no --.\n"
+    ));
     out
 }
 

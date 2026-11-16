@@ -35,12 +35,9 @@ pub const USAGE: &str = "usage: podrunner COMMAND [OPTION...]
   fake-source [--script FILE]                       a fake source on stdio (for a test of a program source)
   source-conformance -- PROGRAM ARGS...             the source tests against a source program
   image verify --tarball FILE --arch ARCH           check a runner tarball against its pin
-  run FILE (--runner-dir DIR | (--podvm PATH [--podnet PATH] | --microvm PATH [--engine DIR] | --incus PATH)
-      --images STORE --image REF) [--allow HOST]...
-      [--actions DIR] [--offline | --frozen] [--artifacts DIR] [--cache DIR | --no-cache]
-      [--secret NAME]... [--secret-file FILE] [--github-token-env NAME]
-      [--checkout DIR] [--event NAME] [--var NAME=VALUE]... [--input NAME=VALUE]...
-                                                    run the jobs of a workflow, here or in podvm units
+  run (FILE | DIR) (--runner-dir DIR | (--podvm PATH [--podnet PATH] | --microvm PATH [--engine DIR] | --incus PATH)
+      --images STORE --image NAME@sha256:HEX) [OPTION...]
+                                                    run the jobs of a workflow; each option: podrunner run --help
   version | --version                               the version
   help [COMMAND] | COMMAND --help | --help          this text, or the options of one command
 ";

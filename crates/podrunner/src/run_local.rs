@@ -115,7 +115,14 @@ fn files(a: &Args) -> Result<(Pairs, Pairs, Pairs), String> {
 pub fn doctor(args: &[String]) -> Out {
     let a = match parse(args) {
         Ok(a) => a,
-        Err(e) => return fail(Class::Usage, format!("{e}\n{USAGE}")),
+        // A check that fails, with its fix, not the usage (T-278).
+        Err(e) => {
+            let fix = match e.contains("is necessary") {
+                true => "; fix: run the installer, which writes run.toml, or give --runner-dir DIR",
+                false => "; fix: podrunner run --help",
+            };
+            return Out { code: 1, stdout: format!("FAIL options: {e}{fix}\n"), stderr: String::new() };
+        }
     };
     let checks = doctor::checks(&a);
     let code = if checks.iter().all(|c| c.ok) { 0 } else { 1 };
@@ -134,10 +141,9 @@ pub fn run(args: &[String]) -> Out {
     }
     let text = match std::fs::read_to_string(&a.file) {
         Ok(t) => t,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            return fail(Class::NotFound, format!("{}: {e}", a.file.display()));
-        }
-        Err(e) => return fail(Class::Unavailable, format!("{}: {e}", a.file.display())),
+        // A workflow that cannot be read is 66, as one that is not there
+        // (T-278).
+        Err(e) => return fail(Class::NotFound, format!("{}: {e}", a.file.display())),
     };
     if a.validate || a.list || a.graph {
         return inspect::answer(&a, &text);
@@ -452,7 +458,10 @@ pub fn run(args: &[String]) -> Out {
         stderr.push_str(&format!("podrunner: {} requests had no route of the fake broker\n", missing.len()));
     }
     if podrunner_local::cancel::requested() {
-        stderr.push_str("podrunner: a signal cancelled the run\n");
+        stderr.push_str(match podrunner_local::cancel::by_change() {
+            true => "podrunner: a change of the tree cancelled the run\n",
+            false => "podrunner: a signal cancelled the run\n",
+        });
         return Out { code: 130, stdout, stderr };
     }
     let out = match result {

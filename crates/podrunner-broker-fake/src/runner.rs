@@ -36,6 +36,17 @@ pub fn rsaparams() -> String {
 /// with the extra environment `env`, as the leader of a process group of
 /// its own: a caller can end the whole runner with one signal.
 pub fn start_runner(dir: &Path, broker: &Broker, env: &[(&str, String)]) -> Result<std::process::Child, String> {
+    start_runner_with(dir, broker, env, true)
+}
+
+/// [`start_runner`]; with no `console`, the console of the runner goes to
+/// /dev/null (`-q` and `--json`, T-278).
+pub fn start_runner_with(
+    dir: &Path,
+    broker: &Broker,
+    env: &[(&str, String)],
+    console: bool,
+) -> Result<std::process::Child, String> {
     use std::os::unix::process::CommandExt;
     for (name, content) in runner_files(&broker.base, "runner-u-1", &rsaparams()) {
         std::fs::write(dir.join(&name), content)
@@ -59,7 +70,11 @@ pub fn start_runner(dir: &Path, broker: &Broker, env: &[(&str, String)]) -> Resu
         .process_group(0)
         // The console of the runner goes to stderr: stdout has the lines of
         // the jobs, and their JSON with `--json` (T-134).
-        .stdout(std::process::Stdio::from(std::io::stderr()))
+        .stdout(match console {
+            true => std::process::Stdio::from(std::io::stderr()),
+            false => std::process::Stdio::null(),
+        })
+        // The errors of the runner stay on stderr: a crash names its cause.
         .spawn()
         .map_err(|e| format!("{}: run.sh: {}", dir.display(), e.kind()))
 }

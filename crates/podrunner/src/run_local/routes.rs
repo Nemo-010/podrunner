@@ -47,6 +47,7 @@ fn host(a: &Args, c: &Common) -> Result<Box<dyn Executor>, Out> {
     e.oidc = Some(c.oidc.clone());
     e.checkout = c.checkout.clone();
     e.export = a.export.clone();
+    e.quiet = a.quiet || a.json;
     Ok(Box::new(e))
 }
 

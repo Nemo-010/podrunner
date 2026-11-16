@@ -4705,7 +4705,7 @@ State (2026-11-16): done: a directory as `--secret-file` is "not a file"; a `--w
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4722,6 +4722,10 @@ Make the code or the document agree for each case; the version of a release buil
 ## Prove
 
 `cargo test -p podrunner`: A test for each case.
+
+## Done
+
+2026-11-16: `-q` and `--json` turn the console of the runner of `--runner-dir` off (`podrunner_broker_fake::runner::start_runner_with`), and the errors of the runner stay on stderr; the documents give the layout of `--log-dir` (`JOB.N/step-UUID.log`, written at the end of the run) and say that each other line of stderr starts with `podrunner:`; a workflow that cannot be read exits 66, and `docs/cli.md` gives 64 for a missing file of an option; after a stop, a job that its needs would skip is `cancelled` (`drive.rs`, `cancel_the_rest`); `--watch` says "a change of the tree cancelled the run" (`cancel::by_change`); `podrunner help` gives the usage of `run` as `run --help` does, and `run --help` names the URL of `docs/cli.md`; `doctor --help` gives each usage on its line; `doctor --run` with no executor gives a FAIL line with the fix (the installer, or `--runner-dir`). The version: a release build has the version of the release (`PODRUNNER_VERSION`, `release.yml`); the QA took a local build. Proven on this sandbox: `-q` on `--runner-dir` prints the lines of the jobs only; a SIGINT during `a` gives `cancelled a` and `cancelled b`.
 
 # T-279: `--rerun --failed`, `--validate` and `--schedule` disagree with GitHub or the documents
 

@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**282 entries: 25 open, 22 partial, 13 blocked, 222 done.**
+**282 entries: 24 open, 22 partial, 13 blocked, 223 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
 | P2 | 16 | 9 | 7 | 96 | 128 |
-| P3 | 8 | 4 | 4 | 75 | 91 |
-| **All** | 25 | 22 | 13 | 222 | 282 |
+| P3 | 7 | 4 | 4 | 76 | 91 |
+| **All** | 24 | 22 | 13 | 223 | 282 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -322,7 +322,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-275](later.md) | P1 | S | later | defect | done | A project file reads a host file through a symbolic link |
 | [T-276](later.md) | P1 | S | later | defect | done | `.secrets` of a checkout goes into the workspace of each job |
 | [T-277](later.md) | P3 | M | later | defect | partial | Some refusals name the wrong cause or a fix that does not work |
-| [T-278](later.md) | P3 | S | later | defect | open | The output, the exit codes and the help disagree with the documents |
+| [T-278](later.md) | P3 | S | later | defect | done | The output, the exit codes and the help disagree with the documents |
 | [T-279](later.md) | P3 | S | later | defect | open | `--rerun --failed`, `--validate` and `--schedule` disagree with GitHub or the documents |
 | [T-280](later.md) | P3 | S | later | defect | open | `--break` on `--runner-dir` speaks of a unit, and two flags pass together |
 | [T-281](later.md) | P3 | S | later | defect | done | A runner directory with a space, and the growth of `_diag` |

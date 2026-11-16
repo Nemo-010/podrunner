@@ -92,8 +92,13 @@ pub fn drive(source: &mut LocalSource, exec: &mut dyn Executor, out: &mut dyn Fn
 /// The skips that are not printed, then each job of the workflow with no
 /// result as a `cancelled` line (T-141).
 fn cancel_the_rest(source: &LocalSource, skips: usize, out: &mut dyn FnMut(&Line)) {
+    // A job that a stop kept from its start is cancelled, as on GitHub, not
+    // skipped by the `if:` of its needs (T-278).
     for s in &source.skips()[skips..] {
-        out(&Line::Skipped { job: s.job.clone(), condition: s.condition.clone() });
+        let id = s.job.as_str();
+        let name = source.workflow().job(id).and_then(|j| j.name.clone()).unwrap_or_else(|| id.to_string());
+        let job = JobId::new(&format!("{id}.0")).unwrap_or_else(|_| JobId::new("job.0").expect("a job id"));
+        out(&Line::Ran { job, name, result: JobResult::Cancelled });
     }
     for j in &source.workflow().jobs {
         if source.result(&j.id).is_none() {

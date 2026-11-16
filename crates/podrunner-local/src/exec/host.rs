@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use pod_actions_workflow::JobResult;
 use podrunner_broker_fake::artifacts::ArtifactStore;
 use podrunner_broker_fake::cache::CacheStore;
-use podrunner_broker_fake::runner::start_runner;
+use podrunner_broker_fake::runner::start_runner_with;
 use podrunner_broker_fake::{Broker, Job};
 use podrunner_schema::JobId;
 
@@ -41,6 +41,8 @@ pub struct RunnerDir {
     pub export: Option<PathBuf>,
     /// The stop flag of the next job (T-132).
     stop: Option<crate::cancel::Stop>,
+    /// No console of the runner on stderr (`-q`, `--json`, T-278).
+    pub quiet: bool,
     /// The lock of the runner directory for this run (T-274).
     _lock: Arc<std::fs::File>,
 }
@@ -118,6 +120,7 @@ impl RunnerDir {
         let lock = lock(&dir)?;
         Ok(RunnerDir {
             _lock: lock,
+            quiet: false,
             dir,
             logs: Vec::new(),
             actions: None,
@@ -201,7 +204,7 @@ impl RunnerDir {
         // the user (T-266); the next job clears it with `_work`.
         let home = self.dir.join("_work").join("_home");
         std::fs::create_dir_all(&home).map_err(|e| format!("{}: {e}", home.display()))?;
-        let mut child = start_runner(&self.dir, &broker, &host_env(&home, std::env::vars()))?;
+        let mut child = start_runner_with(&self.dir, &broker, &host_env(&home, std::env::vars()), !self.quiet)?;
         // The limit of the job (`timeout-minutes`, T-115): at its end, the
         // whole process group of the runner ends, as the unit of `InUnit`.
         let end = Instant::now() + limit;
