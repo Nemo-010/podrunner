@@ -97,12 +97,20 @@ pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
 /// would (T-218).
 pub(super) struct DryRun {
     pub host: bool,
+    /// The store of the actions and the pins, to find a Docker action (T-270).
+    pub actions: Option<std::path::PathBuf>,
+    pub pins: std::collections::BTreeMap<String, String>,
 }
 
 impl Executor for DryRun {
     fn run(&mut self, _job: &JobId, message: Job, _limit: Duration) -> Result<End, String> {
         if self.host && podrunner_local::exec::needs_containers(&message) {
             return Err("the job needs containers: run it in a unit (--podvm, or --microvm with --engine), not on a runner directory".into());
+        }
+        if self.host
+            && let Some(e) = podrunner_local::exec::docker::refusal(&message, self.actions.as_deref(), &self.pins)
+        {
+            return Err(e);
         }
         Ok(End { result: JobResult::Success, outputs: vec![] })
     }

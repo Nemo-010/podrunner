@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**281 entries: 34 open, 20 partial, 12 blocked, 215 done.**
+**282 entries: 34 open, 20 partial, 12 blocked, 216 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 21 | 8 | 7 | 91 | 127 |
+| P2 | 21 | 8 | 7 | 92 | 128 |
 | P3 | 12 | 3 | 3 | 73 | 91 |
-| **All** | 34 | 20 | 12 | 215 | 281 |
+| **All** | 34 | 20 | 12 | 216 | 282 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -314,7 +314,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-267](later.md) | P2 | S | later | defect | open | `--checkout .` gives no `.git`, so a step that runs `git` fails |
 | [T-268](later.md) | P2 | S | later | defect | done | The lock of the actions goes into the next checkout as a new file |
 | [T-269](later.md) | P2 | S | later | defect | open | The made-up token fails `actions/setup-python` with a 404, and the run names no fix |
-| [T-270](later.md) | P2 | S | later | defect | open | A Dockerfile action on `--runner-dir` starts the job and calls the docker of the host |
+| [T-270](later.md) | P2 | S | later | defect | done | A Dockerfile action on `--runner-dir` starts the job and calls the docker of the host |
 | [T-271](later.md) | P2 | S | later | defect | open | `--job` does not select a need that calls a reusable workflow |
 | [T-272](later.md) | P2 | S | later | defect | open | `--dry-run` on `--podvm` plans a `services:` job and does not check the image |
 | [T-273](later.md) | P2 | S | later | defect | done | A SIGHUP leaves the runner running and breaks the runner directory |
@@ -329,3 +329,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-282](later.md) | P3 | S | later | defect | open | Each live log line comes twice |
 | [T-283](later.md) | P3 | S | later | defect | open | `doctor` reports mount and chroot as denied where a user namespace mounts |
 | [T-284](later.md) | P2 | S | later | defect | open | The user-path gate has no lane of a host with a proxy only |
+| [T-285](later.md) | P2 | M | later | defect | open | A Dockerfile action on `--podvm` gets no container hooks |

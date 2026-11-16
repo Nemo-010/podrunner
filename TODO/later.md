@@ -4467,7 +4467,7 @@ The hint of `token_hint` (`crates/podrunner/src/run_local/logs.rs`) also for a f
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4484,6 +4484,10 @@ The resolve of the actions marks an action of `runs.using: docker` (also a `dock
 ## Prove
 
 `cargo test -p podrunner-local`: A test of `crates/podrunner-local`: a job with a `docker://` step and one with a Dockerfile action fail on `--runner-dir` in a dry run.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/exec/docker.rs` (`docker_actions`, `refusal`): the `action.yml` of each action of the store at its pin, and of each composite action in it; `exec/host.rs` and the dry run (`run_local/inspect.rs`) refuse such a job on `--runner-dir`; `docs/cli.md`; test `a_docker_action_and_one_in_a_composite_are_found`. Proven on this sandbox: `--dry-run` of a job with `supercharge/redis-github-action@1.8.1` on `--runner-dir` gives the refusal. The same action on `--podvm` is T-285.
 
 # T-271: `--job` does not select a need that calls a reusable workflow
 
@@ -4850,3 +4854,28 @@ A lane `proxy-only` in `user-gate.yml`: a local proxy with its own CA (for examp
 ## Prove
 
 `python3 -I scripts/user-gate.py`: The lane passes in a run of `user-gate.yml`.
+
+# T-285: A Dockerfile action on `--podvm` gets no container hooks
+
+**Source:** T-270 (2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+`InUnit` sets up the container hooks of a podvm unit only for a job with `container:`, `services:` or a `docker://` step (`needs_containers`). A job with an action of `runs.using: docker` gets no hooks, so the runner in the unit finds no docker for the build or the pull of the image of the action. Not measured.
+
+## Premise
+
+Code read: `crates/podrunner-local/src/exec.rs` (`containers`), `exec/docker.rs`.
+
+## Approach
+
+Measure a job with `supercharge/redis-github-action@1.8.1` on `--podvm`. Set up the hooks also for a job with a Docker action (`docker::docker_actions`), and check that the hook server builds an image of a Dockerfile, or refuse the job by name until it does.
+
+## Prove
+
+`cargo test -p podrunner-local`: a job with a Docker action on a podvm unit gets the hooks; a row of the corpus of the user-path gate with a Docker action on `podvm`.

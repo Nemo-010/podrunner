@@ -35,7 +35,8 @@ pub(super) fn build(
         let mut exec = match a.dry_run {
             true => {
                 let host = a.podvm.is_none() && a.guest.is_none() && a.platforms.is_empty() && a.runner_dir.is_some();
-                Box::new(inspect::DryRun { host }) as Box<dyn Executor>
+                Box::new(inspect::DryRun { host, actions: common.actions.clone(), pins: common.pins.clone() })
+                    as Box<dyn Executor>
             }
             false => routes::build(a, common, &dir)?,
         };

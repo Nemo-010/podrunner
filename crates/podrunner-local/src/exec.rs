@@ -20,6 +20,7 @@ use podrunner_schema::JobId;
 
 use crate::drive::{End, Executor, result_of};
 
+pub mod docker;
 mod errors;
 mod host;
 mod images;
