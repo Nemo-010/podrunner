@@ -129,7 +129,12 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   or is a known xfail; `express-lint` on podvm passes in each lane now
   (T-262 done). Before a release: dispatch them again on its commit
   (user-gate with `-f images_run=` the runner-image run of that commit,
-  or 43862847276 while `images/` stays the same).
+  or 43862847276 while `images/` stays the same). `bca83b4` changed
+  `images/podnet.toml`: the next user-gate takes the runner-image run of
+  `b5d616c` (43922356588) or of a later commit.
+- The fourth QA: agent B found T-318 to T-323 and T-203 (each P2 and the
+  P1 T-319 done; T-318 blocked on podvm, COORD #200). The report of
+  agent A (user `qa3`) gives the next entries.
 - Each push that changes the crates starts `runner-image.yml` (about 2
   hours, no concurrency group): cancel the runs of older commits with
   `actions_run_trigger` (`cancel_workflow_run`) when a newer one covers
