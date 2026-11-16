@@ -4295,3 +4295,28 @@ The installer removes the write of the group and the others from `bin` and `shar
 ## Done
 
 2026-11-16: `scripts/install.sh` (`chmod go-w`), `scripts/test-install.sh` (step 4b). The proof of the gate is its next run.
+
+# T-264: Take podcrates `v0.55.0`: the sync of the issues and pod-lab
+
+**Source:** PodUtils/podcrates#188 (COORD-113, `v0.54.0`) and PodUtils/podcrates#194 (COORD-115, `v0.55.0`) (2026-11-16)
+**Category:** chore
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+podcrates released `pod-lab` (34 lab profiles, `podlab check` and `podlab run`), `pod-manual` part 1 and a workflow that syncs each issue with the record (`issue-sync.yml`, the ruling "Issues" of the owner). podrunner pins podcrates `v0.52.0`, runs its lanes with `podvm lab run` and its own scripts, and has no `Kind` column and no `issue_rules` in its record.
+
+## Premise
+
+The bodies of PodUtils/podcrates#188 and #194, read on 2026-11-16. Not measured: the drift of the map of podrunner.
+
+## Approach
+
+Bump podcrates to `v0.55.0`. Add the column `Kind` to `TODO/issues.md` and repair the map; set `issue_rules = "on"` in `TODO/todo.toml`; add a workflow `issue-sync.yml` that calls the workflow of the tag, and read its dry run first. Move the lanes of `user-gate.yml` to `podlab run` where a profile holds with no root (T-244), and say on PodUtils/podcrates#180 which profiles podrunner runs.
+
+## Prove
+
+`cargo todo check` with `issue_rules = "on"`; a dry run of `issue-sync.yml` with no change that the record does not give; the lanes of the user-path gate green under `podlab run`.

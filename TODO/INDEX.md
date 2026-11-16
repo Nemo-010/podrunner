@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**260 entries: 21 open, 19 partial, 12 blocked, 208 done.**
+**261 entries: 22 open, 19 partial, 12 blocked, 208 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 2 | 8 | 2 | 49 | 61 |
-| P2 | 14 | 8 | 7 | 86 | 115 |
+| P2 | 15 | 8 | 7 | 86 | 116 |
 | P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 21 | 19 | 12 | 208 | 260 |
+| **All** | 22 | 19 | 12 | 208 | 261 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -308,3 +308,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-261](later.md) | P2 | S | later | defect | blocked | In a podvm unit, the persist of a temporary file gets EACCES |
 | [T-262](later.md) | P2 | S | later | defect | partial | In a podvm unit, Node sometimes reads an invalid package.json |
 | [T-263](later.md) | P1 | S | later | defect | done | The installer keeps a directory that the group can write |
+| [T-264](later.md) | P2 | M | later | chore | open | Take podcrates `v0.55.0`: the sync of the issues and pod-lab |
