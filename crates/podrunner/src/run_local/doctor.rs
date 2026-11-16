@@ -191,6 +191,14 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
             "podvm",
             podvm.require(lowest).map(|v| format!("{} is {v} ({lowest} or later)", b.display())).map_err(fix),
         ));
+        // The rung of podvm on this host (T-300): only the namespace rung
+        // keeps a static binary of a job from the files of the user.
+        if a.guest.is_none()
+            && let Ok(info) = std::process::Command::new(&b).args(["system", "info"]).output()
+            && let Some(r) = rung(&String::from_utf8_lossy(&info.stdout))
+        {
+            out.push(check("rung", Ok(rung_text(&r))));
+        }
         // A job with containers needs the hooks of podvm (T-311).
         if a.guest.is_none()
             && let Ok(c) = podvm.probe()
@@ -238,7 +246,38 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
     out
 }
 
+/// The rung of `podvm system info`.
+fn rung(info: &str) -> Option<String> {
+    info.lines().find_map(|l| l.trim().strip_prefix("rung")).and_then(|r| r.split_whitespace().next()).map(String::from)
+}
+
+/// The line of the rung: a warning where a unit is no boundary for a
+/// static binary (T-300).
+fn rung_text(rung: &str) -> String {
+    match rung {
+        "namespace" => "namespace: each unit has a mount namespace of its own".into(),
+        r => format!(
+            "{r}: a static binary of a job can reach the files of your user on this host (T-300); run untrusted jobs with --microvm"
+        ),
+    }
+}
+
 /// The text of the checks: one line for each.
 pub(super) fn text(checks: &[Check]) -> String {
     checks.iter().map(|c| format!("{} {}: {}\n", if c.ok { "ok  " } else { "FAIL" }, c.name, c.text)).collect()
+}
+
+#[cfg(test)]
+mod rung_tests {
+    /// T-300: the doctor reads the rung of podvm and warns off the
+    /// namespace rung.
+    #[test]
+    fn the_rung_of_podvm() {
+        let info =
+            "podvm 0.2.0-beta.27\n  rung          namespace   (--strict would pass)\n  platform      linux/amd64\n";
+        assert_eq!(super::rung(info).as_deref(), Some("namespace"));
+        assert!(super::rung_text("userland").contains("--microvm"));
+        assert!(!super::rung_text("namespace").contains("--microvm"));
+        assert_eq!(super::rung("no such line"), None);
+    }
 }

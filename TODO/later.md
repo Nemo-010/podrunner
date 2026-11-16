@@ -5411,6 +5411,8 @@ State (2026-11-16): podvm `0.2.0-beta.25` is pinned (`ede07ea`) and its unit sta
 
 State (2026-11-16, user-gate 43834454578 on `a5079e6`): in CI each lane ran the podvm units on the loader family (`go` finds no GOROOT; uv and ruff get EACCES), as a `run -d` with a volume stays off the namespace rung in podvm `0.2.0-beta.25` until pod-enter binds its volumes (PodUtils/podvm#442). There a static binary of a job can still reach the files of the user; the check `confine:podvm` now fails only on the file on the host. Waits for the podvm release with the binds of `run -d`; a host with no user namespace keeps the loader family, so the notes name the limit.
 
+State (2026-11-16, later): podvm says `0.2.0-beta.25` binds the volumes of `run -d` too (PodUtils/podvm#442, closed), yet the CI lanes ran the units on the loader family. The likely cause is the host: Ubuntu 24.04 (GitHub's runners) restricts unprivileged user namespaces with AppArmor, so podvm cannot take the namespace rung there. `podrunner doctor --run` now prints the rung of podvm (`podvm system info`) and, off the namespace rung, warns that a static binary of a job can reach the files of the user and names `--microvm`, which works for a user with no root since T-291. Next: read the rung of each lane in the doctor logs of the next user-path gate; then the limit stays documented (the notes, `docs/local-mode.md`) or goes to podvm.
+
 
 # T-301: With podvm 0.2.0-beta.25 the runner of a podvm unit ends with no result
 
