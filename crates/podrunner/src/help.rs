@@ -8,7 +8,7 @@ use crate::cli::{Out, USAGE, err, ok};
 use crate::text::display;
 
 /// The page of each option, for a user who has no tree (T-278).
-const CLI_DOC: &str = "https://github.com/PodUtils/podrunner/blob/main/docs/cli.md";
+const CLI_DOC: &str = concat!("https://github.com/PodUtils/podrunner/blob/", env!("PODRUNNER_DOC_REF"), "/docs/cli.md");
 
 /// The answer to `help`, `version` or a `--help` of a command; `None` for
 /// each other command line.

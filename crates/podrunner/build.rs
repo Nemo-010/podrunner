@@ -20,6 +20,10 @@ fn main() {
         Some(v) => panic!("PODRUNNER_VERSION {v} does not name the version {pkg} of Cargo.toml"),
         None => pkg,
     };
+    // The help links to the documents of the tag of a release, and to main
+    // for a local build (T-323 F9).
+    let tagged = std::env::var("PODRUNNER_VERSION").is_ok_and(|v| !v.is_empty());
+    println!("cargo:rustc-env=PODRUNNER_DOC_REF={}", if tagged { format!("v{version}") } else { "main".into() });
     println!("cargo:rustc-env=PODRUNNER_VERSION={version}");
     println!("cargo:rerun-if-env-changed=PODRUNNER_VERSION");
     println!("cargo:rerun-if-changed=../../.git/HEAD");
