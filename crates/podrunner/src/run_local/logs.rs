@@ -15,8 +15,15 @@ use serde_json::json;
 /// The fix when a failed job gave the made-up `github.token` to a real API
 /// (T-254), else nothing.
 pub(super) fn token_hint<J>(logs: &[(J, String)]) -> String {
-    match logs.iter().any(|(_, log)| log.contains("Bad credentials")) {
-        true => "podrunner: a job gave the made-up github.token to a real API (\"Bad credentials\"); fix: give a token with --github-token-env NAME\n".into(),
+    // A real API refuses the made-up token: the API with "Bad credentials",
+    // raw.githubusercontent.com with a 404 (the manifest of setup-python,
+    // T-269).
+    let refused = |log: &str| {
+        log.contains("Bad credentials")
+            || (log.contains("Unable to get manifest from https://raw.githubusercontent.com"))
+    };
+    match logs.iter().any(|(_, log)| refused(log)) {
+        true => "podrunner: a job gave the made-up github.token to a real API, which refused it; fix: give a token with --github-token-env NAME, or for public data only an empty NAME, which sends no token\n".into(),
         false => String::new(),
     }
 }
@@ -106,5 +113,7 @@ mod hint_tests {
         let logs = vec![("a".to_string(), "##[error]Last error: Bad credentials".to_string())];
         assert!(super::token_hint(&logs).contains("--github-token-env"));
         assert!(super::token_hint(&[("a".to_string(), "other".to_string())]).is_empty());
+        let python = "##[error]Failed to fetch the Python versions manifest. Unable to get manifest from https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json";
+        assert!(super::token_hint(&[("a".to_string(), python.to_string())]).contains("an empty NAME"));
     }
 }

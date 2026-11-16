@@ -4442,7 +4442,7 @@ Leave the lock file of podrunner out of the tarball of a checkout (`crates/podru
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4459,6 +4459,10 @@ The hint of `token_hint` (`crates/podrunner/src/run_local/logs.rs`) also for a f
 ## Prove
 
 `cargo test -p podrunner`: A test of `token_hint` with the log line of setup-python.
+
+## Done
+
+2026-11-16: `crates/podrunner/src/run_local/logs.rs` (`token_hint`): also for "Unable to get manifest from https://raw.githubusercontent.com"; the hint names an empty variable for public data; `docs/cli.md`; test `bad_credentials_name_the_token_flag`.
 
 # T-270: A Dockerfile action on `--runner-dir` starts the job and calls the docker of the host
 

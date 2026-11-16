@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**282 entries: 34 open, 20 partial, 12 blocked, 216 done.**
+**282 entries: 33 open, 20 partial, 12 blocked, 217 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 21 | 8 | 7 | 92 | 128 |
+| P2 | 20 | 8 | 7 | 93 | 128 |
 | P3 | 12 | 3 | 3 | 73 | 91 |
-| **All** | 34 | 20 | 12 | 216 | 282 |
+| **All** | 33 | 20 | 12 | 217 | 282 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -313,7 +313,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-266](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` writes into the home of the user |
 | [T-267](later.md) | P2 | S | later | defect | open | `--checkout .` gives no `.git`, so a step that runs `git` fails |
 | [T-268](later.md) | P2 | S | later | defect | done | The lock of the actions goes into the next checkout as a new file |
-| [T-269](later.md) | P2 | S | later | defect | open | The made-up token fails `actions/setup-python` with a 404, and the run names no fix |
+| [T-269](later.md) | P2 | S | later | defect | done | The made-up token fails `actions/setup-python` with a 404, and the run names no fix |
 | [T-270](later.md) | P2 | S | later | defect | done | A Dockerfile action on `--runner-dir` starts the job and calls the docker of the host |
 | [T-271](later.md) | P2 | S | later | defect | open | `--job` does not select a need that calls a reusable workflow |
 | [T-272](later.md) | P2 | S | later | defect | open | `--dry-run` on `--podvm` plans a `services:` job and does not check the image |
