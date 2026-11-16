@@ -24,6 +24,7 @@ pub mod docker;
 mod errors;
 mod host;
 mod images;
+mod proxy;
 mod toolcache;
 
 pub use host::{PASSED, RunnerDir, space_refusal};
@@ -84,6 +85,9 @@ pub struct InUnit {
     /// runner links to its tools at the start (T-138).
     pub toolcache: Option<PathBuf>,
     pub logs: Vec<(JobId, String)>,
+    /// Where the unit sees its credential files: a unit with the network of
+    /// the host gets the proxy and the CA files of the caller there (T-284).
+    pub credential_dir: Option<String>,
 }
 
 impl InUnit {
@@ -110,6 +114,7 @@ impl InUnit {
             export: None,
             toolcache: None,
             logs: Vec::new(),
+            credential_dir: None,
         }
     }
 }
@@ -277,7 +282,7 @@ impl Executor for InUnit {
         broker.queue(message);
         let id = UnitId::parse(&format!("u-{n}")).map_err(|e| format!("unit id: {e:?}"))?;
         let runner = format!("podrunner-local-{n}");
-        let files = podrunner_broker_fake::files::runner_files(
+        let mut files: Vec<CredentialFile> = podrunner_broker_fake::files::runner_files(
             &broker.base,
             &runner,
             &podrunner_broker_fake::runner::rsaparams(),
@@ -285,6 +290,12 @@ impl Executor for InUnit {
         .into_iter()
         .map(|(name, text)| CredentialFile { name, content: Secret::new(text) })
         .collect();
+        let mut proxy_env = Vec::new();
+        if let (false, None, Some(dir)) = (self.guest, &self.egress, &self.credential_dir) {
+            let (env, more) = proxy::unit_env(dir, std::env::vars())?;
+            proxy_env = env;
+            files.extend(more);
+        }
         // One socket directory for each unit: the container hooks and the
         // egress socket of the hold (T-095).
         let containers = needs_containers(&message_copy) && !self.guest;
@@ -367,6 +378,7 @@ impl Executor for InUnit {
             // libuv passes no libc call (T-262, PodUtils/podvm#439).
             env.insert("UV_USE_IO_URING".into(), "0".into());
         }
+        env.extend(proxy_env);
         let spec = podrunner_unit::StartSpec {
             unit: id.clone(),
             image: self.image.clone(),

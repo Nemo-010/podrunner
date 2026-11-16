@@ -36,6 +36,9 @@ mod root;
 /// The working directory of the payload in the rootfs.
 const WORKDIR: &str = "/podrunner";
 
+/// Where a unit sees its credential files (`WORKDIR/RUNNER_ROOT`).
+pub const CREDENTIAL_DIR: &str = "/podrunner/.runner";
+
 /// The runner root, under the working directory.
 const RUNNER_ROOT: &str = ".runner";
 /// The time that destroy waits for the processes of a unit to end.
@@ -484,5 +487,13 @@ impl PodvmUnit {
         let line = out.lines().nth(1)?;
         let mut cols = line.split_whitespace();
         Some(format!("{}:{}", cols.next()?, cols.next()?))
+    }
+}
+
+#[cfg(test)]
+mod credential_dir_tests {
+    #[test]
+    fn the_credential_dir_is_the_runner_root() {
+        assert_eq!(super::CREDENTIAL_DIR, format!("{}/{}", super::WORKDIR, super::RUNNER_ROOT));
     }
 }

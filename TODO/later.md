@@ -4865,7 +4865,7 @@ COORD-067 (GitHub #191) asks podcrates for a mount and a chroot probe in a user 
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -4882,6 +4882,8 @@ A lane `proxy-only` in `user-gate.yml`: a local proxy with its own CA (for examp
 ## Prove
 
 `python3 -I scripts/user-gate.py`: The lane passes in a run of `user-gate.yml`.
+
+State (2026-11-16): `scripts/lab/proxy-only.sh` (mitmproxy on the loopback as its own user, its CA in a bundle, iptables refuses each other way out of the lab user; `LAB_PROXY_UPSTREAM` chains to the proxy of a host whose egress is a proxy) and the lane `proxy-only` of `user-gate.yml` (podvm, runner-dir); `nonroot.sh` keeps the proxy and CA variables. A podvm unit with the network of the host takes the proxy variables, and each CA file as a credential file (`crates/podrunner-local/src/exec/proxy.rs`, `podrunner_podvm::CREDENTIAL_DIR`; test `a_unit_gets_the_proxy_and_each_ca_file_once`). Not run: here the chain to the proxy of the sandbox fails (mitmproxy sends an absolute GET, which that proxy refuses with 400). The proof is the next run of the gate.
 
 # T-285: A Dockerfile action on `--podvm` gets no container hooks
 

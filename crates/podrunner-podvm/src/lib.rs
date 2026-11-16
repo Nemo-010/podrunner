@@ -16,7 +16,7 @@
 pub mod probe;
 mod unit;
 
-pub use unit::PodvmUnit;
+pub use unit::{CREDENTIAL_DIR, PodvmUnit};
 
 use std::path::PathBuf;
 use std::process::Command;

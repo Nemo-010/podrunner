@@ -134,5 +134,6 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
     let prepared = unit.prepare(image, platform, false).map_err(|e| fail(Class::Config, format!("{image}: {e}")))?;
     let mut exec = InUnit::new(std::sync::Arc::new(unit), prepared);
     exec.egress = egress;
+    exec.credential_dir = Some(podrunner_podvm::CREDENTIAL_DIR.to_string());
     Ok(exec)
 }

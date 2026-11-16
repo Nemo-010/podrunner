@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**282 entries: 27 open, 20 partial, 13 blocked, 222 done.**
+**282 entries: 26 open, 21 partial, 13 blocked, 222 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 17 | 8 | 7 | 96 | 128 |
+| P2 | 16 | 9 | 7 | 96 | 128 |
 | P3 | 9 | 3 | 4 | 75 | 91 |
-| **All** | 27 | 20 | 13 | 222 | 282 |
+| **All** | 26 | 21 | 13 | 222 | 282 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -328,5 +328,5 @@ acceptance, later The crate dependencies later than v1.
 | [T-281](later.md) | P3 | S | later | defect | done | A runner directory with a space, and the growth of `_diag` |
 | [T-282](later.md) | P3 | S | later | defect | done | Each live log line comes twice |
 | [T-283](later.md) | P3 | S | later | defect | blocked | `doctor` reports mount and chroot as denied where a user namespace mounts |
-| [T-284](later.md) | P2 | S | later | defect | open | The user-path gate has no lane of a host with a proxy only |
+| [T-284](later.md) | P2 | S | later | defect | partial | The user-path gate has no lane of a host with a proxy only |
 | [T-285](later.md) | P2 | M | later | defect | open | A Dockerfile action on `--podvm` gets no container hooks |

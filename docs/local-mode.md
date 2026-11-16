@@ -23,6 +23,10 @@ case forms), `SSL_CERT_FILE`, `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`,
 `podrunner doctor --run` names the variables that a job takes. Set each
 one before the run; give another variable with `--env NAME=VALUE`.
 
+A job in a podvm unit with no `--podnet` (the unit has the network of the
+host) takes the same proxy variables; each CA file goes into the unit as a
+file of the runner, and its variable names that file.
+
 A job on `--runner-dir` gets a scratch `HOME` (`_work/_home` of the runner
 directory), which the next job removes. It runs as the user of podrunner,
 with the files and the network of that user: it is not a unit.
