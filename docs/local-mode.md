@@ -72,6 +72,18 @@ the job. In a podvm unit on the namespace rung of podvm (a user with no
 root on a host with user namespaces), a job runs as root of a user
 namespace of one uid (T-317).
 
+## What a podvm unit holds
+
+A podvm unit is a boundary only on the namespace rung of podvm: a mount
+namespace of its own, where the job sees only the image and its work
+directory. Where podvm cannot take that rung (a host with no user
+namespace, or with user namespaces that AppArmor restricts, as on Ubuntu
+24.04), podvm runs the unit on a userland rung, and a static binary of a
+job (Go up to 1.20, for example) can reach the files of your user.
+`podrunner doctor --run` names the rung of the host. Run jobs that you do
+not trust with `--microvm` (a guest under KVM, no root needed), or on a
+host where the rung is `namespace` (T-300).
+
 ## The comparison
 
 `podrunner run FILE` runs the jobs of one workflow file with the official

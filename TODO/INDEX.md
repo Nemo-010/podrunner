@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 23 open, 22 partial, 13 blocked, 256 done.**
+**314 entries: 23 open, 21 partial, 13 blocked, 257 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 1 | 10 | 2 | 54 | 67 |
+| P1 | 1 | 9 | 2 | 55 | 67 |
 | P2 | 13 | 8 | 7 | 122 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 23 | 22 | 13 | 256 | 314 |
+| **All** | 23 | 21 | 13 | 257 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -344,7 +344,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-297](later.md) | P2 | S | later | defect | done | `--microvm` does not check its image and `/dev/kvm` before the run |
 | [T-298](later.md) | P3 | M | later | defect | open | The P3 findings of the second QA, agent B |
 | [T-299](later.md) | P2 | S | later | defect | done | In the lane proxy-only, the lint of rq on `--runner-dir` fails |
-| [T-300](later.md) | P1 | M | later | defect | partial | A job in a podvm unit writes into the home of the user on the host |
+| [T-300](later.md) | P1 | M | later | defect | done | A job in a podvm unit writes into the home of the user on the host |
 | [T-301](later.md) | P1 | S | later | defect | done | With podvm 0.2.0-beta.25 the runner of a podvm unit ends with no result |
 | [T-302](later.md) | P1 | S | later | defect | done | The egress hold of the installer refuses each run where user namespaces exist |
 | [T-303](later.md) | P2 | S | later | defect | done | An executor flag does not replace the executor of run.toml |

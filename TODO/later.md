@@ -5389,7 +5389,7 @@ State (2026-11-16): the fake broker sends `actions.runner.usenode24bydefault` (`
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -5412,6 +5412,10 @@ State (2026-11-16): podvm `0.2.0-beta.25` is pinned (`ede07ea`) and its unit sta
 State (2026-11-16, user-gate 43834454578 on `a5079e6`): in CI each lane ran the podvm units on the loader family (`go` finds no GOROOT; uv and ruff get EACCES), as a `run -d` with a volume stays off the namespace rung in podvm `0.2.0-beta.25` until pod-enter binds its volumes (PodUtils/podvm#442). There a static binary of a job can still reach the files of the user; the check `confine:podvm` now fails only on the file on the host. Waits for the podvm release with the binds of `run -d`; a host with no user namespace keeps the loader family, so the notes name the limit.
 
 State (2026-11-16, later): podvm says `0.2.0-beta.25` binds the volumes of `run -d` too (PodUtils/podvm#442, closed), yet the CI lanes ran the units on the loader family. The likely cause is the host: Ubuntu 24.04 (GitHub's runners) restricts unprivileged user namespaces with AppArmor, so podvm cannot take the namespace rung there. `podrunner doctor --run` now prints the rung of podvm (`podvm system info`) and, off the namespace rung, warns that a static binary of a job can reach the files of the user and names `--microvm`, which works for a user with no root since T-291. Next: read the rung of each lane in the doctor logs of the next user-path gate; then the limit stays documented (the notes, `docs/local-mode.md`) or goes to podvm.
+
+## Done
+
+2026-11-16, `30b35ec`: on the namespace rung (podvm `0.2.0-beta.25` and later, a host with user namespaces that AppArmor does not restrict) a job cannot reach the files of the user: proven on a constrained host as a user (`qa1`, the job of the agent, no file on the host). Where podvm cannot take that rung, the limit holds by design of podvm's userland rungs: user-gate 43894112975 shows `rung: supervise` in each CI lane (GitHub's Ubuntu 24.04). The call of 2026-11-16 in `docs/decisions.md`: podrunner runs podvm units there, `doctor --run` warns with the rung, and `docs/local-mode.md` ("What a podvm unit holds") and the notes name `--microvm` for untrusted jobs. The check `confine:podvm` of the gate holds on the file of the host in each lane.
 
 
 # T-301: With podvm 0.2.0-beta.25 the runner of a podvm unit ends with no result
