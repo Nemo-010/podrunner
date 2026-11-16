@@ -26,7 +26,7 @@ mod host;
 mod images;
 mod toolcache;
 
-pub use host::{PASSED, RunnerDir};
+pub use host::{PASSED, RunnerDir, space_refusal};
 #[cfg(test)]
 use images::images;
 use images::registries;

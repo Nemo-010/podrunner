@@ -264,3 +264,15 @@ fn bind_loopback_gives_a_port_that_answers() {
     assert!(std::net::TcpStream::connect(("127.0.0.1", port)).is_ok());
     drop(l);
 }
+
+/// A runner directory with a space in its path is refused by name (T-281).
+#[test]
+fn a_runner_directory_with_a_space_is_refused() {
+    let dir = std::env::temp_dir().join(format!("podrunner local space {}", std::process::id()));
+    std::fs::create_dir_all(dir.join("bin")).unwrap();
+    std::fs::write(dir.join("run.sh"), "").unwrap();
+    std::fs::write(dir.join("bin/Runner.Listener"), "").unwrap();
+    let e = RunnerDir::new(dir.clone()).err().expect("refused");
+    assert!(e.contains("has a space") && e.contains("fix:"), "{e}");
+    let _ = std::fs::remove_dir_all(&dir);
+}

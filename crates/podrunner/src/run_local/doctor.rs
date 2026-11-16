@@ -147,7 +147,9 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
         let ok = dir.join("run.sh").is_file() && dir.join("bin/Runner.Listener").is_file();
         out.push(check(
             "runner-dir",
-            if ok {
+            if let (true, Some(e)) = (ok, podrunner_local::exec::space_refusal(dir)) {
+                Err(e)
+            } else if ok {
                 Ok(dir.display().to_string())
             } else {
                 Err(format!("{}: no unpacked runner; fix: unpack a release of actions/runner there", dir.display()))

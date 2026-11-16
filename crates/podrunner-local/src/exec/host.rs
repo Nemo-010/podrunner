@@ -45,6 +45,34 @@ pub struct RunnerDir {
     _lock: Arc<std::fs::File>,
 }
 
+/// The runner does not quote the path of a step script, so each `run:`
+/// step fails in a runner directory whose path has a space (T-281).
+pub fn space_refusal(dir: &std::path::Path) -> Option<String> {
+    let abs = std::path::absolute(dir).unwrap_or_else(|_| dir.to_path_buf());
+    abs.to_string_lossy().contains(char::is_whitespace).then(|| {
+        format!(
+            "{}: the path of the runner directory has a space, and the runner then fails each run: step; fix: unpack the runner in a path with no space",
+            abs.display()
+        )
+    })
+}
+
+/// Keep the newest 20 logs of `_diag`: the runner writes two for each job
+/// and removes none (T-281).
+fn prune_diag(dir: &std::path::Path) {
+    let Ok(entries) = std::fs::read_dir(dir.join("_diag")) else { return };
+    let mut logs: Vec<(std::time::SystemTime, PathBuf)> = entries
+        .flatten()
+        .filter(|e| e.file_name().to_string_lossy().ends_with(".log"))
+        .filter_map(|e| Some((e.metadata().ok()?.modified().ok()?, e.path())))
+        .collect();
+    logs.sort();
+    let extra = logs.len().saturating_sub(20);
+    for (_, path) in logs.into_iter().take(extra) {
+        let _ = std::fs::remove_file(path);
+    }
+}
+
 /// The lock file of a run in a runner directory.
 const LOCK: &str = ".podrunner-run.lock";
 
@@ -83,6 +111,9 @@ impl RunnerDir {
     pub fn new(dir: PathBuf) -> Result<RunnerDir, String> {
         if !dir.join("run.sh").is_file() || !dir.join("bin/Runner.Listener").is_file() {
             return Err(format!("{}: no unpacked runner (run.sh, bin/Runner.Listener)", dir.display()));
+        }
+        if let Some(e) = space_refusal(&dir) {
+            return Err(e);
         }
         let lock = lock(&dir)?;
         Ok(RunnerDir {
@@ -165,6 +196,7 @@ impl RunnerDir {
         // The pages of a runner that a signal ended make the next runner
         // fail ("The file ... already exists", T-273).
         crate::work::clear(&self.dir.join("_diag").join("pages"))?;
+        prune_diag(&self.dir);
         // A scratch home for each job: a step must not change the home of
         // the user (T-266); the next job clears it with `_work`.
         let home = self.dir.join("_work").join("_home");

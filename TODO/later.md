@@ -4778,7 +4778,7 @@ The text of `--break` on `--runner-dir` names the work directory; refuse the pai
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4795,6 +4795,10 @@ Findings F7 and F20 of the report of the QA. The reports are in the scratch dire
 ## Prove
 
 `cargo test -p podrunner`: A test of each.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/exec/host.rs` (`space_refusal`, used by `RunnerDir::new` and by `doctor --run`; `prune_diag` keeps the newest 20 logs of `_diag`); `crates/podrunner-broker-fake/src/runner.rs` (`DOTNET_EnableDiagnostics=0`: no debug pipes in `/tmp`); `docs/cli.md`; test `a_runner_directory_with_a_space_is_refused`. Proven on this sandbox: a job on `--runner-dir` leaves no new `clr-debug-pipe` or `dotnet-diagnostic` file in `/tmp`.
 
 # T-282: Each live log line comes twice
 

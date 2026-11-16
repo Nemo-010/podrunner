@@ -52,6 +52,9 @@ pub fn start_runner(dir: &Path, broker: &Broker, env: &[(&str, String)]) -> Resu
         // a large size: under a limit of file size it dies by SIGXFSZ at the
         // start (U2, T-144). The podvm driver sets the same.
         .env("DOTNET_EnableWriteXorExecute", "0")
+        // No debug pipes of .NET in /tmp, which a killed runner leaves
+        // (T-281).
+        .env("DOTNET_EnableDiagnostics", "0")
         .envs(env.iter().map(|(k, v)| (k, v)))
         .process_group(0)
         // The console of the runner goes to stderr: stdout has the lines of
