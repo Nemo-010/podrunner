@@ -153,7 +153,7 @@ impl InUnit {
         use podrunner_hook::server::{Unit, bind, serve_until};
         use std::os::unix::fs::PermissionsExt;
         let Some(guest) = self.driver.socket_mount().map(str::to_string) else {
-            return Err("the job needs containers, and this unit kind has no container hooks".into());
+            return Err("the job needs containers, and this unit kind has no container hooks here; run it with --microvm and --engine".into());
         };
         let dir = dir.to_path_buf();
         std::fs::create_dir_all(dir.join("logs")).map_err(|e| format!("{}: {e}", dir.display()))?;

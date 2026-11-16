@@ -191,6 +191,15 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
             "podvm",
             podvm.require(lowest).map(|v| format!("{} is {v} ({lowest} or later)", b.display())).map_err(fix),
         ));
+        // A job with containers needs the hooks of podvm (T-311).
+        if a.guest.is_none()
+            && let Ok(c) = podvm.probe()
+        {
+            out.push(check("containers", Ok(match c.container == podrunner_schema::ContainerRoute::Hooks {
+                true => "container: and docker:// steps run through the hooks of the unit".into(),
+                false => "podvm gives no container hooks here: a job with container:, services: or docker:// steps needs --microvm and --engine".into(),
+            })));
+        }
         if let Some(store) = &a.images {
             out.push(check(
                 "store",

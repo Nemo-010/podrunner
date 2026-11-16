@@ -49,9 +49,17 @@ pub(super) fn build(
                             .map_err(|e| super::fail(pod_core::failure::Class::Config, e))?;
                     }
                 }
+                // The hooks of the run: podvm's probe says them (T-311).
+                let no_hooks = match (&a.podvm, &a.guest) {
+                    (Some(binary), None) => podrunner_podvm::Podvm { binary: binary.clone() }
+                        .probe()
+                        .is_ok_and(|c| c.container != podrunner_schema::ContainerRoute::Hooks),
+                    _ => false,
+                };
                 Box::new(inspect::DryRun {
                     host,
                     podvm,
+                    no_hooks,
                     actions: common.actions.clone(),
                     pins: common.pins.clone(),
                     tree: common.checkout.clone(),

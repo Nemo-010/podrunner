@@ -5667,7 +5667,7 @@ Read how the broker gets the lines of a step (the web console feed of the runner
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5684,6 +5684,11 @@ The dry run and `doctor --run` refuse such a job as the run does, with the fix (
 ## Prove
 
 `cargo test -p podrunner --test local`: the dry run of a `container:` job on podvm is refused with the fix.
+
+## Done
+
+2026-11-16: the dry run on podvm asks podvm's probe for its container route and refuses a job with containers where it is not `hooks`, with the fix `--microvm and --engine` (`inspect::NO_HOOKS`; the run gives the same fix); `doctor --run` prints a line `containers` with the route (measured as `qa2`: `podvm gives no container hooks here ...`); `docs/cli.md` says so. Unit test: `a_dry_run_on_podvm_with_no_hooks_refuses_a_container_job`.
+
 
 # T-312: A SIGKILL during a podvm job leaves the unit and its files
 

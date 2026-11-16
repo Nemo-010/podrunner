@@ -233,6 +233,7 @@ fn a_dry_run_on_podvm_refuses_services() {
     let mut dry = inspect::DryRun {
         host: false,
         podvm: true,
+        no_hooks: false,
         actions: None,
         pins: Default::default(),
         tree: None,
@@ -271,4 +272,26 @@ fn validate_checks_the_crons_and_list_refuses_a_cycle() {
         inputs: Default::default(),
     };
     assert_eq!(context::payload("schedule", &f)["schedule"], "30 5 * * 1");
+}
+
+/// The dry run on podvm with no container hooks refuses a job with
+/// containers, as its run does (T-311).
+#[test]
+fn a_dry_run_on_podvm_with_no_hooks_refuses_a_container_job() {
+    use podrunner_local::drive::Executor;
+    let mut dry = inspect::DryRun {
+        host: false,
+        podvm: true,
+        no_hooks: true,
+        actions: None,
+        pins: Default::default(),
+        tree: None,
+        platforms: vec![],
+    };
+    let mut job = podrunner_local::Job::scripts("a", &["true"]);
+    let id = podrunner_schema::JobId::new("a.0").unwrap();
+    assert!(dry.run(&id, job.clone(), std::time::Duration::from_secs(1)).is_ok());
+    job.overrides.insert("jobContainer".into(), serde_json::json!({ "type": 2, "map": [] }));
+    let e = dry.run(&id, job, std::time::Duration::from_secs(1)).unwrap_err();
+    assert!(e.contains("--microvm and --engine"), "{e}");
 }

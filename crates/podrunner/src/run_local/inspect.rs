@@ -97,6 +97,10 @@ pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
     super::Out { code: 0, stdout, stderr: String::new() }
 }
 
+/// The refusal of a job with containers where podvm gives no container
+/// hooks (T-311): `doctor --config` shows `container none` then.
+pub(super) const NO_HOOKS: &str = "the job needs containers, and podvm gives no container hooks on this host (`podrunner doctor --config` shows `container none`); run it with --microvm and --engine";
+
 /// The executor of a dry run: each job message is built, and no unit runs.
 /// On a runner directory only, a job with containers fails as its run
 /// would (T-218).
@@ -104,6 +108,8 @@ pub(super) struct DryRun {
     pub host: bool,
     /// A podvm unit: its hook server refuses `services:` (T-272).
     pub podvm: bool,
+    /// podvm gives no container hooks on this host (T-311).
+    pub no_hooks: bool,
     /// The store of the actions and the pins, to find a Docker action (T-270).
     pub actions: Option<std::path::PathBuf>,
     pub pins: std::collections::BTreeMap<String, String>,
@@ -126,6 +132,9 @@ impl Executor for DryRun {
     fn run(&mut self, _job: &JobId, message: Job, _limit: Duration) -> Result<End, String> {
         if self.host && podrunner_local::exec::needs_containers(&message) {
             return Err("the job needs containers: run it in a unit (--podvm, or --microvm with --engine), not on a runner directory".into());
+        }
+        if self.podvm && self.no_hooks && podrunner_local::exec::needs_containers(&message) {
+            return Err(NO_HOOKS.into());
         }
         if self.podvm && message.overrides.contains_key("jobServiceContainers") {
             return Err("the job has services: a podvm unit of the local mode is on the host network, so it runs no services; run it with --microvm and --engine".into());
