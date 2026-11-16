@@ -5717,7 +5717,7 @@ Each run writes its unit directory and process group where the next run finds it
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5734,6 +5734,11 @@ A failed export fails the run with the path and the cause, before the jobs where
 ## Prove
 
 `cargo test -p podrunner-local --lib`: an export to a path that cannot be written gives an error.
+
+## Done
+
+2026-11-16: `routes::export_dir` makes `--export DIR` and writes and removes a probe file before the first job; a failure stops the run with the path and the cause (measured as `qa2`: `--export /proc/nope` gives `podrunner: --export /proc/nope: No such file or directory`). A failed copy after a job is named on stderr too. `docs/cli.md` gives `DIR/JOB.N`.
+
 
 # T-314: A relative trusted path is read from the current directory
 

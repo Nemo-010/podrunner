@@ -37,7 +37,19 @@ pub(super) fn issuer(a: &Args) -> Result<Arc<podrunner_local::oidc::Issuer>, Str
     Ok(Arc::new(issuer))
 }
 
+/// `--export DIR` can take files: it is made, and a probe file is written
+/// and removed, before the first job (T-313).
+fn export_dir(a: &Args) -> Result<(), Out> {
+    let Some(dir) = &a.export else { return Ok(()) };
+    let bad = |e: std::io::Error| fail(Class::Config, format!("--export {}: {e}", dir.display()));
+    std::fs::create_dir_all(dir).map_err(bad)?;
+    let probe = dir.join(format!(".podrunner-export-{}", std::process::id()));
+    std::fs::write(&probe, b"").map_err(bad)?;
+    std::fs::remove_file(&probe).map_err(bad)
+}
+
 fn host(a: &Args, c: &Common) -> Result<Box<dyn Executor>, Out> {
+    export_dir(a)?;
     let dir = a.runner_dir.clone().ok_or_else(|| fail(Class::Usage, "a host route needs --runner-dir DIR"))?;
     let mut e = RunnerDir::new(dir).map_err(|e| fail(Class::Config, e))?;
     e.actions = c.actions.clone();
@@ -52,6 +64,7 @@ fn host(a: &Args, c: &Common) -> Result<Box<dyn Executor>, Out> {
 }
 
 fn unit(a: &Args, c: &Common, image: &str, state: &Path) -> Result<Box<dyn Executor>, Out> {
+    export_dir(a)?;
     let mut a = a.clone();
     a.image = Some(image.to_string());
     let mut e: InUnit = match &a.guest {

@@ -433,7 +433,8 @@ impl Executor for InUnit {
         // The workspaces of the job, also of a failed one (T-138).
         let exported = match (&work, &self.export) {
             (Some(w), Some(dir)) => {
-                let r = crate::work::export(w, &dir.join(job.as_str()));
+                let r = crate::work::export(w, &dir.join(job.as_str()))
+                    .inspect_err(|e| eprintln!("podrunner: {}: --export: {e}", job.as_str()));
                 let _ = crate::work::clear(w);
                 r.err()
             }
