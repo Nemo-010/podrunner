@@ -26,6 +26,29 @@ fn writable(dir: &Path) -> Result<(), String> {
     Ok(())
 }
 
+/// The work directory of the runner directory `dir`: `dir/_work`, as the
+/// runner has it. A path with a component that starts with `.` (the
+/// installer puts the runner in `~/.local/share`) breaks jobs: the `send`
+/// module of Node refuses such a path with 404, and the tests of express
+/// fail (T-255). Then the work directory is
+/// `BASE/podrunner-work/NAME-HASH`: BASE is the path before the first such
+/// component, NAME the name of `dir`, HASH a hash of the path of `dir`.
+pub fn host_work(dir: &Path) -> std::path::PathBuf {
+    use std::path::Component;
+    let abs = std::path::absolute(dir).unwrap_or_else(|_| dir.to_path_buf());
+    let dot = |c: &Component| matches!(c, Component::Normal(n) if n.to_string_lossy().starts_with('.'));
+    let Some(at) = abs.components().position(|c| dot(&c)) else { return dir.join("_work") };
+    let base: std::path::PathBuf = abs.components().take(at).collect();
+    // FNV-1a: the same path gives the same directory in each version.
+    let hash = abs
+        .as_os_str()
+        .as_encoded_bytes()
+        .iter()
+        .fold(0xcbf2_9ce4_8422_2325_u64, |h, b| (h ^ u64::from(*b)).wrapping_mul(0x0100_0000_01b3));
+    let name = abs.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    base.join("podrunner-work").join(format!("{}-{:08x}", name.trim_start_matches('.'), hash as u32))
+}
+
 /// Remove `dir` and each file in it; no `dir` is no error.
 pub fn clear(dir: &Path) -> Result<(), String> {
     if std::fs::symlink_metadata(dir).is_err() {
@@ -105,5 +128,17 @@ mod tests {
         assert_eq!(std::fs::read_link(to.join("repo/repo/link")).unwrap(), Path::new("target/app"));
         assert!(!to.join("_temp").exists() && !to.join("stale").exists());
         let _ = std::fs::remove_dir_all(&base);
+    }
+
+    /// The work directory has no component with a dot (T-255).
+    #[test]
+    fn the_work_directory_has_no_dot_component() {
+        assert_eq!(host_work(Path::new("/srv/runner")), Path::new("/srv/runner/_work"));
+        let w = host_work(Path::new("/home/u/.local/share/podrunner/runner/2.338.2"));
+        assert!(w.starts_with("/home/u/podrunner-work/"), "{}", w.display());
+        let name = w.file_name().unwrap().to_string_lossy().into_owned();
+        assert!(name.starts_with("2.338.2-") && name.len() == "2.338.2-".len() + 8, "{name}");
+        assert_ne!(w, host_work(Path::new("/home/u/.local/share/podrunner/runner/x/2.338.2")), "one for each dir");
+        assert_eq!(w, host_work(Path::new("/home/u/.local/share/podrunner/runner/2.338.2")), "stable");
     }
 }

@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use pod_actions_workflow::JobResult;
 use podrunner_broker_fake::artifacts::ArtifactStore;
 use podrunner_broker_fake::cache::CacheStore;
-use podrunner_broker_fake::runner::start_runner_with;
+use podrunner_broker_fake::runner::start_runner_in;
 use podrunner_broker_fake::{Broker, Job};
 use podrunner_schema::JobId;
 
@@ -20,6 +20,8 @@ use crate::drive::{End, Executor, result_of};
 /// may change.
 pub struct RunnerDir {
     pub dir: PathBuf,
+    /// The work folder of the runner (`crate::work::host_work`, T-255).
+    pub work: PathBuf,
     /// The log of each job, for the caller.
     pub logs: Vec<(JobId, String)>,
     /// The archives of the actions (`OWNER_REPO/SHA.tar.gz`, T-091).
@@ -145,6 +147,7 @@ impl RunnerDir {
         Ok(RunnerDir {
             _lock: lock,
             quiet: false,
+            work: crate::work::host_work(&dir),
             dir,
             logs: Vec::new(),
             actions: None,
@@ -182,7 +185,7 @@ impl Executor for RunnerDir {
         let end = self.job(job, message, limit);
         // The export of the workspaces, also of a failed job (T-138).
         if let Some(dir) = &self.export
-            && let Err(e) = crate::work::export(&self.dir.join("_work"), &dir.join(job.as_str()))
+            && let Err(e) = crate::work::export(&self.work, &dir.join(job.as_str()))
         {
             match self.logs.iter_mut().rev().find(|(j, _)| j == job) {
                 Some((_, log)) => log.push_str(&format!("\npodrunner: {e}")),
@@ -226,17 +229,18 @@ impl RunnerDir {
         }
         broker.queue(message);
         // Each job starts in a fresh work directory (T-146).
-        crate::work::clear(&self.dir.join("_work"))?;
+        crate::work::clear(&self.work)?;
         // The pages of a runner that a signal ended make the next runner
         // fail ("The file ... already exists", T-273).
         crate::work::clear(&self.dir.join("_diag").join("pages"))?;
         crate::work::clear(&self.dir.join("_diag").join("blocks"))?;
         prune_diag(&self.dir);
         // A scratch home for each job: a step must not change the home of
-        // the user (T-266); the next job clears it with `_work`.
-        let home = self.dir.join("_work").join("_home");
+        // the user (T-266); the next job clears it with the work directory.
+        let home = self.work.join("_home");
         std::fs::create_dir_all(&home).map_err(|e| format!("{}: {e}", home.display()))?;
-        let mut child = start_runner_with(&self.dir, &broker, &host_env(&home, std::env::vars()), !self.quiet)?;
+        let env = host_env(&home, std::env::vars());
+        let mut child = start_runner_in(&self.dir, &self.work, &broker, &env, !self.quiet)?;
         let _ = std::fs::write(self.dir.join(GROUP), child.id().to_string());
         // The limit of the job (`timeout-minutes`, T-115): at its end, the
         // whole process group of the runner ends, as the unit of `InUnit`.

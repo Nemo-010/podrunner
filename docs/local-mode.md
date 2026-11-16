@@ -31,6 +31,13 @@ A job on `--runner-dir` gets a scratch `HOME` (`_work/_home` of the runner
 directory), which the next job removes. It runs as the user of podrunner,
 with the files and the network of that user: it is not a unit.
 
+The work directory of the runner is `_work` of the runner directory. When
+the path of the runner directory has a name that starts with `.` (the
+installer puts it in `~/.local/share/podrunner`), the work directory is
+`podrunner-work/NAME-HASH` in the directory before that name (for example
+`~/podrunner-work/2.338.2-1a2b3c4d`). Some tools refuse a path with such a
+name: the `send` module of Node gives 404 for it (T-255).
+
 ## The comparison
 
 `podrunner run FILE` runs the jobs of one workflow file with the official

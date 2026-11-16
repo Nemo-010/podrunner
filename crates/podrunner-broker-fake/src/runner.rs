@@ -47,8 +47,25 @@ pub fn start_runner_with(
     env: &[(&str, String)],
     console: bool,
 ) -> Result<std::process::Child, String> {
+    start_runner_in(dir, &dir.join("_work"), broker, env, console)
+}
+
+/// [`start_runner_with`], with the work folder `work` of the runner (an
+/// absolute path, or a path relative to `dir`).
+pub fn start_runner_in(
+    dir: &Path,
+    work: &Path,
+    broker: &Broker,
+    env: &[(&str, String)],
+    console: bool,
+) -> Result<std::process::Child, String> {
     use std::os::unix::process::CommandExt;
-    for (name, content) in runner_files(&broker.base, "runner-u-1", &rsaparams()) {
+    for (name, mut content) in runner_files(&broker.base, "runner-u-1", &rsaparams()) {
+        if name == ".runner" {
+            let mut v: serde_json::Value = serde_json::from_str(&content).map_err(|e| e.to_string())?;
+            v["workFolder"] = work.to_string_lossy().into_owned().into();
+            content = v.to_string();
+        }
         std::fs::write(dir.join(&name), content)
             .map_err(|e| format!("{}: the runner file {name}: {}", dir.display(), e.kind()))?;
     }

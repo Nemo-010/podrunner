@@ -116,7 +116,9 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   `a4b41b9`; runner-image 43789352527 green on `45ef3c3` (`images/` has not
   changed since: `user-gate.yml` takes it with `-f images_run=43789352527`).
   User-path gate 43795123788 on `a4b41b9` red: express-node22 on
-  `--runner-dir` times out in CI (T-255; it passes on the sandbox);
+  `--runner-dir` times out in CI (T-255: the `send` module of Node refuses
+  the `.local` in the path of the workspace; fixed, the next gate run
+  proves it);
   express-lint on podvm passed in one lane (T-262, flaky until podvm
   releases its fix); rq-lint on `--runner-dir` in the new lane
   `proxy-only` (T-299: the `fetch` of a Node action ignored the proxy;
