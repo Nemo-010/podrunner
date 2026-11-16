@@ -4300,7 +4300,7 @@ The installer removes the write of the group and the others from `bin` and `shar
 
 # T-264: Take podcrates `v0.55.0`: the sync of the issues and pod-lab
 
-**Source:** PodUtils/podcrates#188 (COORD-113, `v0.54.0`) and PodUtils/podcrates#194 (COORD-115, `v0.55.0`) (2026-11-16)
+**Source:** PodUtils/podcrates#188 (COORD-113, `v0.54.0`), PodUtils/podcrates#194 (COORD-115, `v0.55.0`) and PodUtils/podcrates#200 (COORD-116, `v0.58.0`: the installer core, `podlab` as a release asset) (2026-11-16)
 **Category:** chore
 **Milestone:** later
 **Priority:** P2
@@ -4317,7 +4317,7 @@ The bodies of PodUtils/podcrates#188 and #194, read on 2026-11-16. Not measured:
 
 ## Approach
 
-Bump podcrates to `v0.55.0`. Add the column `Kind` to `TODO/issues.md` and repair the map; set `issue_rules = "on"` in `TODO/todo.toml`; add a workflow `issue-sync.yml` that calls the workflow of the tag, and read its dry run first. Move the lanes of `user-gate.yml` to `podlab run` where a profile holds with no root (T-244), and say on PodUtils/podcrates#180 which profiles podrunner runs.
+Bump podcrates to the latest tag (`v0.58.0` or later); weigh the installer core of `v0.58.0` against `scripts/install.sh`. Add the column `Kind` to `TODO/issues.md` and repair the map; set `issue_rules = "on"` in `TODO/todo.toml`; add a workflow `issue-sync.yml` that calls the workflow of the tag, and read its dry run first. Move the lanes of `user-gate.yml` to `podlab run` where a profile holds with no root (T-244), and say on PodUtils/podcrates#180 which profiles podrunner runs.
 
 ## Prove
 
