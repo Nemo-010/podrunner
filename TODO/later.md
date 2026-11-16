@@ -4319,7 +4319,7 @@ The bodies of PodUtils/podcrates#188 and #194, read on 2026-11-16. Not measured:
 
 ## Approach
 
-Bump podcrates to the latest tag (`v0.58.0` or later); weigh the installer core of `v0.58.0` against `scripts/install.sh`. Add the column `Kind` to `TODO/issues.md` and repair the map; set `issue_rules = "on"` in `TODO/todo.toml`; add a workflow `issue-sync.yml` that calls the workflow of the tag, and read its dry run first. Move the lanes of `user-gate.yml` to `podlab run` where a profile holds with no root (T-244), and say on PodUtils/podcrates#180 which profiles podrunner runs.
+Bump podcrates to the latest tag (`v0.59.0` or later: also the volumes of pod-enter and the chroot row of T-283); weigh the installer core of `v0.58.0` against `scripts/install.sh`. Add the column `Kind` to `TODO/issues.md` and repair the map; set `issue_rules = "on"` in `TODO/todo.toml`; add a workflow `issue-sync.yml` that calls the workflow of the tag, and read its dry run first. Move the lanes of `user-gate.yml` to `podlab run` where a profile holds with no root (T-244), and say on PodUtils/podcrates#180 which profiles podrunner runs.
 
 ## Prove
 
@@ -4872,7 +4872,7 @@ COORD-067 (GitHub #191) asks podcrates for a mount and a chroot probe in a user 
 
 ## Blocker
 
-2026-11-16: the mount row is done; the chroot row `chroot(/tmp) in unshare(NEWUSER+maps)` waits for the next tag of podcrates (PodUtils/podcrates#201, T-264).
+2026-11-16: the mount row is done; the chroot row `chroot(/tmp) in unshare(NEWUSER+maps)` is in podcrates `v0.59.0` (PodUtils/podcrates#204); it waits for the bump of T-264, after the release of `v0.1.0-beta.7`.
 
 # T-284: The user-path gate has no lane of a host with a proxy only
 
