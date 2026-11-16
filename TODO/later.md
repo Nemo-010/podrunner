@@ -4330,7 +4330,7 @@ Bump podcrates to `v0.55.0`. Add the column `Kind` to `TODO/issues.md` and repai
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4348,6 +4348,10 @@ A job on `--runner-dir` takes the `PATH` of the user, and the proxy and CA varia
 
 `cargo test -p podrunner-local`: A test of `crates/podrunner-local`: the environment of a job on `--runner-dir` has the `PATH` and the proxy variables of the caller; the run of chalk/chalk on this sandbox with no `--env`.
 
+## Done
+
+2026-11-16: `crates/podrunner-local/src/exec/host.rs` (`PASSED`, `host_env`): a job on `--runner-dir` takes `PATH`, the proxy variables and the CA files of the caller; `NO_PROXY` holds the loopback, with no entry `::`, at which the official runner aborts (measured here: `Runner.Listener run` with `NO_PROXY=::` throws `ArgumentNullException` in `RunnerWebProxy`); `doctor --run` names the variables (`proxy`); `docs/local-mode.md` "A host with a proxy", `docs/cli.md`. Proven on this sandbox (a proxy that intercepts TLS, as root): `actions/setup-node@v4` and `curl https://github.com/` in a job pass with no `--env`. Test `a_job_on_a_runner_directory_takes_the_path_the_ca_and_the_proxy`.
+
 # T-266: A job on `--runner-dir` writes into the home of the user
 
 **Source:** the adversarial QA of `12cb64e`, agent A (T-246, 2026-11-16)
@@ -4355,7 +4359,7 @@ A job on `--runner-dir` takes the `PATH` of the user, and the proxy and CA varia
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4372,6 +4376,10 @@ Each job on `--runner-dir` gets a scratch `HOME` under its work directory, remov
 ## Prove
 
 `cargo test -p podrunner-local`: A test of `crates/podrunner-local`: a step that writes `$HOME/x` leaves no file in the home of the caller.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/exec/host.rs`: `HOME` of a job on `--runner-dir` is `_work/_home`, which the next job removes with `_work`; `docs/local-mode.md`, `docs/cli.md`. Proven on this sandbox: a step that writes `$HOME/marker` leaves no file in the home of the caller.
 
 # T-267: `--checkout .` gives no `.git`, so a step that runs `git` fails
 

@@ -13,6 +13,20 @@ sh podrunner-install.sh
 cd YOUR-PROJECT && podrunner run .github/workflows/ci.yml --checkout .
 ```
 
+## A host with a proxy
+
+A job on `--runner-dir` takes `PATH` and these variables of the
+environment of podrunner: `HTTPS_PROXY`, `HTTP_PROXY` (and their lower
+case forms), `SSL_CERT_FILE`, `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`,
+`GIT_SSL_CAINFO`, `REQUESTS_CA_BUNDLE` and `CURL_CA_BUNDLE`. Its
+`NO_PROXY` always holds the loopback, where the broker of the run is.
+`podrunner doctor --run` names the variables that a job takes. Set each
+one before the run; give another variable with `--env NAME=VALUE`.
+
+A job on `--runner-dir` gets a scratch `HOME` (`_work/_home` of the runner
+directory), which the next job removes. It runs as the user of podrunner,
+with the files and the network of that user: it is not a unit.
+
 ## The comparison
 
 `podrunner run FILE` runs the jobs of one workflow file with the official

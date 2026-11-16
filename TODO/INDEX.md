@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**281 entries: 38 open, 20 partial, 12 blocked, 211 done.**
+**281 entries: 36 open, 20 partial, 12 blocked, 213 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 25 | 8 | 7 | 87 | 127 |
+| P2 | 23 | 8 | 7 | 89 | 127 |
 | P3 | 12 | 3 | 3 | 73 | 91 |
-| **All** | 38 | 20 | 12 | 211 | 281 |
+| **All** | 36 | 20 | 12 | 213 | 281 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -309,8 +309,8 @@ acceptance, later The crate dependencies later than v1.
 | [T-262](later.md) | P2 | S | later | defect | partial | In a podvm unit, Node sometimes reads an invalid package.json |
 | [T-263](later.md) | P1 | S | later | defect | done | The installer keeps a directory that the group can write |
 | [T-264](later.md) | P2 | M | later | chore | open | Take podcrates `v0.55.0`: the sync of the issues and pod-lab |
-| [T-265](later.md) | P2 | S | later | defect | open | A job on `--runner-dir` does not get the PATH, the proxy and the CA of the user |
-| [T-266](later.md) | P2 | S | later | defect | open | A job on `--runner-dir` writes into the home of the user |
+| [T-265](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` does not get the PATH, the proxy and the CA of the user |
+| [T-266](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` writes into the home of the user |
 | [T-267](later.md) | P2 | S | later | defect | open | `--checkout .` gives no `.git`, so a step that runs `git` fails |
 | [T-268](later.md) | P2 | S | later | defect | done | The lock of the actions goes into the next checkout as a new file |
 | [T-269](later.md) | P2 | S | later | defect | open | The made-up token fails `actions/setup-python` with a 404, and the run names no fix |

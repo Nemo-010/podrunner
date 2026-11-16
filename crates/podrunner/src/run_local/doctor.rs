@@ -100,6 +100,19 @@ fn parents_readable(dir: &Path) -> Result<String, String> {
 }
 
 /// The checks of a run with the options `a`.
+/// What a job on `--runner-dir` takes of the proxy and the CA of the user
+/// (T-265).
+pub(super) fn proxy_line(vars: impl Iterator<Item = (String, String)>) -> String {
+    let names: Vec<String> = vars
+        .filter(|(k, v)| !v.is_empty() && k != "PATH" && podrunner_local::exec::PASSED.contains(&k.as_str()))
+        .map(|(k, _)| k)
+        .collect();
+    match names.is_empty() {
+        true => "a job takes no proxy and no CA file of the environment (direct egress)".into(),
+        false => format!("a job takes {} of the environment", names.join(", ")),
+    }
+}
+
 pub(super) fn checks(a: &Args) -> Vec<Check> {
     let mut out =
         vec![check("file-size-limit", file_size_limit()), check("scratch-disk", free_disk(&std::env::temp_dir()))];
@@ -128,6 +141,7 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
         },
     ));
     if let Some(dir) = &a.runner_dir {
+        out.push(check("proxy", Ok(proxy_line(std::env::vars()))));
         out.push(check("runner-dir-parents", parents_readable(dir)));
         let ok = dir.join("run.sh").is_file() && dir.join("bin/Runner.Listener").is_file();
         out.push(check(

@@ -121,7 +121,11 @@ impl RunnerDir {
         broker.queue(message);
         // Each job starts in a fresh work directory (T-146).
         crate::work::clear(&self.dir.join("_work"))?;
-        let mut child = start_runner(&self.dir, &broker, &[])?;
+        // A scratch home for each job: a step must not change the home of
+        // the user (T-266); the next job clears it with `_work`.
+        let home = self.dir.join("_work").join("_home");
+        std::fs::create_dir_all(&home).map_err(|e| format!("{}: {e}", home.display()))?;
+        let mut child = start_runner(&self.dir, &broker, &host_env(&home, std::env::vars()))?;
         // The limit of the job (`timeout-minutes`, T-115): at its end, the
         // whole process group of the runner ends, as the unit of `InUnit`.
         let end = Instant::now() + limit;
@@ -173,6 +177,53 @@ impl RunnerDir {
     }
 }
 
+/// The variables of the user that a job on a runner directory takes
+/// (T-265): `PATH`, the CA files and the proxy. The broker is on the
+/// loopback, so `NO_PROXY` always holds the loopback.
+pub const PASSED: &[&str] = &[
+    "PATH",
+    "SSL_CERT_FILE",
+    "SSL_CERT_DIR",
+    "NODE_EXTRA_CA_CERTS",
+    "GIT_SSL_CAINFO",
+    "REQUESTS_CA_BUNDLE",
+    "CURL_CA_BUNDLE",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "HTTP_PROXY",
+    "http_proxy",
+];
+
+/// The environment of the runner of one job: the variables of `PASSED`
+/// from `vars`, `HOME` and `NO_PROXY`.
+pub(crate) fn host_env(
+    home: &std::path::Path,
+    vars: impl Iterator<Item = (String, String)>,
+) -> Vec<(&'static str, String)> {
+    let vars: std::collections::BTreeMap<String, String> = vars.collect();
+    let mut out: Vec<(&'static str, String)> =
+        PASSED.iter().filter_map(|k| vars.get(*k).filter(|v| !v.is_empty()).map(|v| (*k, v.clone()))).collect();
+    out.push(("HOME", home.display().to_string()));
+    let mut no_proxy = vec!["127.0.0.1".to_string(), "localhost".to_string(), "::1".to_string()];
+    for k in ["NO_PROXY", "no_proxy"] {
+        no_proxy.extend(
+            vars.get(k)
+                .into_iter()
+                .flat_map(|v| v.split(','))
+                .map(str::trim)
+                // The runner aborts at an entry `::` (a null host in its parser).
+                .filter(|v| !v.is_empty() && !v.chars().all(|c| c == ':'))
+                .map(String::from),
+        );
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    no_proxy.retain(|v| seen.insert(v.clone()));
+    let no_proxy = no_proxy.join(",");
+    out.push(("NO_PROXY", no_proxy.clone()));
+    out.push(("no_proxy", no_proxy));
+    out
+}
+
 /// End the process group of `leader`: TERM, then KILL after 5 s.
 fn end_group(leader: u32) {
     let Ok(pgid) = i32::try_from(leader) else { return };
@@ -194,5 +245,33 @@ fn signal_reason(status: &std::process::ExitStatus) -> Option<String> {
     match status.signal()? {
         libc::SIGXFSZ => Some("the runner ended by SIGXFSZ: a limit of file size (ulimit -f) is too small".into()),
         s => Some(format!("the runner ended by signal {s}")),
+    }
+}
+
+#[cfg(test)]
+mod env_tests {
+    use super::host_env;
+
+    /// The job takes `PATH`, the CA and the proxy of the user, a scratch
+    /// home, and the loopback stays off the proxy (T-265, T-266).
+    #[test]
+    fn a_job_on_a_runner_directory_takes_the_path_the_ca_and_the_proxy() {
+        let vars = [
+            ("PATH", "/opt/x/bin:/usr/local/bin:/usr/bin:/bin"),
+            ("HTTPS_PROXY", "http://proxy.example:3128"),
+            ("SSL_CERT_FILE", "/etc/ca.pem"),
+            ("NO_PROXY", "intra.example,::,10.0.0.0/8,localhost"),
+            ("AWS_SECRET_ACCESS_KEY", "made-up"),
+            ("HOME", "/home/user"),
+        ]
+        .map(|(k, v)| (k.to_string(), v.to_string()));
+        let env = host_env(std::path::Path::new("/r/_work/_home"), vars.into_iter());
+        let get = |k: &str| env.iter().find(|(n, _)| *n == k).map(|(_, v)| v.as_str());
+        assert_eq!(get("PATH"), Some("/opt/x/bin:/usr/local/bin:/usr/bin:/bin"));
+        assert_eq!(get("HTTPS_PROXY"), Some("http://proxy.example:3128"));
+        assert_eq!(get("SSL_CERT_FILE"), Some("/etc/ca.pem"));
+        assert_eq!(get("HOME"), Some("/r/_work/_home"));
+        assert_eq!(get("NO_PROXY"), Some("127.0.0.1,localhost,::1,intra.example,10.0.0.0/8"));
+        assert_eq!(get("AWS_SECRET_ACCESS_KEY"), None, "only the listed variables pass");
     }
 }
