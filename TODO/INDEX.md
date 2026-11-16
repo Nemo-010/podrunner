@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 23 open, 24 partial, 14 blocked, 253 done.**
+**314 entries: 23 open, 23 partial, 14 blocked, 254 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 10 | 2 | 54 | 67 |
-| P2 | 13 | 10 | 8 | 119 | 150 |
+| P2 | 13 | 9 | 8 | 120 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 23 | 24 | 14 | 253 | 314 |
+| **All** | 23 | 23 | 14 | 254 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -348,7 +348,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-301](later.md) | P1 | S | later | defect | done | With podvm 0.2.0-beta.25 the runner of a podvm unit ends with no result |
 | [T-302](later.md) | P1 | S | later | defect | done | The egress hold of the installer refuses each run where user namespaces exist |
 | [T-303](later.md) | P2 | S | later | defect | done | An executor flag does not replace the executor of run.toml |
-| [T-304](later.md) | P2 | S | later | defect | partial | The checkout of the tree answers 404 to later jobs of a run |
+| [T-304](later.md) | P2 | S | later | defect | done | The checkout of the tree answers 404 to later jobs of a run |
 | [T-305](later.md) | P2 | S | later | defect | done | actions/setup-python v7 fails with the made-up token |
 | [T-306](later.md) | P2 | S | later | defect | done | On --runner-dir, a Python of setup-python cannot load libpython |
 | [T-307](later.md) | P2 | S | later | defect | done | The documents load the larger image into the wrong store |
