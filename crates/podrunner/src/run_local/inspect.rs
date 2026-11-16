@@ -71,9 +71,14 @@ pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
         Err(e) => return fail(e.to_string()),
     };
     let mut stdout = String::new();
+    // A cycle of needs fails each view, as a plan refuses it (T-279).
+    if let Err(e) = Graph::new(&p.workflow) {
+        return fail(e.to_string());
+    }
     if a.validate {
-        if let Err(e) = Graph::new(&p.workflow) {
-            return fail(e.to_string());
+        // Each cron of on.schedule, as `--schedule` reads it (T-279).
+        if let Err(e) = super::watch::crons(&p.workflow.on) {
+            return fail(e);
         }
         for w in &p.warnings {
             stdout.push_str(&format!("warning: {w}\n"));

@@ -238,3 +238,30 @@ fn a_dry_run_on_podvm_refuses_services() {
     let e = dry.run(&id, job, std::time::Duration::from_secs(1)).unwrap_err();
     assert!(e.contains("services") && e.contains("--microvm"), "{e}");
 }
+
+/// T-279: `--validate` checks each cron, `--list` refuses a cycle, and the
+/// payload of a run of the schedule has its cron.
+#[test]
+fn validate_checks_the_crons_and_list_refuses_a_cycle() {
+    let (dir, w) = workflow(
+        "cron",
+        "on:\n  schedule:\n    - cron: '99 * * * *'\njobs:\n  a:\n    runs-on: x\n    steps: [{run: a}]\n",
+    );
+    let out = run(&args(&[&w, "--validate"]));
+    assert_eq!(out.code, 78, "{}{}", out.stdout, out.stderr);
+    let _ = std::fs::remove_dir_all(&dir);
+    let cycle = "on: push\njobs:\n  a:\n    needs: b\n    runs-on: x\n    steps: [{run: a}]\n  b:\n    needs: a\n    runs-on: x\n    steps: [{run: b}]\n";
+    let (dir, w) = workflow("listcycle", cycle);
+    assert_eq!(run(&args(&[&w, "--list"])).code, 78);
+    let _ = std::fs::remove_dir_all(&dir);
+    context::set_schedule("30 5 * * 1");
+    let f = context::Facts {
+        repository: "o/r".into(),
+        git_ref: "refs/heads/main".into(),
+        sha: "0".repeat(40),
+        actor: "a".into(),
+        default_branch: "main".into(),
+        inputs: Default::default(),
+    };
+    assert_eq!(context::payload("schedule", &f)["schedule"], "30 5 * * 1");
+}

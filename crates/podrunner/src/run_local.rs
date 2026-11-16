@@ -256,7 +256,7 @@ pub fn run(args: &[String]) -> Out {
                     ));
                 }
                 let set = podrunner_local::rerun::rerun_jobs(source.workflow(), &ends, &a.jobs)?;
-                Ok(podrunner_local::rerun::kept(&ends, &set))
+                Ok(podrunner_local::rerun::kept(source.workflow(), &ends, &set, a.jobs.is_empty()))
             });
         match kept {
             Ok(k) => source.set_kept(k),

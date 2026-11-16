@@ -169,6 +169,13 @@ pub(super) fn dispatch_inputs(on: &Node, given: &[(String, String)]) -> Result<I
     Ok((typed, event))
 }
 
+/// The cron of the next run of `--schedule`: `github.event.schedule`.
+static SCHEDULE: std::sync::Mutex<String> = std::sync::Mutex::new(String::new());
+
+pub(super) fn set_schedule(cron: &str) {
+    *SCHEDULE.lock().unwrap_or_else(|e| e.into_inner()) = cron.to_string();
+}
+
 /// The minimal payload of `event`, as GitHub sends it.
 pub(super) fn payload(event: &str, f: &Facts) -> serde_json::Value {
     let (owner, name) = f.repository.split_once('/').unwrap_or(("local", &f.repository));
@@ -192,6 +199,9 @@ pub(super) fn payload(event: &str, f: &Facts) -> serde_json::Value {
             "repository": repository,
         }),
         "workflow_dispatch" => json!({ "ref": f.git_ref, "inputs": f.inputs, "repository": repository }),
+        "schedule" => json!({
+            "schedule": SCHEDULE.lock().unwrap_or_else(|e| e.into_inner()).clone(), "repository": repository,
+        }),
         _ => json!({ "repository": repository }),
     }
 }

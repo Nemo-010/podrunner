@@ -24,6 +24,12 @@ const POLL: Duration = Duration::from_millis(500);
 
 /// The crons of `on.schedule`.
 pub(super) fn crons(on: &Node) -> Result<Vec<Cron>, String> {
+    Ok(cron_texts(on)?.into_iter().map(|(c, _)| c).collect())
+}
+
+/// The crons of `on.schedule` with their text: `github.event.schedule` of a
+/// run of the schedule (T-279).
+pub(super) fn cron_texts(on: &Node) -> Result<Vec<(Cron, String)>, String> {
     let Kind::Map(entries) = &on.kind else { return Ok(Vec::new()) };
     let Some((_, Node { kind: Kind::Seq(items), .. })) = entries.iter().find(|(k, _)| k.name == "schedule") else {
         return Ok(Vec::new());
@@ -33,7 +39,7 @@ pub(super) fn crons(on: &Node) -> Result<Vec<Cron>, String> {
         if let Kind::Map(e) = &item.kind
             && let Some((_, Node { kind: Kind::String(c), .. })) = e.iter().find(|(k, _)| k.name == "cron")
         {
-            out.push(Cron::parse(c).map_err(|e| format!("line {}: {e}", item.mark.line))?);
+            out.push((Cron::parse(c).map_err(|e| format!("line {}: {e}", item.mark.line))?, c.clone()));
         }
     }
     Ok(out)
@@ -100,10 +106,13 @@ pub fn repeat(args: &[String]) -> Out {
             let text = std::fs::read_to_string(&file).map_err(|e| format!("{}: {e}", file.display()));
             let next = text
                 .and_then(|t| pod_actions_workflow::parse(&t).map_err(|e| e.to_string()))
-                .and_then(|p| crons(&p.workflow.on))
-                .map(|c| c.iter().filter_map(|c| c.next(now())).min());
+                .and_then(|p| cron_texts(&p.workflow.on))
+                .map(|c| c.iter().filter_map(|(c, t)| Some((c.next(now())?, t.clone()))).min());
             let at = match next {
-                Ok(Some(at)) => at,
+                Ok(Some((at, text))) => {
+                    super::context::set_schedule(&text);
+                    at
+                }
                 Ok(None) => return fail(Class::Config, format!("{}: on.schedule has no cron time", file.display())),
                 Err(e) => return fail(Class::Config, format!("{}: {e}", file.display())),
             };

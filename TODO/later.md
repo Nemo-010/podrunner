@@ -4734,7 +4734,7 @@ Make the code or the document agree for each case; the version of a release buil
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4751,6 +4751,10 @@ Keep each passed cell; check the cron and refuse a cycle; give the cron text in 
 ## Prove
 
 `cargo test -p podrunner-local`: A test for each case.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/rerun.rs` (`kept`): with `--failed`, each cell that passed of a job that runs again for its own failed cells stays `kept`, when no need of the job runs again; `run_local/inspect.rs`: a cycle of `needs` fails `--list` and `--graph` as `--validate`, and `--validate` checks each cron of `on.schedule`; `run_local/watch.rs` and `context.rs`: `github.event.schedule` is the cron of the run. Tests `a_rerun_runs_the_failed_jobs_and_the_jobs_after_them`, `validate_checks_the_crons_and_list_refuses_a_cycle`. Proven on this sandbox: `--rerun --failed` of a matrix with one failed cell gives `kept m (1) (success)` and runs `m (2)`. Open in F5: a cancelled cell is not in `state.json` (T-286).
 
 # T-280: `--break` on `--runner-dir` speaks of a unit, and two flags pass together
 
@@ -4919,3 +4923,28 @@ Measure a job with `supercharge/redis-github-action@1.8.1` on `--podvm`. Set up 
 ## Prove
 
 `cargo test -p podrunner-local`: a job with a Docker action on a podvm unit gets the hooks; a row of the corpus of the user-path gate with a Docker action on `podvm`.
+
+# T-286: A cell that a signal cancelled is not in `state.json`
+
+**Source:** the adversarial QA of `12cb64e`, agent B, finding F5 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+After a run with `--state DIR` that a signal or `fail-fast` cancelled, `state.json` has no end for the cancelled cells, so `--rerun DIR --failed` sees them as cells with no end, not as cancelled ones.
+
+## Premise
+
+Finding F5 of the report of the QA. Not measured here.
+
+## Approach
+
+Write the end `cancelled` of each cell that the drive cancels into the ends of the run (`LocalSource::cell_ends`), and so into `state.json`.
+
+## Prove
+
+`cargo test -p podrunner-local`: a drive that a stop cancels gives a `cancelled` end for each cell that did not end.

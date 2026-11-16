@@ -106,9 +106,24 @@ pub fn rerun_jobs(w: &Workflow, ends: &BTreeMap<String, Ended>, jobs: &[String])
     Ok(set)
 }
 
-/// The kept ends: each cell whose job the rerun does not run.
-pub fn kept(ends: &BTreeMap<String, Ended>, rerun: &BTreeSet<String>) -> BTreeMap<String, Ended> {
-    ends.iter().filter(|(c, _)| !rerun.contains(job_of(c))).map(|(c, e)| (c.clone(), e.clone())).collect()
+/// The kept ends: each cell whose job the rerun does not run; with
+/// `failed` (`--failed`), also each cell that passed of a job that runs
+/// again for its own failed cells, when no need of the job runs again
+/// (T-279): its matrix cells that passed stay `kept`.
+pub fn kept(
+    w: &Workflow,
+    ends: &BTreeMap<String, Ended>,
+    rerun: &BTreeSet<String>,
+    failed: bool,
+) -> BTreeMap<String, Ended> {
+    let needs_rerun = |job: &str| Graph::new(w).is_ok_and(|g| g.needs(job).iter().any(|n| rerun.contains(*n)));
+    ends.iter()
+        .filter(|(c, (r, _))| {
+            let job = job_of(c);
+            !rerun.contains(job) || (failed && *r == JobResult::Success && !needs_rerun(job))
+        })
+        .map(|(c, e)| (c.clone(), e.clone()))
+        .collect()
 }
 
 #[cfg(test)]
@@ -125,8 +140,15 @@ mod tests {
         let e = ends(&[("a.0", JobResult::Success), ("b.0", JobResult::Failure), ("c.0", JobResult::Skipped)]);
         let set = rerun_jobs(&w, &e, &[]).unwrap();
         assert_eq!(set.into_iter().collect::<Vec<_>>(), ["b", "c"]);
-        let k = kept(&e, &rerun_jobs(&w, &e, &[]).unwrap());
+        let k = kept(&w, &e, &rerun_jobs(&w, &e, &[]).unwrap(), true);
         assert_eq!(k.keys().collect::<Vec<_>>(), ["a.0"]);
+        // A matrix job with a cell that passed and one that failed: the
+        // passed cell stays (T-279).
+        let m = ends(&[("a.0", JobResult::Success), ("b.0", JobResult::Success), ("b.1", JobResult::Failure)]);
+        let k = kept(&w, &m, &rerun_jobs(&w, &m, &[]).unwrap(), true);
+        assert_eq!(k.keys().collect::<Vec<_>>(), ["a.0", "b.0"]);
+        let k = kept(&w, &m, &rerun_jobs(&w, &m, &["b".into()]).unwrap(), false);
+        assert_eq!(k.keys().collect::<Vec<_>>(), ["a.0"], "--job b runs each cell of b");
         let only_a = rerun_jobs(&w, &e, &["a".into()]).unwrap();
         assert_eq!(only_a.into_iter().collect::<Vec<_>>(), ["a"], "--job a: a alone, nothing needs it");
         let short = ends(&[("a.0", JobResult::Success)]);
