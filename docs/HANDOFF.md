@@ -14,7 +14,8 @@ is done.
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
   beta.14, T-112); podnet `v0.4.0-beta.8` (`images/podnet.toml`); the
   official runner v2.338.2 (`images/runner/runner.toml`). Last beta of
-  podrunner: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`).
+  podrunner: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`); the
+  next is `v0.1.0-beta.7` (below).
 - The record: `cargo todo check` gives the counts. The last green
   `runner-image.yml` run is 43704601731 (`88cc4d7`, the tag
   `v0.1.0-beta.6`): the podvm suites,
@@ -93,6 +94,48 @@ is done.
 - The run report names `claim_to_first_step_s`, `job_images` and the exit
   reason `limit` (T-075, T-074).
 
+## The release of `v0.1.0-beta.7` (in flight)
+
+The rules: `AGENTS.md`, section 12, and `docs/maintenance.md`, "A
+release". A release needs a green gate, `runner-image.yml`, `level2.yml`
+and user-path gate (`user-gate.yml`) on its commit, and an adversarial QA
+with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
+
+- `main` has the fixes of two rounds of adversarial QA: round 1 (T-265 to
+  T-286) and round 2 (T-287 to T-298). Each P1 and P2 of them is done;
+  T-277, T-290 and T-298 hold the P3 that are open. The notes
+  `docs/releases/v0.1.0-beta.7.md` list them, with the level of proof.
+- Round 3 did not finish: its two agents stopped at a limit of the
+  account. Start it again on the release build of the next commit
+  (`PODRUNNER_VERSION=0.1.0-beta.7 cargo build --release -p podrunner
+  --target x86_64-unknown-linux-musl`), with the brief and a kit of the
+  binary, podvm, the official runner and the documents, as users with no
+  root. The reports of rounds 1 and 2 were on the old machine only; each
+  finding of them is an entry.
+- The last runs: gate 43795116133 and level2 43795119948 green on
+  `a4b41b9`; runner-image 43789352527 green on `45ef3c3` (`images/` has not
+  changed since: `user-gate.yml` takes it with `-f images_run=43789352527`).
+  User-path gate 43795123788 on `a4b41b9` red: express-node22 on
+  `--runner-dir` times out in CI (T-255; it passes on the sandbox);
+  express-lint on podvm passed in one lane (T-262, flaky until podvm
+  releases its fix); rq-lint on `--runner-dir` in the new lane
+  `proxy-only` (T-299). The lanes plain, small-tmp, userns-off and
+  inherited-fds and bind-denied pass each other row.
+- #194 (the request of those runs) is open: close it. Then ask a new
+  `[gh action] requested` issue (a new issue each time, the owner's rule)
+  for the gate, level2 and the user-path gate on the new `main`.
+- Wait on podvm: T-261 and T-262 (a volume moves a unit to the loader
+  family of the userland rung; the fix is on podvm `main`, `1298b66a`,
+  PodUtils/podvm#439, #442): then bump podvm, and the rows of uv, ruff and
+  Node 26 on podvm go to `ok`. T-291 (`--microvm` as a user with no root):
+  send podvm the QEMU line of the probe of run 43795123788 (in T-291) in a
+  new COORD issue.
+- Then T-264 (podcrates `v0.59.0`: the issue sync, pod-lab, the chroot
+  row of T-283), after the release.
+- The kit of the QA on the old machine: `/srv/qa-kit` (podrunner, podvm
+  `0.2.0-beta.24` from its release, `actions-runner` 2.338.2, the
+  documents); QA users with no root. A fresh machine needs it again.
+
 ## In flight
 
 - The LIVE-2 report (GitHub #75, 2026-11-15) ran W1, W3 (20 of 20) and
@@ -156,8 +199,9 @@ is done.
 - GitHub #65, #66, #67: the trackers of the asks of cfb, githome and the
   CI plan that podrunner owns. Their bodies have the current state
   (2026-11-15); T-001 holds them.
-- COORD issues open: #110 (COORD-050, to
-  podvm); #111 (COORD-051, to podvm). No podcrates release notice is open; podrunner takes
+- COORD issues open: #110 (COORD-050, to podvm); #111 (COORD-051, to
+  podvm); #189 (COORD-066) and #193 (COORD-068) to podvm (T-261, T-262,
+  T-291); #191 (COORD-067, to podcrates, T-283). No podcrates release notice is open; podrunner takes
   podcrates `v0.52.0`.
 - GitHub #9, #32, #33, #40: wait for the live gates (#74, #75). GitHub
   #43 waits for podcrates.

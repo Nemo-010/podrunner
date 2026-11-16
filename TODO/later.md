@@ -4184,6 +4184,8 @@ The row `express-node22` on `runner-dir` of the gate passes.
 
 State (2026-11-16): with the job environment of T-265 and T-266 (the `PATH`, the proxy and the CA of the user, a scratch `HOME`), the job `test` (Node.js 22) of express at `43fca52d` passes on `--runner-dir` on this sandbox as the user `tester` with no root: 1290 passing, exit 0. The row `express-node22` on `runner-dir` of the corpus is `ok` again; the proof is the next run of the user-path gate. Also fixed on the way: a lock file of the runner directory that another user made is opened read-only (`exec/host.rs`, `lock`).
 
+State (2026-11-16, later): user-gate 43795123788 on `a4b41b9`: the row still times out (exit 124) in each lane in CI, so the row is an xfail again. The difference between CI and the sandbox is not known: read `logs/express-node22-runner-dir` of the artifact of a lane (the tests of sendfile and the hang).
+
 # T-256: The checks of a session do not run the suites that need the official runner
 
 **Source:** level2 43750372759 on `92a7394` (2026-11-15): T-254 changed the default token, and `a_step_reads_a_secret_and_the_token_and_the_log_masks_the_secret` (`crates/podrunner-local/tests/runner.rs`) still expected the made-up token
@@ -4271,7 +4273,7 @@ The row `express-lint` on `podvm` passes in each lane of two runs of the user-pa
 
 ## Blocker
 
-2026-11-16: user-gate 43787604846 on `12cb64e` (with `UV_USE_IO_URING=0`): the job fails in three lanes of four, at the first read of a `package.json` (of npm in the tool cache) by the module loader of Node 26; `UV_USE_IO_URING=0` is not the fix. The row is an xfail again; waits for podvm (COORD-068, GitHub #193). podvm (PodUtils/podvm#442): the cause is the loader family of #439; the fix (a volume as a bind mount on the namespace rung for a foreground `run`) is on podvm `main` (`1298b66a`) and comes in its next release; no variable closes it on beta.24.
+2026-11-16: user-gate 43787604846 on `12cb64e` (with `UV_USE_IO_URING=0`): the job fails in three lanes of four, at the first read of a `package.json` (of npm in the tool cache) by the module loader of Node 26; `UV_USE_IO_URING=0` is not the fix. The row is an xfail again; waits for podvm (COORD-068, GitHub #193). podvm (PodUtils/podvm#442): the cause is the loader family of #439; the fix (a volume as a bind mount on the namespace rung for a foreground `run`) is on podvm `main` (`1298b66a`) and comes in its next release; no variable closes it on beta.24. user-gate 43795123788 on `a4b41b9`: the row passed in the lane `inherited-fds` and failed in the other four, so an xfail of it can fail the gate as "passes now"; until podvm releases the fix, a run of the gate can need a second attempt.
 
 # T-263: The installer keeps a directory that the group can write
 
@@ -5096,7 +5098,7 @@ podvm names what the machine tier needs from a user with no root (COORD-068, Git
 
 ## Blocker
 
-2026-11-16: podvm (PodUtils/podvm#442) did not reproduce it as uid 1000 under TCG; its guess, a guest memory of 512 MiB, does not hold (podrunner gives `--podvm-mem 4G`). The gate now runs `podvm run --verbose` of the image on the machine tier when `hello:microvm` fails (`scripts/user-gate.py`, `microvm_probe`), for the last line of the emulator; podvm `main` prints that line with no `--verbose` in its next release. Waits for that line.
+2026-11-16: podvm (PodUtils/podvm#442) did not reproduce it as uid 1000 under TCG; its guess, a guest memory of 512 MiB, does not hold (podrunner gives `--podvm-mem 4G`). The gate now runs `podvm run --verbose` of the image on the machine tier when `hello:microvm` fails (`scripts/user-gate.py`, `microvm_probe`), for the last line of the emulator; podvm `main` prints that line with no `--verbose` in its next release. Waits for that line. The probe of user-gate 43795123788 gave the line: "podvm run: machine tier: a guest under KVM ..., base archive from the cache"; "the guest ended before it gave the exit code of the payload; qemu: qemu-system-x86_64: -chardev socket,id=podvmerr,path=/tmp/podvm-guest-ID.err,server=on,wait=on: info: QEMU waiting for connection on: disconnected:unix:...". Next: a new COORD issue to podvm with this line (as `labuser`, `TMPDIR` of the lane).
 
 # T-292: A project file reads a file out of the project through `.actrc` or a link
 
@@ -5296,3 +5298,28 @@ Fix each one; the report of the QA lists the commands.
 ## Prove
 
 `cargo test -p podrunner -p podrunner-local`
+
+# T-299: In the lane proxy-only, the lint of rq on `--runner-dir` fails
+
+**Source:** user-gate 43795123788 on `a4b41b9`, the first run of the lane `proxy-only` (2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+In the lane `proxy-only` (mitmproxy on the loopback, the lab user reaches the network only through it), the row `rq-lint` on `runner-dir` fails ("failure Lint"); it passes in the four other lanes. The other rows of the lane gave their results as in the other lanes.
+
+## Premise
+
+The summary of run 43795123788. Not read yet: the log `logs/rq-lint-runner-dir` in the artifact `lane-proxy-only`.
+
+## Approach
+
+Read the log of the step that failed (ruff, or the setup of Python or of uv through the proxy and its CA); fix the variable or the path that the job misses on a proxy host (T-265), or name the cause in an entry of another project.
+
+## Prove
+
+`python3 -I scripts/user-gate.py`: the row `rq-lint` on `runner-dir` passes in the lane `proxy-only`.
