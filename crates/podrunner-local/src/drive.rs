@@ -91,20 +91,26 @@ pub fn drive(source: &mut LocalSource, exec: &mut dyn Executor, out: &mut dyn Fn
 
 /// The skips that are not printed, then each job of the workflow with no
 /// result as a `cancelled` line (T-141).
-fn cancel_the_rest(source: &LocalSource, skips: usize, out: &mut dyn FnMut(&Line)) {
+pub(crate) fn cancel_the_rest(source: &mut LocalSource, skips: usize, out: &mut dyn FnMut(&Line)) {
     // A job that a stop kept from its start is cancelled, as on GitHub, not
     // skipped by the `if:` of its needs (T-278).
+    let mut cancelled = Vec::new();
     for s in &source.skips()[skips..] {
         let id = s.job.as_str();
         let name = source.workflow().job(id).and_then(|j| j.name.clone()).unwrap_or_else(|| id.to_string());
         let job = JobId::new(&format!("{id}.0")).unwrap_or_else(|_| JobId::new("job.0").expect("a job id"));
-        out(&Line::Ran { job, name, result: JobResult::Cancelled });
+        cancelled.push((job, name));
     }
     for j in &source.workflow().jobs {
         if source.result(&j.id).is_none() {
             let job = JobId::new(&format!("{}.0", j.id)).unwrap_or_else(|_| JobId::new("job.0").expect("a job id"));
-            out(&Line::Ran { job, name: j.name.clone().unwrap_or_else(|| j.id.clone()), result: JobResult::Cancelled });
+            cancelled.push((job, j.name.clone().unwrap_or_else(|| j.id.clone())));
         }
+    }
+    // Each one is an end of the run: `state.json` keeps it (T-286).
+    for (job, name) in cancelled {
+        source.note_end(&job, JobResult::Cancelled);
+        out(&Line::Ran { job, name, result: JobResult::Cancelled });
     }
 }
 

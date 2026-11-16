@@ -3903,7 +3903,7 @@ Before each request for a release, the lead session starts two or more agents wi
 
 The record of each release names the QA run and its findings: `grep -n 'adversarial QA' docs/releases/v*.md`.
 
-State (2026-11-16): the first QA, two agents on `12cb64e` on this sandbox (`--runner-dir` only; no image of podvm, no installer before the release), found 2 P1, 11 P2 and 7 groups of P3: T-265 to T-284. The release of `v0.1.0-beta.7` waits for them and for a second QA.
+State (2026-11-16): the first QA, two agents on `12cb64e` on this sandbox (`--runner-dir` only; no image of podvm, no installer before the release), found 2 P1, 11 P2 and 7 groups of P3: T-265 to T-284. The release of `v0.1.0-beta.7` waits for them and for a second QA. 2026-11-16: the second QA (two new agents, new users, the release build of `f5d1de7` with the version `0.1.0-beta.7`) runs.
 
 # T-247: The notes of a release name the level of the proof of each claim
 
@@ -4931,7 +4931,7 @@ Measure a job with `supercharge/redis-github-action@1.8.1` on `--podvm`. Set up 
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4948,3 +4948,7 @@ Write the end `cancelled` of each cell that the drive cancels into the ends of t
 ## Prove
 
 `cargo test -p podrunner-local`: a drive that a stop cancels gives a `cancelled` end for each cell that did not end.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/drive.rs` (`cancel_the_rest`) and `rerun.rs` (`note_end`): each cell that a stop cancelled before it ran is an end of the run, and so in `state.json`; test `a_signal_cancels_the_job_that_runs_and_each_job_after_it`.

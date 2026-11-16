@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**283 entries: 23 open, 22 partial, 13 blocked, 225 done.**
+**283 entries: 22 open, 22 partial, 13 blocked, 226 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
 | P2 | 16 | 9 | 7 | 96 | 128 |
-| P3 | 6 | 4 | 4 | 78 | 92 |
-| **All** | 23 | 22 | 13 | 225 | 283 |
+| P3 | 5 | 4 | 4 | 79 | 92 |
+| **All** | 22 | 22 | 13 | 226 | 283 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -330,4 +330,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-283](later.md) | P3 | S | later | defect | blocked | `doctor` reports mount and chroot as denied where a user namespace mounts |
 | [T-284](later.md) | P2 | S | later | defect | partial | The user-path gate has no lane of a host with a proxy only |
 | [T-285](later.md) | P2 | M | later | defect | open | A Dockerfile action on `--podvm` gets no container hooks |
-| [T-286](later.md) | P3 | S | later | defect | open | A cell that a signal cancelled is not in `state.json` |
+| [T-286](later.md) | P3 | S | later | defect | done | A cell that a signal cancelled is not in `state.json` |

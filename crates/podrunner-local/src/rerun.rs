@@ -33,6 +33,13 @@ impl LocalSource {
         &self.cell_ends
     }
 
+    /// The end of a cell that never ran (a stop cancelled it, T-286).
+    pub fn note_end(&mut self, job: &JobId, result: JobResult) {
+        if !self.cell_ends.iter().any(|(j, _, _)| j == job) {
+            self.cell_ends.push((job.clone(), result, Vec::new()));
+        }
+    }
+
     /// The kept end of each cell that a rerun does not run.
     pub fn set_kept(&mut self, kept: BTreeMap<String, Ended>) {
         self.kept = kept;

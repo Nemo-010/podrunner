@@ -146,6 +146,10 @@ fn a_signal_cancels_the_job_that_runs_and_each_job_after_it() {
         })
         .collect();
     assert_eq!(cancelled, ["a", "b", "c"], "{lines:?}");
+    // Each cancelled cell is an end of the run, for `state.json` (T-286).
+    let mut ends: Vec<(&str, JobResult)> = s.ends().iter().map(|(j, r, _)| (j.as_str(), *r)).collect();
+    ends.sort_by_key(|e| e.0);
+    assert_eq!(ends, [("a.0", JobResult::Cancelled), ("b.0", JobResult::Cancelled), ("c.0", JobResult::Cancelled)]);
 }
 
 #[test]
