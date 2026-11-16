@@ -135,6 +135,10 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
 - On `b5d616c` (`6834836` adds documents only): gate 43926340918,
   level2 43922356619, runner-image 43922356588 and user-gate 43930264381
   green (proven in CI on GitHub-hosted runners).
+- After `b5d616c`: P3 fixes of T-323 and T-316 (F9, F11, F35, F38,
+  B-13, B-18; the line `Fixed:` of each entry). The runner-image run of
+  `31bee8e` is 43983244604; a release commit needs its own gate, level2,
+  runner-image and user-gate again.
 - The fourth QA: agent B found T-318 to T-323 and T-203 (each P2 and the
   P1 T-319 done; T-318 blocked on podvm, COORD #200). Agent A (user
   `qa3`) stopped before its report: it gave no findings. The adversarial
