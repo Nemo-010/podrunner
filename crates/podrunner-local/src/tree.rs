@@ -10,12 +10,48 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// What the tarball holds.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Options {
     /// The committed files of HEAD only (`--checkout-head`).
     pub head: bool,
     /// A `.git` of the tree (`--with-git`).
     pub with_git: bool,
+    /// More files to leave out, relative to the tree: the files of the
+    /// run that hold secrets or values (`--secret-file`, `--env-file`).
+    pub exclude: Vec<PathBuf>,
+}
+
+/// The default secrets file of a tree: podrunner reads it, and no step may.
+pub const SECRETS: &str = ".secrets";
+
+/// A file of podrunner that the tarball leaves out: the secrets of the run
+/// would be plain text in the workspace (T-276), and a new lock file would
+/// make the tree of the job unclean (T-268).
+/// With `--checkout-head`, a committed lock file stays: the user chose it.
+fn left_out(rel: &Path, o: &Options) -> bool {
+    let rel = rel.strip_prefix(".").unwrap_or(rel);
+    rel == Path::new(SECRETS)
+        || (!o.head && rel.file_name().is_some_and(|n| n == crate::lock::LOCK_FILE))
+        || o.exclude.iter().any(|e| e == rel)
+}
+
+/// Each directory and file under `dir` (not `.git`), relative, directories
+/// first.
+fn plain_files(dir: &Path, rel: &Path, out: &mut Vec<(PathBuf, bool)>) {
+    let Ok(entries) = std::fs::read_dir(dir.join(rel)) else { return };
+    let mut entries: Vec<_> = entries.flatten().collect();
+    entries.sort_by_key(|e| e.file_name());
+    for e in entries {
+        let r = rel.join(e.file_name());
+        match e.file_type() {
+            Ok(t) if t.is_dir() => {
+                out.push((r.clone(), true));
+                plain_files(dir, &r, out);
+            }
+            Ok(_) => out.push((r, false)),
+            Err(_) => {}
+        }
+    }
 }
 
 fn git(dir: &Path, args: &[&str]) -> Result<Vec<u8>, String> {
@@ -115,8 +151,22 @@ pub fn tarball(dir: &Path, scratch: &Path, o: Options) -> Result<PathBuf, String
     let gz = flate2::write::GzEncoder::new(file, flate2::Compression::default());
     let mut b = tar::Builder::new(gz);
     b.follow_symlinks(false);
+    let add = |b: &mut tar::Builder<_>, f: &Path| {
+        b.append_path_with_name(dir.join(f), f).map_err(|e| format!("{}: {e}", dir.join(f).display()))
+    };
     if !is_git_tree(dir) {
-        b.append_dir_all(".", dir).map_err(fail)?;
+        let mut all = Vec::new();
+        plain_files(dir, Path::new(""), &mut all);
+        let mut list = Vec::new();
+        for (f, is_dir) in all.into_iter().filter(|(f, _)| !left_out(f, &o)) {
+            match is_dir {
+                true => b.append_dir(&f, dir.join(&f)).map_err(fail)?,
+                false => list.push(f),
+            }
+        }
+        for f in links_last(dir, list) {
+            add(&mut b, &f)?;
+        }
     } else if o.head {
         let head = git(dir, &["archive", "--format=tar", "HEAD"])?;
         let mut a = tar::Archive::new(head.as_slice());
@@ -124,11 +174,15 @@ pub fn tarball(dir: &Path, scratch: &Path, o: Options) -> Result<PathBuf, String
             let mut entry = entry.map_err(fail)?;
             let mut h = entry.header().clone();
             let path = entry.path().map_err(fail)?.into_owned();
+            if left_out(&path, &o) {
+                continue;
+            }
             b.append_data(&mut h, path, &mut entry).map_err(fail)?;
         }
     } else {
-        for f in links_last(dir, files(dir)?) {
-            b.append_path_with_name(dir.join(&f), &f).map_err(|e| format!("{}: {e}", dir.join(&f).display()))?;
+        let list = files(dir)?.into_iter().filter(|f| !left_out(f, &o)).collect();
+        for f in links_last(dir, list) {
+            add(&mut b, &f)?;
         }
     }
     if o.with_git {

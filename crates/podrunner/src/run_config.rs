@@ -118,6 +118,19 @@ fn path_value(key: &str, v: &str, base: &Path, in_project: bool) -> Result<Strin
     if in_project && (p.is_absolute() || p.components().any(|c| c == Component::ParentDir)) {
         return Err(format!("{key} = {v:?}: a path of a project file must stay in the project"));
     }
+    // A symbolic link in the project must not lead out of it (T-275).
+    if in_project {
+        let inside = match (base.join(p).canonicalize(), base.canonicalize()) {
+            (Ok(real), Ok(root)) => real.starts_with(root),
+            (Err(e), _) => e.kind() == std::io::ErrorKind::NotFound && std::fs::symlink_metadata(base.join(p)).is_err(),
+            (_, Err(_)) => false,
+        };
+        if !inside {
+            return Err(format!(
+                "{key} = {v:?}: a path of a project file must stay in the project (a symbolic link leads out of it)"
+            ));
+        }
+    }
     Ok(if p.is_absolute() { v.to_string() } else { base.join(p).display().to_string() })
 }
 

@@ -17,6 +17,7 @@ mod many;
 mod pause;
 mod protect;
 mod routes;
+mod secrets;
 mod slots;
 mod watch;
 mod web;
@@ -34,6 +35,7 @@ use podrunner_local::drive::Line;
 use crate::cli::Out;
 
 use args::{Args, parse};
+use secrets::{run_files, secrets};
 
 pub const USAGE: &str = "usage: podrunner run (FILE | DIR) (--runner-dir DIR | (--podvm PATH | --microvm PATH [--engine DIR] | --incus PATH) --images STORE --image NAME@sha256:HEX)\n         [--podnet PATH] [--allow HOST]... [--platform LABEL=NAME@sha256:HEX|host]... [--actions DIR] [--offline | --frozen] [--artifacts DIR] [--cache DIR | --no-cache] [--secret NAME]... [--secret-file FILE] [--github-token-env NAME] [--job ID]... [--matrix KEY=VALUE]... [--list | --graph | --validate | --dry-run] [-q] [--json] [--log-dir DIR] [--environment-secret-file NAME=FILE]... [--environment-var-file NAME=FILE]... [--environment-allow NAME=HOST]... [--protected NAME]... [--approve NAME]... [--export DIR] [--toolcache DIR] [--local-repository OWNER/REPO@REF=DIR]... [--action-server URL] [--oidc-issuer URL] [--oidc-keys FILE] [--watch | --schedule] [--no-config] [--changed-since REF] [--web IP:PORT] [--jobs N] [--break JOB:STEP]... [--break-on-failure | --keep-failed] [--checkout DIR [--checkout-head] [--with-git]] [--event NAME] [--event-path FILE] [--force-event] [--remote NAME] [--ref REF] [--sha SHA] [--repository OWNER/REPO] [--actor NAME] [--var NAME=VALUE]... [--input NAME=VALUE]... [--var-file FILE] [--input-file FILE] [--env NAME=VALUE]... [--env-file FILE] [--state DIR] [--rerun DIR [--failed | --job ID]... [--refresh]]";
 
@@ -106,36 +108,6 @@ fn files(a: &Args) -> Result<(Pairs, Pairs, Pairs), String> {
         Ok(out)
     };
     Ok((read(&a.var_file, &a.vars)?, read(&a.input_file, &a.inputs)?, read(&a.env_file, &a.env)?))
-}
-
-/// The secrets of a run and its token.
-type Secrets = (Vec<(String, String)>, Option<String>);
-
-fn secrets(a: &Args) -> Result<Secrets, String> {
-    use podrunner_local::secrets::{from_env, read_file};
-    let mut out: Vec<(String, String)> = Vec::new();
-    let mut add = |more: Vec<(String, String)>| {
-        for (k, v) in more {
-            out.retain(|(o, _)| !o.eq_ignore_ascii_case(&k));
-            out.push((k, v));
-        }
-    };
-    if let Some(file) = a.checkout.as_ref().map(|d| d.join(".secrets")).filter(|f| f.is_file()) {
-        add(read_file(&file)?);
-    }
-    if let Some(file) = &a.secret_file {
-        add(read_file(file)?);
-    }
-    for name in &a.secrets {
-        add(vec![from_env(name)?]);
-    }
-    let token = match &a.token_env {
-        Some(name) => {
-            Some(std::env::var(name).map_err(|_| format!("--github-token-env {name}: the environment has no {name}"))?)
-        }
-        None => None,
-    };
-    Ok((out, token))
 }
 
 /// `podrunner doctor --run FILE [the options of run]` (T-153): the checks of
@@ -305,7 +277,7 @@ pub fn run(args: &[String]) -> Out {
         Some(dir) => match podrunner_local::tree::tarball(
             dir,
             &scratch,
-            podrunner_local::tree::Options { head: a.checkout_head, with_git: a.with_git },
+            podrunner_local::tree::Options { head: a.checkout_head, with_git: a.with_git, exclude: run_files(&a, dir) },
         ) {
             Ok(t) => {
                 // Each checkout of each job downloads the tree: a guest takes

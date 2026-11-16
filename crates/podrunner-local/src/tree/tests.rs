@@ -44,7 +44,7 @@ fn the_tree_holds_the_changes_on_disk_and_not_the_ignored_files() {
     assert!(t.contains_key(".gitignore"));
     assert!(!t.contains_key("debug.log"), "an ignored file stays out: {t:?}");
     assert!(!t.keys().any(|k| k.starts_with(".git/")), "no .git by default");
-    let head = entries(&tarball(&dir, &scratch, Options { head: true, with_git: false }).unwrap());
+    let head = entries(&tarball(&dir, &scratch, Options { head: true, ..Default::default() }).unwrap());
     assert_eq!(head.get("a.txt").map(String::as_str), Some("committed"));
     assert!(!head.contains_key("new.txt"), "HEAD only: {head:?}");
     let _ = std::fs::remove_dir_all(&dir);
@@ -55,7 +55,7 @@ fn the_tree_holds_the_changes_on_disk_and_not_the_ignored_files() {
 fn with_git_the_tree_has_a_git_directory_of_head() {
     let dir = repo("git");
     let scratch = dir.with_extension("scratch");
-    let t = entries(&tarball(&dir, &scratch, Options { head: false, with_git: true }).unwrap());
+    let t = entries(&tarball(&dir, &scratch, Options { with_git: true, ..Default::default() }).unwrap());
     assert!(t.contains_key(".git/HEAD") && t.contains_key(".git/index"), "{:?}", t.keys().collect::<Vec<_>>());
     // The copy unpacks to a tree where git reads HEAD.
     let out = scratch.join("unpacked");
@@ -68,7 +68,11 @@ fn with_git_the_tree_has_a_git_directory_of_head() {
     assert!(status.contains(" M a.txt") && status.contains("?? new.txt"), "{status}");
     let plain = std::env::temp_dir().join(format!("podrunner-tree-plain-{}", std::process::id()));
     std::fs::create_dir_all(&plain).unwrap();
-    assert!(tarball(&plain, &scratch, Options { head: false, with_git: true }).unwrap_err().contains("not a git tree"));
+    assert!(
+        tarball(&plain, &scratch, Options { with_git: true, ..Default::default() })
+            .unwrap_err()
+            .contains("not a git tree")
+    );
     let _ = std::fs::remove_dir_all(&dir);
     let _ = std::fs::remove_dir_all(&scratch);
     let _ = std::fs::remove_dir_all(&plain);
@@ -92,4 +96,34 @@ fn a_link_comes_after_the_other_files() {
     let at = |n: &str| names.iter().position(|x| x == n).unwrap_or_else(|| panic!("{n}: {names:?}"));
     assert!(at("z-target") < at("a-link"), "{names:?}");
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// The secrets of the run and a new lock file stay out of the tree of the
+/// job (T-276, T-268), in a git tree and in a plain directory.
+#[test]
+fn the_secrets_and_the_lock_stay_out_of_the_tree() {
+    let dir = repo("secrets");
+    let scratch = dir.with_extension("scratch");
+    std::fs::write(dir.join(".secrets"), "A=1").unwrap();
+    std::fs::create_dir_all(dir.join(".github/workflows")).unwrap();
+    std::fs::write(dir.join(".github/workflows/podrunner-actions.lock"), "lock").unwrap();
+    std::fs::write(dir.join("my.env"), "B=2").unwrap();
+    let o = Options { exclude: vec![PathBuf::from("my.env")], ..Default::default() };
+    let t = entries(&tarball(&dir, &scratch, o.clone()).unwrap());
+    assert!(t.contains_key("new.txt"), "{t:?}");
+    for gone in [".secrets", ".github/workflows/podrunner-actions.lock", "my.env"] {
+        assert!(!t.contains_key(gone), "{gone} in {t:?}");
+    }
+    let plain = dir.with_extension("plain");
+    let _ = std::fs::remove_dir_all(&plain);
+    std::fs::create_dir_all(plain.join("empty")).unwrap();
+    std::fs::write(plain.join(".secrets"), "A=1").unwrap();
+    std::fs::write(plain.join("my.env"), "B=2").unwrap();
+    std::fs::write(plain.join("kept.txt"), "k").unwrap();
+    let t = entries(&tarball(&plain, &scratch, o).unwrap());
+    assert!(t.contains_key("kept.txt") && t.keys().any(|k| k.trim_end_matches('/') == "empty"), "{t:?}");
+    assert!(!t.contains_key(".secrets") && !t.contains_key("my.env"), "{t:?}");
+    let _ = std::fs::remove_dir_all(&dir);
+    let _ = std::fs::remove_dir_all(&plain);
+    let _ = std::fs::remove_dir_all(&scratch);
 }

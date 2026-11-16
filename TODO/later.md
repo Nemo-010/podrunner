@@ -4405,7 +4405,7 @@ Finding A2 of the report of the QA (fatih/color). The reports are in the scratch
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4422,6 +4422,10 @@ Leave the lock file of podrunner out of the tarball of a checkout (`crates/podru
 ## Prove
 
 `cargo test -p podrunner-local`: A test of `crates/podrunner-local`: the tarball of a tree with `podrunner-actions.lock` has no such file.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/tree.rs` (`left_out`): a lock file that is not committed stays out of the tarball; test `the_secrets_and_the_lock_stay_out_of_the_tree`.
 
 # T-269: The made-up token fails `actions/setup-python` with a 404, and the run names no fix
 
@@ -4580,7 +4584,7 @@ A run takes an exclusive `flock` on a file of the runner directory; a second run
 **Milestone:** later
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4598,6 +4602,10 @@ Resolve each path of a project file (canonicalize) and refuse a path whose real 
 
 `cargo test -p podrunner`: A test of the configuration: a link out of the project is refused, and a link in the project passes.
 
+## Done
+
+2026-11-16: `crates/podrunner/src/run_config.rs` (`path_value`) and `run_local/secrets.rs` (`.secrets`) resolve the real path and refuse one out of the project; test `a_link_out_of_the_project_is_refused`.
+
 # T-276: `.secrets` of a checkout goes into the workspace of each job
 
 **Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
@@ -4605,7 +4613,7 @@ Resolve each path of a project file (canonicalize) and refuse a path whose real 
 **Milestone:** later
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4622,6 +4630,10 @@ Leave the files that podrunner reads as configuration (`.secrets`, `.vars`, `.en
 ## Prove
 
 `cargo test -p podrunner-local`: A test of `crates/podrunner-local`: the tarball of a tree with `.secrets` has no such file.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/tree.rs` (`left_out`, `Options::exclude`) and `run_local/secrets.rs` (`run_files`): `.secrets` and the files of `--secret-file`, `--env-file` and `--var-file` in the tree stay out of the tarball, also out of a git tree; `docs/cli.md`, `docs/local-mode.md`; test `the_secrets_and_the_lock_stay_out_of_the_tree`.
 
 # T-277: Some refusals name the wrong cause or a fix that does not work
 

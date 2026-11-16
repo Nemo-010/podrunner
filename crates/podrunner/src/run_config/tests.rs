@@ -74,3 +74,22 @@ fn the_flags_of_the_project_file_go_before_the_command_line() {
     assert!(expand(&s(&["w.yml", "--checkout", &d])).unwrap_err().contains("reaches the host"));
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// A link in the project that leads out of it is refused; one that stays
+/// in it passes (T-275).
+#[test]
+fn a_link_out_of_the_project_is_refused() {
+    let dir = std::env::temp_dir().join(format!("podrunner-config-link-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let project = dir.join("project");
+    std::fs::create_dir_all(&project).unwrap();
+    std::fs::write(dir.join("outside.env"), "A=1").unwrap();
+    std::fs::write(project.join("inside.env"), "B=2").unwrap();
+    std::os::unix::fs::symlink(dir.join("outside.env"), project.join("out")).unwrap();
+    std::os::unix::fs::symlink("inside.env", project.join("in")).unwrap();
+    let err = flags_of("env-file = \"out\"\n", "f", &project, true, false).unwrap_err();
+    assert!(err.contains("symbolic link"), "{err}");
+    assert!(flags_of("env-file = \"in\"\n", "f", &project, true, false).is_ok());
+    assert!(flags_of("env-file = \"out\"\n", "f", &project, true, true).is_ok(), "a trusted project may");
+    let _ = std::fs::remove_dir_all(&dir);
+}
