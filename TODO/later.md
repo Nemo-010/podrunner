@@ -5872,7 +5872,7 @@ Fix each one; a finding that the code cannot change goes into the documents.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** blocked
+**Status:** done
 
 ## Problem
 
@@ -5890,8 +5890,10 @@ Ask podvm (a COORD issue) to map the uid of the caller to the user of the image 
 
 `cargo test -p podrunner-podvm`; a job on podvm runs as `runner`, and `hostname` gives `podrunner-u-1`.
 
-## Blocker
-
-2026-11-16: COORD-070 (GitHub #196) asks podvm to map the uid of the caller to the user of the image on the namespace rung, and for a UTS namespace there.
+2026-11-16, the blocker of the time: COORD-070 (GitHub #196) asks podvm to map the uid of the caller to the user of the image on the namespace rung, and for a UTS namespace there.
 
 State (2026-11-16): podvm answered (PodUtils/podvm#448, COORD-155): `--hostname` of `run -d` is fixed on podvm `main` (its next release); the user of the image waits for the binds of pod-enter.
+
+## Done
+
+2026-11-16: podvm `0.2.0-beta.26` keeps `--hostname` of `run -d` on the namespace rung (PodUtils/podvm@T-1926), and `0.2.0-beta.27` runs the payload as the `USER` of the image there (PodUtils/podvm@T-1927, PodUtils/podvm#448); podrunner pins beta.27. Proven on a constrained host as a user (`qa1`): a job prints `uid=1001(runner)` and the host name `podrunner-u-1`, with no line of the start with no name; the job of T-300 passes and writes no file on the host. The three variables of T-301 stay: `TAR_OPTIONS` for a program that closed descriptor 17 (PodUtils/podvm#450), and the two others do nothing for a user that is not root.

@@ -8,7 +8,7 @@ is done.
 
 ## Where podrunner stands
 
-- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.26`
+- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.27`
   (`images/podvm.toml`; the podvm kind takes `probe::LOWEST` and later,
   the microvm kind `LOWEST_GUEST` (beta.10), the incus kind
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
@@ -107,30 +107,29 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   `docs/releases/v0.1.0-beta.7.md` list them, with the level of proof.
 - Round 3 ran (2026-11-16) on the release files of `12a1300` (T-246):
   agent A gave T-300 to T-308, agent B T-309 to T-316; the lead session
-  T-301 and T-317. Done since: T-301, T-302, T-303, T-305, T-306, T-307,
+  T-301 and T-317. Done since: T-301, T-302, T-309, T-317, T-303, T-305, T-306, T-307,
   T-310, T-311, T-312, T-313, T-314. Open P1 and P2 that block the
   release (T-309 is done with podvm beta.26): T-300 (P1,
   partial: the loader family is no boundary for a static binary; waits
-  for podvm's binds of `run -d`, PodUtils/podvm#442), T-317 (blocked on
-  COORD-070 #196), T-304 (not reproduced), T-315 and T-260 (partial).
+  for podvm's binds of `run -d`, PodUtils/podvm#442), T-304 (not reproduced), T-315 and T-260 (partial).
   A round 4 runs on the files of the commit that holds them.
 - The kit of the QA: `/srv/qa-kit` (the files of a user-gate run, podvm
   from its release, the documents, `env.sh` with the proxy and CA of the
   host); the users `qa1` and `qa2` with no root. The reports are in the
   entries (T-308 and T-316 hold the P3s).
-- podvm `v0.2.0-beta.26` is pinned (beta.25 at `ede07ea`). On this host (user
-  namespaces) `run -d` of a unit takes the namespace rung, where the job
-  runs as root of a one-uid namespace (T-317; podrunner sets
-  `RUNNER_ALLOW_RUNASROOT`, `TAR_OPTIONS`, `npm_config_unsafe_perm`). In
-  the CI lanes the units ran on the loader family (Go finds no GOROOT; uv
-  and ruff get EACCES): the rows of uv and ruff on podvm are `xfail`
-  again (T-261).
+- podvm `v0.2.0-beta.27` is pinned. On this host (user namespaces)
+  `run -d` of a unit takes the namespace rung, where the job runs as
+  `runner` with the host name `podrunner-u-N` (T-317); podrunner keeps
+  `TAR_OPTIONS=--no-same-owner` (and two variables that do nothing for
+  `runner`). In the CI lanes the units ran on the loader family (Go finds
+  no GOROOT; uv and ruff get EACCES): the rows of uv and ruff on podvm are
+  `xfail` (T-261), until podvm binds the volumes of `run -d`.
 - The last runs: user-gate 43845950155 green on `0954146` (podvm
   beta.25, the images of runner-image 43839111223 of `7d62176`): each row
   passes or is a known xfail in the six lanes; `confine:podvm` passes in
-  each. podvm beta.26 is pinned since (`af8c585`): runner-image
-  43854883507 runs on it; when it is green, dispatch user-gate with `-f
-  version=0.1.0-beta.7 -f images_run=43854883507`. runner-image, level2
+  each. podvm beta.27 is pinned since: when the runner-image run of
+  that commit is green, dispatch user-gate with `-f version=0.1.0-beta.7
+  -f images_run=RUN_ID`. runner-image, level2
   and the gate of the release commit run again before a release.
 - Each push that changes the crates starts `runner-image.yml` (about 2
   hours, no concurrency group): cancel the runs of older commits with
@@ -150,7 +149,7 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   the runner under `[unit.podvm] mem` (T-162).
 - T-162 (partial, G-12): `[unit.podvm] mem` and `pids` are rlimits;
   `[unit.incus] mem`, `cpus` and `pids` are the keys of the instance
-  (podvm `0.2.0-beta.20` or later, pinned `0.2.0-beta.26`). Next: a
+  (podvm `0.2.0-beta.20` or later, pinned `0.2.0-beta.27`). Next: a
   payload past `pids` and one past `mem` on the podvm and incus kinds.
   `cpus` on the podvm kind waits for the cgroup half
   (PodUtils/podvm@T-1747); COORD-050 (#110) stays open for it.

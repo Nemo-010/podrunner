@@ -31,9 +31,10 @@
 # PodUtils/podvm#439) and the cause of an early end of a guest of the
 # machine tier (T-291, PodUtils/podvm#444); beta.26 the memo on descriptor
 # 17 checked before each use (T-309, PodUtils/podvm#450) and `--hostname`
-# of `run -d` on the namespace rung (T-182, PodUtils/podvm#448).
-version = "0.2.0-beta.26"
+# of `run -d` on the namespace rung (T-182, PodUtils/podvm#448); beta.27
+# the payload of `run -d` as the `USER` of the image on that rung (T-317).
+version = "0.2.0-beta.27"
 
 [sha256]
-x86_64 = "0a617657832608b52e723de4dc16720e94ddec061887800b43d2ada5989590f5"
-aarch64 = "d2ebea56df55ced78fe23e908c04882ab69e0a3d2ac32c3d8b876ecd373c0282"
+x86_64 = "6ace0aebf5da7019dd215605dfbfa3e958dea5884c64a5b3b4ded06ab0bf1ae0"
+aarch64 = "9b164b99e971f1b85b76e6285afe9dc5f9e577600dc49a6498397dbfdfc645f3"
