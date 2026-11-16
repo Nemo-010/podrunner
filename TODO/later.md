@@ -3220,6 +3220,8 @@ State (2026-11-15): steps 1 and 2 are in: `Broker::start_unix` (`crates/podrunne
 
 State (2026-11-15, podnet answered on PodUtils/podnet#582): under the shim each AF_INET socket is an AF_UNIX socket; a connect to `127.0.0.1:PORT` goes to the abstract name `\0podnet-vnet/4/127.0.0.1/PORT`, and podrunner (static, no shim) can listen on that name itself, where the unit shares the network namespace of podrunner (to measure on the userland rung). The .NET runner connects through a dual-mode AF_INET6 socket (`[::ffff:127.0.0.1]`), which the shim does not map to the IPv4 name yet: PodUtils/podnet@T-356 fixes it, and adds `PODNET_VNET_FORWARD=127.0.0.1:PORT=unix:PATH`. The unit needs one file, `libpodnet-vnet.so` (`podnet net shim --out DIR`, built against glibc for the runner), after podvm's interposer in `LD_PRELOAD`. The egress proxy goes the same way. Next: the release of podnet with that fix; then the broker of a podvm job on the abstract name (or a forward), the shim in the unit, and a measure on a host that refuses AF_INET bind.
 
+State (2026-11-16): the state block of PodUtils/podnet#582 says PodUtils/podnet@T-356 and PodUtils/podnet@T-357 are done and go into the next tag of podnet. Waits for that tag.
+
 
 # T-221: `cpus` on the podvm kind
 
