@@ -5960,7 +5960,7 @@ State (2026-11-16): the documents (`docs/local-mode.md`, "What a podvm unit hold
 
 ## Blocker
 
-2026-11-16: COORD-074 (GitHub #200) asks podvm for a PID namespace on the namespace rung.
+2026-11-16: COORD-074 (GitHub #200) asks podvm for a PID namespace on the namespace rung. podvm answered (PodUtils/podvm#458, COORD-165): a PID namespace for `run -d` needs pod-enter first (podvm's COORD-164 to podcrates).
 
 
 # T-319: The egress hold of the local mode lets a job out through a proxy on the loopback
@@ -5970,7 +5970,7 @@ State (2026-11-16): the documents (`docs/local-mode.md`, "What a podvm unit hold
 **Milestone:** later
 **Priority:** P1
 **Effort:** S
-**Status:** blocked
+**Status:** done
 
 ## Problem
 
@@ -5990,9 +5990,12 @@ The documents and the installer say what the hold of the local mode is: advisory
 
 State (2026-11-16): the documents (`docs/local-mode.md`, "Where podrunner exceeds them", the notes) and the installer say that the hold of `--podnet` in the local mode is advisory, with each loopback port of the host open; the hold of a guest stays the enforced one. Next: ask podnet for a seccomp hold that refuses loopback ports other than the broker.
 
-## Blocker
 
-2026-11-16: COORD-075 (GitHub #201) asks podnet for a seccomp hold that refuses loopback ports but the broker, or a forward for the netns hold.
+The blocker of the time: 2026-11-16: COORD-075 (GitHub #201) asks podnet for a seccomp hold that refuses loopback ports but the broker, or a forward for the netns hold.
+
+## Done
+
+2026-11-16: podnet answered (PodUtils/podnet#605): `--loopback-rules` since `0.4.0-beta.10`. podrunner pins podnet `0.4.0-beta.13`; a held unit of the local mode names the port of its broker (`PODRUNNER_LOOPBACK_ALLOW`, `exec/proxy.rs`), and the podvm driver starts `podnet pod --loopback-rules -r tcp:127.0.0.1:PORT=direct -r cidr:127.0.0.0/8=reject -r cidr:::1/128=reject` (`unit/hold.rs`). Unit tests: `the_rules_of_the_loopback`, `a_held_unit_names_the_port_of_its_broker`. Proven on a constrained host as a user (`qa5`, the proxy of the host on the loopback): `curl -x` of the proxy of the host is refused (exit 7), `github.com` of `--allow` gives 200, and the job ends `ok` (it reached its broker). The documents and the installer say so.
 
 
 # T-320: Under the egress hold a Node action does not take the CA of the host

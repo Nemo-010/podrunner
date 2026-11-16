@@ -24,14 +24,14 @@ umask 022
 # BEGIN PINS (scripts/install-pins.py writes this block; do not edit it)
 PODRUNNER_VERSION=""
 PODVM_VERSION="0.2.0-beta.27"
-PODNET_VERSION="0.4.0-beta.8"
+PODNET_VERSION="0.4.0-beta.13"
 RUNNER_VERSION="2.338.2"
 SUM_podrunner_x86_64=""
 SUM_podrunner_aarch64=""
 SUM_podvm_x86_64="6ace0aebf5da7019dd215605dfbfa3e958dea5884c64a5b3b4ded06ab0bf1ae0"
 SUM_podvm_aarch64="9b164b99e971f1b85b76e6285afe9dc5f9e577600dc49a6498397dbfdfc645f3"
-SUM_podnet_x86_64="ce6c18b1f6b1fb76b8af2a810d27c1aece876b57726900a8d81b830b8967f45a"
-SUM_podnet_aarch64="937ed6369c9042985cb367fa7a533faab02a316a34d50961feca200e36d466d7"
+SUM_podnet_x86_64="65933be199019669ae2aa39354858c249255a90d1af9a1a9c0ea1cc039f1bbd7"
+SUM_podnet_aarch64="93b122fb8f4171221cf2b6de64af7271eb92d7a87ecaf640c09d84181b0a29c2"
 SUM_runner_x86_64="baebf204307bac6193480852732f0aba2ae97b6c5597c244f4d5558390147c40"
 SUM_runner_aarch64="670adb2f268fe21dcbb58b3db0e0aa9d5b3bddfe2c651481336e561ff86de945"
 SUM_image_x86_64=""
@@ -319,7 +319,7 @@ say "the checks of podrunner doctor:"
 doc=$("$bin/podrunner" doctor 2>&1 || true)
 case $doc in *"probe unshare(CLONE_NEWUSER): ok"*) userns=yes ;; *) userns=no ;; esac
 case $doc in *"kvm: no"* | *"kvm: denied"*) kvm=no ;; *) kvm=yes ;; esac
-say "user namespaces: $userns (podvm takes its namespace rung with them; the egress hold of podnet in the local mode is advisory: see docs/local-mode.md)"
+say "user namespaces: $userns (podvm takes its namespace rung with them: see docs/local-mode.md, What a podvm unit holds)"
 say "/dev/kvm: $kvm (the --microvm kind needs it)"
 [ "$got" -eq 0 ] && say "nothing was downloaded: each file was present and correct"
 

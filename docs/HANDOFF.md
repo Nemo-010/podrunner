@@ -12,7 +12,7 @@ is done.
   (`images/podvm.toml`; the podvm kind takes `probe::LOWEST` and later,
   the microvm kind `LOWEST_GUEST` (beta.10), the incus kind
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
-  beta.14, T-112); podnet `v0.4.0-beta.8` (`images/podnet.toml`); the
+  beta.14, T-112); podnet `v0.4.0-beta.13` (`images/podnet.toml`); the
   official runner v2.338.2 (`images/runner/runner.toml`). Last beta of
   podrunner: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`); the
   next is `v0.1.0-beta.7` (below).

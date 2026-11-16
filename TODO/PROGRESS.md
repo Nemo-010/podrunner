@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 320 entries: 24 open, 21 partial, 15 blocked, 260 done.
+`TODO/INDEX.md` holds 320 entries: 24 open, 21 partial, 14 blocked, 261 done.
 
 ## State
 
@@ -8,7 +8,7 @@
   DR-1 to DR-7 and GitHub #8 (`docs/decisions.md`); DR-7 is yes
   (2026-11-13): the live gates run on GitHub #74 and #75.
 - Pins: podcrates `v0.52.0`, podvm `v0.2.0-beta.27`, podnet
-  `v0.4.0-beta.8`, runner v2.338.2. Last beta: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`; its runner image is the archive of runner-image run 43704601731). Last green
+  `v0.4.0-beta.13`, runner v2.338.2. Last beta: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`; its runner image is the archive of runner-image run 43704601731). Last green
   `runner-image.yml`: 43704601731 (`88cc4d7`, the tag `v0.1.0-beta.6`). `main` has T-169 (the cancel of a refused run) and T-198 (the limits of an offer) after the tag: the next beta carries them.
 - M-A and M-B hold. M-C: T-027 to T-030 done; the gate T-032 waits for
   the live gates (GitHub #74, #75). M-D: T-031 and T-045 done; the gate

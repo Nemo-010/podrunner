@@ -373,11 +373,7 @@ impl Executor for InUnit {
             None => vec![self.run_sh.clone()],
         };
         let mut env = hooks.as_ref().map(|h| h.env.clone()).unwrap_or_default();
-        if !self.guest {
-            // podvm maps the paths of libc calls only, and the io_uring of
-            // libuv passes no libc call (T-262, PodUtils/podvm#439).
-            env.insert("UV_USE_IO_URING".into(), "0".into());
-        }
+        proxy::unit_extra(&mut env, self.guest, self.egress.is_some().then_some(broker.base.as_str()));
         env.extend(proxy_env);
         let spec = podrunner_unit::StartSpec {
             unit: id.clone(),

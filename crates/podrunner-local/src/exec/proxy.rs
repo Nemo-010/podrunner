@@ -70,6 +70,23 @@ fn all_env(dir: &str, vars: impl Iterator<Item = (String, String)>) -> Result<Un
     Ok((env, files))
 }
 
+/// The variables of a unit that do not come from the caller. A podvm unit
+/// sets `UV_USE_IO_URING=0`: podvm maps the paths of libc calls only, and
+/// the io_uring of libuv passes no libc call (T-262, PodUtils/podvm#439).
+/// A held unit names the port of its broker on the loopback: the driver
+/// lets that port through the hold and refuses the rest of the loopback
+/// (T-319).
+pub(crate) fn unit_extra(env: &mut std::collections::BTreeMap<String, String>, guest: bool, held_broker: Option<&str>) {
+    if !guest {
+        env.insert("UV_USE_IO_URING".into(), "0".into());
+    }
+    let port =
+        held_broker.and_then(|b| b.trim_end_matches('/').rsplit(':').next()).filter(|p| p.parse::<u16>().is_ok());
+    if let Some(p) = port {
+        env.insert(podrunner_unit::LOOPBACK_ALLOW.into(), p.into());
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -105,5 +122,16 @@ mod tests {
         let (env, files) = unit_env("/d", std::iter::empty(), false).unwrap();
         assert!(env.is_empty() && files.is_empty(), "no proxy, nothing");
         let _ = std::fs::remove_file(&ca);
+    }
+
+    /// T-319: a held unit names the port of its broker.
+    #[test]
+    fn a_held_unit_names_the_port_of_its_broker() {
+        let mut env = BTreeMap::new();
+        unit_extra(&mut env, false, Some("http://127.0.0.1:41234/"));
+        assert_eq!(env.get(podrunner_unit::LOOPBACK_ALLOW).map(String::as_str), Some("41234"));
+        let mut env = BTreeMap::new();
+        unit_extra(&mut env, true, None);
+        assert!(env.is_empty());
     }
 }

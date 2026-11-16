@@ -198,9 +198,11 @@ runner directory in `runner-image.yml`.
   one channel), a step reaches only the hosts of `--allow`, through the
   egress module, so a secret or a real token cannot leave to another host
   (T-121, T-122). With `--podvm` and `--podnet`, the hold is the seccomp
-  hold of podnet (advisory): a direct connect is refused, but each port on
-  the loopback of the host stays open, and a proxy there is a way out
-  (T-319). An environment can have its own egress policy (T-136).
+  hold of podnet: a direct connect is refused, and so is each port on the
+  loopback of the host but the broker of the job, also a proxy there
+  (podnet `0.4.0-beta.10` and later, `--loopback-rules`, T-319); it holds
+  TCP, not unix sockets (podnet calls it advisory). An environment can have
+  its own egress policy (T-136).
 - **Pins.** Actions are pinned by commit and image by digest, recorded in a
   lock file with a SHA-256 (T-118, T-130). A moved tag fails by name. The
   host fetches; a unit never fetches.

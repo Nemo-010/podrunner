@@ -60,7 +60,15 @@ impl PodvmUnit {
             return Ok(None);
         }
         match &spec.sockets {
-            Some(dir) => Ok(Some(dir.join(EGRESS_SOCKET))),
+            Some(dir) => {
+                let egress = dir.join(EGRESS_SOCKET);
+                // The port of the broker of a local run: the only loopback
+                // port that the seccomp hold lets through (T-319).
+                if let Some(port) = spec.env.get(podrunner_unit::LOOPBACK_ALLOW).and_then(|p| p.parse::<u16>().ok()) {
+                    LOOPBACK.lock().unwrap_or_else(|e| e.into_inner()).insert(egress.clone(), port);
+                }
+                Ok(Some(egress))
+            }
             None => Err(UnitError::new(UnitCode::UnitStartFailed, "a held unit needs its egress socket")),
         }
     }
@@ -87,14 +95,32 @@ impl PodvmUnit {
         match (&self.podnet, egress) {
             (Some((podnet, backend)), Some(egress)) => {
                 let mut c = Command::new(podnet);
-                c.args(["pod", "--backend", backend, "-x", &format!("http://unix:{}", egress.display()), "--"])
-                    .arg(&self.podvm.binary)
-                    .env(crate::SPARE_TREE.0, crate::SPARE_TREE.1);
+                c.args(["pod", "--backend", backend, "-x", &format!("http://unix:{}", egress.display())]);
+                let port = LOOPBACK.lock().unwrap_or_else(|e| e.into_inner()).get(egress).copied();
+                if let (Some(port), "seccomp") = (port, *backend) {
+                    c.args(loopback_rules(port));
+                }
+                c.arg("--").arg(&self.podvm.binary).env(crate::SPARE_TREE.0, crate::SPARE_TREE.1);
                 c
             }
             _ => self.podvm.command(),
         }
     }
+}
+
+/// The port of the broker for each egress socket of a held unit (T-319).
+static LOOPBACK: std::sync::Mutex<std::collections::BTreeMap<PathBuf, u16>> =
+    std::sync::Mutex::new(std::collections::BTreeMap::new());
+
+/// The rules of `podnet pod --loopback-rules` (podnet `0.4.0-beta.10` and
+/// later): the port of the broker goes direct, and each other port of the
+/// loopback is refused, also a proxy there (PodUtils/podnet#605).
+fn loopback_rules(port: u16) -> Vec<String> {
+    let rules =
+        [format!("tcp:127.0.0.1:{port}=direct"), "cidr:127.0.0.0/8=reject".into(), "cidr:::1/128=reject".into()];
+    std::iter::once("--loopback-rules".to_string())
+        .chain(rules.into_iter().flat_map(|r| ["-r".to_string(), r]))
+        .collect()
 }
 
 /// The level of the backend `name` in `podnet pod doctor --json`.
@@ -177,5 +203,22 @@ mod tests {
         drop(s);
         assert!(!dir.exists());
         let _ = std::fs::remove_dir_all(&d);
+    }
+
+    /// T-319: the broker goes direct; each other loopback port is refused.
+    #[test]
+    fn the_rules_of_the_loopback() {
+        assert_eq!(
+            loopback_rules(4242),
+            [
+                "--loopback-rules",
+                "-r",
+                "tcp:127.0.0.1:4242=direct",
+                "-r",
+                "cidr:127.0.0.0/8=reject",
+                "-r",
+                "cidr:::1/128=reject"
+            ]
+        );
     }
 }

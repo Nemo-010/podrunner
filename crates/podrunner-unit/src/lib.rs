@@ -20,6 +20,11 @@ pub use podrunner_schema::{Capability, Credential, UnitId};
 /// The name of the egress socket in the socket directory of a unit
 /// (`StartSpec::sockets`).
 pub const EGRESS_SOCKET: &str = "egress.sock";
+
+/// The variable of a held unit that names the port of its broker on the
+/// loopback of the host: the driver lets only that loopback port through the
+/// hold (T-319).
+pub const LOOPBACK_ALLOW: &str = "PODRUNNER_LOOPBACK_ALLOW";
 /// The name of the control socket in the socket directory of a unit.
 pub const CONTROL_SOCKET: &str = "ctl.sock";
 pub use stub::Stub;
