@@ -74,10 +74,12 @@ fn version_too_old_gives_exit_7_with_the_variable() {
 fn a_job_started_hook_ends_a_foreign_job_before_its_first_step() {
     let _one = DIR.lock().unwrap_or_else(|e| e.into_inner());
     let dir = std::path::PathBuf::from(std::env::var("PODRUNNER_RUNNER_DIR").expect("PODRUNNER_RUNNER_DIR"));
-    let script = concat!(env!("CARGO_MANIFEST_DIR"), "/../../images/runner/podrunner-job-started.sh");
+    // In the binary: runner-musl.yml runs this test where the tree is not.
+    let script = include_str!("../../../images/runner/podrunner-job-started.sh");
     std::fs::create_dir_all(dir.join("hooks")).unwrap();
     let hook = dir.join("hooks/podrunner-job-started.sh");
-    std::fs::copy(script, &hook).unwrap();
+    std::fs::write(&hook, script).unwrap();
+    std::fs::set_permissions(&hook, std::os::unix::fs::PermissionsExt::from_mode(0o755)).unwrap();
     let job = dir.join(".podrunner-job");
     // The own job (another case), another repository, another run, and no
     // file (the local mode).
