@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**320 entries: 24 open, 21 partial, 14 blocked, 261 done.**
+**320 entries: 23 open, 21 partial, 14 blocked, 262 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 3 | 56 | 69 |
-| P2 | 13 | 8 | 7 | 125 | 153 |
+| P2 | 12 | 8 | 7 | 126 | 153 |
 | P3 | 10 | 4 | 4 | 80 | 98 |
-| **All** | 24 | 21 | 14 | 261 | 320 |
+| **All** | 23 | 21 | 14 | 262 | 320 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -250,7 +250,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-200](live.md) | P2 | S | M-C | defect | done | A refused claim gets `release` before its report, so the source cannot tell a refusal from a give-back |
 | [T-201](live.md) | P3 | S | M-C | defect | done | A job that the job-started hook ends has no annotation of its cause |
 | [T-202](later.md) | P1 | M | later | feature | done | One installer and one offline bundle for the local mode |
-| [T-203](later.md) | P2 | S | later | defect | open | A local checkout with no --checkout fails with a 404 |
+| [T-203](later.md) | P2 | S | later | defect | done | A local checkout with no --checkout fails with a 404 |
 | [T-204](later.md) | P3 | S | later | chore | open | The packages of the image archives and their sources |
 | [T-205](later.md) | P1 | S | later | release | partial | The release attaches the assets of the local mode |
 | [T-206](later.md) | P2 | S | later | defect | done | `--platform` turns off each later check of the flags of `run` |

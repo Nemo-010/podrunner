@@ -115,7 +115,7 @@ fn files(a: &Args) -> Result<(Pairs, Pairs, Pairs), String> {
 /// the inputs of a run; exit 0 when each holds, 1 when one fails.
 pub fn doctor(args: &[String]) -> Out {
     let a = match parse(args) {
-        Ok(a) => a,
+        Ok(a) => args::default_checkout(a),
         // A check that fails, with its fix, not the usage (T-278).
         Err(e) => {
             let fix = match e.contains("is necessary") {
@@ -136,7 +136,7 @@ use logs::emit;
 /// Run `podrunner run ARGS`.
 pub fn run(args: &[String]) -> Out {
     let a = match parse(args) {
-        Ok(a) => a,
+        Ok(a) => args::default_checkout(a),
         Err(e) => return fail(Class::Usage, format!("{e}\n{USAGE}")),
     };
     // A directory: each of its workflows that takes the event (T-125).

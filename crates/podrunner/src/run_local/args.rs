@@ -103,6 +103,22 @@ pub(super) fn pair(v: &str) -> Result<(String, String), String> {
     Ok((k.to_string(), v.to_string()))
 }
 
+/// With no `--checkout`, a workflow that uses `actions/checkout` takes the
+/// git tree of the current directory, as act does, and a line says so
+/// (T-203); out of a git tree nothing changes.
+pub(super) fn default_checkout(mut a: Args) -> Args {
+    let uses = std::fs::read_to_string(&a.file).is_ok_and(|t| t.contains("actions/checkout@"));
+    let cwd = std::env::current_dir().ok().filter(|d| podrunner_local::tree::is_git_tree(d));
+    if let (None, true, Some(cwd)) = (&a.checkout, uses, cwd) {
+        eprintln!(
+            "podrunner: the workflow uses actions/checkout: it gets the tree of {} (--checkout .)",
+            cwd.display()
+        );
+        a.checkout = Some(cwd);
+    }
+    a
+}
+
 pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     let mut a = Args { event: "push".into(), ..Args::default() };
     let mut it = args.iter();

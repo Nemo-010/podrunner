@@ -2697,7 +2697,7 @@ cargo test -p podrunner --test doctor
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -2721,6 +2721,10 @@ Then the installer prints `podrunner run .github/workflows/ci.yml` as the next c
 `cargo test -p podrunner --test local` (a workflow with `uses: actions/checkout@v4` and no `--checkout`: the step gets the tree, or the job fails with the fix before a unit starts).
 
 State (2026-11-16): the fourth QA (agent B, F3) met it again: `--dry-run` says `planned`, `doctor --run` says `ok`, and the step fails with a raw curl 404.
+
+## Done
+
+2026-11-16: the first choice of the Approach: with no `--checkout`, a workflow that uses `actions/checkout@` takes the git tree of the current directory, as act does, and a line on stderr says so (`args::default_checkout`, for `run`, the dry run and `doctor --run`); out of a git tree nothing changes. The call is in `docs/decisions.md`. Proven on a constrained host as a user (`qa5`, podvm): a job with `actions/checkout@v4` and no `--checkout` lists the workflow directory of the tree and ends `ok`.
 
 
 # T-204: The packages of the image archives and their sources

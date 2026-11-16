@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 320 entries: 24 open, 21 partial, 14 blocked, 261 done.
+`TODO/INDEX.md` holds 320 entries: 23 open, 21 partial, 14 blocked, 262 done.
 
 ## State
 
@@ -36,7 +36,7 @@ The queue, most valuable first:
 
 1. The live reports (GitHub #74, #75, and the issues #116 to #147 of the owner): T-192 (P1: `serve` stops after a unit ends `unit-failed`), T-179 (P1: H0, the seccomp hold and the egress module time out), then T-181, T-183 (P2), T-186 (P3). T-175 waits for its step on the test organization. `v0.1.0-beta.6` is out for LIVE-1 and LIVE-2 (#74, #75) and githome (#151).
 
-2. The onboarding of the local mode: T-205 (P1, partial: a `runner-image.yml` run and a dry run of `release.yml` prove the assets; then the next release), T-203 (P2: a local checkout with no `--checkout`), T-204 (P3: the packages of the image archives).
+2. The onboarding of the local mode: T-205 (P1, partial: a `runner-image.yml` run and a dry run of `release.yml` prove the assets; then the next release), T-204 (P3: the packages of the image archives).
 
 3. The second local-mode user run (#171 to #176): T-224 (M: progress output while a run waits), T-229 (M: the run picks its transport and stores; the fetch relay on the transport of the broker), T-227 (blocked on podvm beta.24, COORD-059 #177).
 4. The second QA report (the open entries of T-232 to T-242): T-232 (P1, blocked on podvm, COORD-060 #178: tar links on the userland rung), T-233 and T-234 (the proxy of the host), T-237 (Dockerfile actions on `--podvm`), T-238 (`--artifacts`), T-239 (`--action-server` on the loopback), T-242 (the copies of the image), then the P3 ones.
