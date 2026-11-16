@@ -143,6 +143,17 @@ grep -q 'nothing was downloaded' "$t/out" || fail "the second run downloaded"
 [ "$(loads)" = 1 ] || fail "the second run loaded the image again"
 ok "a second run downloads nothing"
 
+# 4b. A directory that was there before, writable by the group: the
+# installer removes that write (a driver in it is refused).
+mkdir -p "$t/gw/.local/bin" "$t/gw/.local/share/podrunner/bin"
+chmod 0775 "$t/gw/.local/bin" "$t/gw/.local/share/podrunner/bin"
+mirror=file://$a
+run gw || fail "the install over a directory that the group can write"
+for dir in "$t/gw/.local/bin" "$t/gw/.local/share/podrunner/bin"; do
+    [ -z "$(find "$dir" -maxdepth 0 -perm /022)" ] || fail "$dir stays writable by the group or the others"
+done
+ok "the installer removes the write of the group from its directories"
+
 # 5. A changed binary and a partial download are replaced, not used.
 mirror=file://$a
 echo changed >> "$d/bin/podvm"

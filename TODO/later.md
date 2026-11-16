@@ -4170,7 +4170,7 @@ The job `test` (Node.js 22) of expressjs/express at `43fca52d` passes on `--podv
 
 ## Premise
 
-The log `express-node22-runner-dir/test.4/job.log` of the lane `plain` of run 43743490768. Not reproduced here.
+The log `express-node22-runner-dir/test.4/job.log` of the lane `plain` of run 43743490768.. Not reproduced here: in the sandbox of a session, `actions/setup-node` of the job fails at the TLS of the egress proxy (a certificate that the runner of the job does not take), before the tests.
 
 ## Approach
 
@@ -4208,3 +4208,90 @@ The log of the job `runner` of level2 43750372759, read on 2026-11-15.
 ## Done
 
 2026-11-15: `scripts/agent/check.sh` (the step `runner`); `crates/podrunner-local/tests/runner.rs` (`test -z "$T"`). The three suites pass here with the runner v2.338.2.
+
+# T-261: In a podvm unit, the persist of a temporary file gets EACCES
+
+**Source:** the second run of the user-path gate, user-gate 43758947099 on `b5c9214` (2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+Two jobs that pass on github.com and on `--runner-dir` fail in a podvm unit (podvm `0.2.0-beta.24`, lane `plain`): the tests of pallets/click with tox and uv (`Could not persist temporary file /root/.cache/uv/.tmp...: Permission denied (os error 13)`), and the lint of rq/rq with ruff (`Failed to rename temporary cache file ... failed to persist temporary file: Permission denied`). Both use the Rust crate `tempfile`, whose persist is `rename(2)`, or `renameat2(2)` with `RENAME_NOREPLACE`, or `link(2)`.
+
+## Premise
+
+The step logs `click-py313-podvm/tests.5` and `rq-lint-podvm/lint.0` of the artifact of the lane `plain` of run 43758947099, read on 2026-11-16. Not reproduced here.
+
+## Approach
+
+podvm found the cause (PodUtils/podvm#439): a volume of the unit puts the run on the loader family of the userland rung, whose `LD_PRELOAD` maps the paths of libc calls only; the crate `rustix` of `tempfile` issues `renameat2` as a raw `syscall` instruction, so the kernel sees the path of the guest. podvm binds a volume on the namespace rung in a later release. No variable of the environment turns the raw calls off. Then the corpus rows `click-py313` and `rq-lint` on `podvm` (`scripts/corpus/user-gate.tsv`) go back to `ok`.
+
+## Prove
+
+The rows `click-py313` and `rq-lint` on `podvm` pass in the user-path gate.
+
+## Blocker
+
+2026-11-16: waits for the release of podvm that binds a volume on the namespace rung (PodUtils/podvm#439).
+
+# T-262: In a podvm unit, Node sometimes reads an invalid package.json
+
+**Source:** the second run of the user-path gate, user-gate 43758947099 on `b5c9214` (2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** partial
+
+## Problem
+
+The job `lint` of expressjs/express fails in a podvm unit of the lane `plain` with `Error: Invalid package config .../node_modules/eslint/package.json`, and passes in the lane `inherited-fds` of the same run, on github.com and on `--runner-dir`. Node gives this error when the read of the file gives bytes that are not valid JSON.
+
+## Premise
+
+The step log `express-lint-podvm/lint.0` of the artifact of the lane `plain` of run 43758947099, and the summary of the run, read on 2026-11-16.
+
+## Approach
+
+podvm (PodUtils/podvm#439): the libuv of Node sends file calls through io_uring, which passes no libc call, so the interposer of the loader family does not map their paths (the cause of T-261). podrunner sets `UV_USE_IO_URING=0` in each unit that is not a guest (`crates/podrunner-local/src/exec.rs`), so each file call of libuv goes through libc. The corpus row `express-lint` on `podvm` is `ok`.
+
+## Prove
+
+The row `express-lint` on `podvm` passes in each lane of two runs of the user-path gate.
+
+## Done
+
+2026-11-16: `UV_USE_IO_URING=0` in the environment of a unit that is not a guest; the corpus row `express-lint` on `podvm` back to `ok`. Not reproduced: the proof is two runs of the user-path gate.
+
+# T-263: The installer keeps a directory that the group can write
+
+**Source:** the second run of the user-path gate, user-gate 43758947099 on `b5c9214` (2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`--microvm` refused the podvm of the install (`[unit.microvm] binary: .../.local/share/podrunner/bin is writable by the group or the others`) after the `umask 022` of T-253: the umask applies to a new directory only, and the directory was there before the installer.
+
+## Premise
+
+The summary of run 43758947099 (the rows `hello:microvm` and `corpus:*:microvm`); the code of `check_driver` (`crates/podrunner-slots/src/config.rs`).
+
+## Approach
+
+The installer removes the write of the group and the others from `bin` and `share/podrunner/bin` after `mkdir -p`.
+
+## Prove
+
+`sh scripts/test-install.sh` (the step "the installer removes the write of the group from its directories"); the rows of `microvm` in the next run of the user-path gate.
+
+## Done
+
+2026-11-16: `scripts/install.sh` (`chmod go-w`), `scripts/test-install.sh` (step 4b). The proof of the gate is its next run.

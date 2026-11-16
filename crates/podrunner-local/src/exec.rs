@@ -360,11 +360,17 @@ impl Executor for InUnit {
             }
             None => vec![self.run_sh.clone()],
         };
+        let mut env = hooks.as_ref().map(|h| h.env.clone()).unwrap_or_default();
+        if !self.guest {
+            // podvm maps the paths of libc calls only, and the io_uring of
+            // libuv passes no libc call (T-262, PodUtils/podvm#439).
+            env.insert("UV_USE_IO_URING".into(), "0".into());
+        }
         let spec = podrunner_unit::StartSpec {
             unit: id.clone(),
             image: self.image.clone(),
             argv,
-            env: hooks.as_ref().map(|h| h.env.clone()).unwrap_or_default(),
+            env,
             credential: Credential { files },
             sockets: sockets.clone(),
             mounts,
