@@ -4303,6 +4303,8 @@ State (2026-11-16): user-gate 43816078517 on `12a1300`: `corpus:express-lint:pod
 
 State (2026-11-16): T-309 found a likely cause: a write or a seek of podvm's memo on descriptor 17 after a program closed it (COORD-071, GitHub #197).
 
+State (2026-11-16): podvm `0.2.0-beta.26` fixes the memo on descriptor 17 (T-309), the likely cause. The row `express-lint` on podvm stays `flaky` until a run of the user-path gate on beta.26 shows it.
+
 
 # T-263: The installer keeps a directory that the group can write
 
@@ -5133,6 +5135,8 @@ State (2026-11-16): podvm (PodUtils/podvm#444, COORD-151) passes the machine tie
 
 State (2026-11-16): with podvm `0.2.0-beta.25`, the probe of user-gate 43834454578 says `the emulator was still running, and podvm killed it, before the guest reached the command`, with no console line. COORD-072 (GitHub #198) sends it to podvm.
 
+State (2026-11-16): podvm (PodUtils/podvm#451, COORD-158) booted the machine tier as a user made by `sudo -u` and with an image of 300 MiB; the console of the emulator closed while QEMU ran. `microvm_probe` now removes the cached base archives of the store and probes the runner image and `alpine:3.20`, with podvm `0.2.0-beta.26`, whose message names the seconds and the size of the initrd. Next: send its lines to podvm.
+
 
 # T-292: A project file reads a file out of the project through `.actrc` or a link
 
@@ -5631,7 +5635,7 @@ Fix each one; a finding that the code cannot change goes into the documents.
 **Milestone:** later
 **Priority:** P1
 **Effort:** S
-**Status:** blocked
+**Status:** done
 
 ## Problem
 
@@ -5651,9 +5655,11 @@ Find what makes a node child of npm 6 end with no output in the unit: the enviro
 
 State (2026-11-16): the cause, measured in a unit of podvm `0.2.0-beta.25`: podvm gives the payload descriptor 17 (`ownership.memo`); npm 6 closes it before a script; the first file that node opens then gets 17, and a read from its offset gives 0 bytes (a read at offset 0 gives the data). So ava, xo and tsd read empty files and end with no output and exit 0. Without npm: `bash -c 'exec 17<&-; exec 17</etc/passwd; head -c 20 <&17'` gives 0 bytes; with descriptor 18 it gives the data.
 
-## Blocker
+2026-11-16, the blocker of the time: COORD-071 (GitHub #197) asks podvm not to keep a fixed descriptor 17 for its memo.
 
-2026-11-16: COORD-071 (GitHub #197) asks podvm not to keep a fixed descriptor 17 for its memo.
+## Done
+
+2026-11-16: podvm `0.2.0-beta.26` (PodUtils/podvm#450, COORD-157) checks that descriptor 17 is still its memo (`PODVM_MEMO_ID=DEV:INO`) before each use; podrunner pins it (`images/podvm.toml`, the installer). Proven on a constrained host as a user (`qa2`): the job of `sindresorhus/escape-string-regexp` at `a7f7daba` on podvm gives `3 tests passed`, the 240 lines of tsd and `failure` for both cells, as on `--runner-dir`.
 
 
 # T-310: The live log of a step comes only when the step ends

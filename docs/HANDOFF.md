@@ -8,7 +8,7 @@ is done.
 
 ## Where podrunner stands
 
-- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.25`
+- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.26`
   (`images/podvm.toml`; the podvm kind takes `probe::LOWEST` and later,
   the microvm kind `LOWEST_GUEST` (beta.10), the incus kind
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
@@ -109,8 +109,7 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   agent A gave T-300 to T-308, agent B T-309 to T-316; the lead session
   T-301 and T-317. Done since: T-301, T-302, T-303, T-305, T-306, T-307,
   T-310, T-311, T-312, T-313, T-314. Open P1 and P2 that block the
-  release: T-309 (P1, blocked on COORD-071 #197: podvm's memo on
-  descriptor 17 empties the reads of npm 6's children), T-300 (P1,
+  release (T-309 is done with podvm beta.26): T-300 (P1,
   partial: the loader family is no boundary for a static binary; waits
   for podvm's binds of `run -d`, PodUtils/podvm#442), T-317 (blocked on
   COORD-070 #196), T-304 (not reproduced), T-315 and T-260 (partial).
@@ -119,7 +118,7 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   from its release, the documents, `env.sh` with the proxy and CA of the
   host); the users `qa1` and `qa2` with no root. The reports are in the
   entries (T-308 and T-316 hold the P3s).
-- podvm `v0.2.0-beta.25` is pinned (`ede07ea`). On this host (user
+- podvm `v0.2.0-beta.26` is pinned (beta.25 at `ede07ea`). On this host (user
   namespaces) `run -d` of a unit takes the namespace rung, where the job
   runs as root of a one-uid namespace (T-317; podrunner sets
   `RUNNER_ALLOW_RUNASROOT`, `TAR_OPTIONS`, `npm_config_unsafe_perm`). In
@@ -152,7 +151,7 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   the runner under `[unit.podvm] mem` (T-162).
 - T-162 (partial, G-12): `[unit.podvm] mem` and `pids` are rlimits;
   `[unit.incus] mem`, `cpus` and `pids` are the keys of the instance
-  (podvm `0.2.0-beta.20` or later, pinned `0.2.0-beta.25`). Next: a
+  (podvm `0.2.0-beta.20` or later, pinned `0.2.0-beta.26`). Next: a
   payload past `pids` and one past `mem` on the podvm and incus kinds.
   `cpus` on the podvm kind waits for the cgroup half
   (PodUtils/podvm@T-1747); COORD-050 (#110) stays open for it.

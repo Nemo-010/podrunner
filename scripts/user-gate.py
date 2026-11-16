@@ -404,11 +404,19 @@ class Lane:
         the unit does it: the last lines name the cause of an early end
         (PodUtils/podvm#442)."""
         podvm = self.data / "bin" / "podvm"
-        argv = [podvm, "run", "--verbose", "--rm", "--podvm-tier=machine", "--podvm-mem", "4G", self.image, "true"]
-        env = self.env(self.home, PODVM_STORE=str(self.data / "images"))
-        rc, _ = self.run(argv, env, self.work, "microvm-probe", timeout=600)
-        err = (self.out / "logs" / "microvm-probe.err").read_text(errors="replace").splitlines()
-        return f"exit {rc}: " + " / ".join(line.strip() for line in err[-4:])
+        store = self.data / "images"
+        # podvm asked for a run with no cached base archive, and one of
+        # alpine (PodUtils/podvm#451).
+        for base in (store / "machine").glob("base-*.cpio"):
+            base.unlink(missing_ok=True)
+        env = self.env(self.home, PODVM_STORE=str(store))
+        out = []
+        for image, log in ((self.image, "microvm-probe"), ("alpine:3.20", "microvm-probe-alpine")):
+            argv = [podvm, "run", "--verbose", "--rm", "--podvm-tier=machine", "--podvm-mem", "4G", image, "true"]
+            rc, _ = self.run(argv, env, self.work, log, timeout=600)
+            err = (self.out / "logs" / f"{log}.err").read_text(errors="replace").splitlines()
+            out.append(f"{image}: exit {rc}: " + " / ".join(line.strip() for line in err[-4:]))
+        return " | ".join(out)
 
     def clone(self, repo: str, sha: str) -> pathlib.Path:
         d = self.work / "src" / f"{repo.replace('/', '_')}-{sha[:12]}"
