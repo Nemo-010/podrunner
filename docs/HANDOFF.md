@@ -8,7 +8,7 @@ is done.
 
 ## Where podrunner stands
 
-- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.24`
+- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.25`
   (`images/podvm.toml`; the podvm kind takes `probe::LOWEST` and later,
   the microvm kind `LOWEST_GUEST` (beta.10), the incus kind
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
@@ -122,11 +122,11 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
 - #194 is closed. Dispatch the gate, level2 and the user-path gate
   (`-f version=0.1.0-beta.7 -f images_run=43789352527`) on each new
   `main` with `actions_run_trigger`.
-- Wait on podvm: T-261 and T-262 (a volume moves a unit to the loader
-  family of the userland rung; the fix is on podvm `main`, `1298b66a`,
-  PodUtils/podvm#439, #442): then bump podvm, and the rows of uv, ruff and
-  Node 26 on podvm go to `ok`. T-291 (`--microvm` as a user with no root):
-  COORD-069 (#195) sent podvm the QEMU line; wait for its answer.
+- podvm `v0.2.0-beta.25` is pinned (T-261, T-291): the rows of uv and ruff
+  on podvm are `ok`, the row of Node 26 on podvm is `flaky` (T-262). Run
+  `runner-image.yml`, then the user-path gate with that run as
+  `images_run` (`images/` changed). Send the message of the probe of
+  `hello:microvm` to podvm in a new COORD issue (PodUtils/podvm#444).
 - Then T-264 (podcrates `v0.59.0`: the issue sync, pod-lab, the chroot
   row of T-283), after the release.
 - The kit of the QA on the old machine: `/srv/qa-kit` (podrunner, podvm
@@ -147,7 +147,7 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   the runner under `[unit.podvm] mem` (T-162).
 - T-162 (partial, G-12): `[unit.podvm] mem` and `pids` are rlimits;
   `[unit.incus] mem`, `cpus` and `pids` are the keys of the instance
-  (podvm `0.2.0-beta.20` or later, pinned `0.2.0-beta.24`). Next: a
+  (podvm `0.2.0-beta.20` or later, pinned `0.2.0-beta.25`). Next: a
   payload past `pids` and one past `mem` on the podvm and incus kinds.
   `cpus` on the podvm kind waits for the cgroup half
   (PodUtils/podvm@T-1747); COORD-050 (#110) stays open for it.

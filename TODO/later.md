@@ -4257,6 +4257,9 @@ The rows `click-py313` and `rq-lint` on `podvm` pass in the user-path gate.
 
 2026-11-16: waits for the release of podvm that binds a volume on the namespace rung (PodUtils/podvm#439; on podvm `main` at `1298b66a`, PodUtils/podvm#442).
 
+State (2026-11-16): podvm `v0.2.0-beta.25` (PodUtils/podvm#439, PodUtils/podvm@T-1920) binds each volume of a foreground run of a user with no root and keeps the run on the namespace rung. podrunner pins it (`images/podvm.toml`, the installer); the rows `click-py313` and `rq-lint` on podvm of the corpus are `ok`. The proof is the next run of `runner-image.yml` and of the user-path gate on that pin.
+
+
 # T-262: In a podvm unit, Node sometimes reads an invalid package.json
 
 **Source:** the second run of the user-path gate, user-gate 43758947099 on `b5c9214` (2026-11-16)
@@ -5115,6 +5118,9 @@ podvm names what the machine tier needs from a user with no root (COORD-068, Git
 ## Blocker
 
 2026-11-16: podvm (PodUtils/podvm#442) did not reproduce it as uid 1000 under TCG; its guess, a guest memory of 512 MiB, does not hold (podrunner gives `--podvm-mem 4G`). The gate now runs `podvm run --verbose` of the image on the machine tier when `hello:microvm` fails (`scripts/user-gate.py`, `microvm_probe`), for the last line of the emulator; podvm `main` prints that line with no `--verbose` in its next release. Waits for that line. The probe of user-gate 43795123788 gave the line: "podvm run: machine tier: a guest under KVM ..., base archive from the cache"; "the guest ended before it gave the exit code of the payload; qemu: qemu-system-x86_64: -chardev socket,id=podvmerr,path=/tmp/podvm-guest-ID.err,server=on,wait=on: info: QEMU waiting for connection on: disconnected:unix:...". The probe fails with no podrunner in it (`podvm run --rm --podvm-tier=machine IMAGE true`). COORD-069 (GitHub #195, 2026-11-16) sends podvm the line and the environment of the lab user. Waits for its answer.
+
+State (2026-11-16): podvm (PodUtils/podvm#444, COORD-151) passes the machine tier as a new user made by `sudo -u` on a runner with KVM, so a user with no root is not the cause. podvm `v0.2.0-beta.25` names how the emulator ended (its exit code or signal, whether the guest reached the command, the last console lines). podrunner pins it; the probe of the next user-path gate gives that message. Next: send it to podvm in a new COORD issue, with the size of the root of the image (`podvm image inspect`).
+
 
 # T-292: A project file reads a file out of the project through `.actrc` or a link
 
