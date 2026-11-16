@@ -38,6 +38,24 @@ installer puts it in `~/.local/share/podrunner`), the work directory is
 `~/podrunner-work/2.338.2-1a2b3c4d`). Some tools refuse a path with such a
 name: the `send` module of Node gives 404 for it (T-255).
 
+## The runner images
+
+The runner images are Ubuntu 24.04 with the official runner, not the
+image of `ubuntu-latest`. A job that needs a tool that they do not have
+installs it in a step (`sudo apt-get install -y TOOL`), or runs on
+`--runner-dir` with the tools of the host (T-315).
+
+| Image | Tools |
+| --- | --- |
+| base (`runner-ARCH.tar`) | bash, curl, git, jq, sudo (no password), tar, gzip, unzip, zstd, iptables |
+| larger (`runner-full-ARCH.tar`, `--full`) | the base, and `images/runner/full.txt`: build-essential, cmake, pkg-config, libssl-dev, python3 with pip and venv, nodejs, npm, zip, xz-utils, bzip2, rsync, openssh-client, wget, file, patch |
+
+Neither image has Docker, Rust (`cargo`, `rustup`), Go, Java, .NET or
+yarn: the `setup-*` actions install a toolchain into the tool cache of
+the job. In a podvm unit on the namespace rung of podvm (a user with no
+root on a host with user namespaces), a job runs as root of a user
+namespace of one uid (T-317).
+
 ## The comparison
 
 `podrunner run FILE` runs the jobs of one workflow file with the official

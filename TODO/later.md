@@ -5787,7 +5787,7 @@ Read a relative path of `trusted` from the directory of the file; expand `~/`; n
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -5804,6 +5804,9 @@ Add `sudo` to the images (a rule for the user of the unit), or document that a s
 ## Prove
 
 `python3 -I scripts/user-gate.py`: a job that runs `sudo true` passes on podvm, or the documents list the gap.
+
+State (2026-11-16): `images/runner/Dockerfile` installs `sudo` with a rule of no password for `runner`, and sets the sandbox user of apt to root (its `_apt` has no uid in a user namespace of one uid). `docs/local-mode.md`, "The runner images", lists the tools of each image and what neither has. The check `confine:podvm` of the user-path gate runs `sudo true`. The proof is the next `runner-image.yml` and user-path gate.
+
 
 # T-316: The P3 findings of the third QA, agent B
 

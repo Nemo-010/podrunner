@@ -384,6 +384,8 @@ class Lane:
             "      - uses: actions/checkout@v4\n"
             "      - uses: actions/setup-go@v5\n        with:\n          go-version: '1.20'\n          cache: false\n"
             "      - run: echo 'module esc' > go.mod && GOCACHE=/tmp/gocache go build -o /tmp/esc . && /tmp/esc\n"
+            # The images have sudo with no password, as ubuntu-latest (T-315).
+            "      - run: sudo true\n"
         )
         git = ["git", "-C", str(src), "-c", "user.name=gate", "-c", "user.email=gate@example.invalid"]
         subprocess.run(["git", "init", "-q", str(src)], check=True)

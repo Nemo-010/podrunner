@@ -21,10 +21,14 @@ ARG TARGETARCH
 # images/runner/full.txt, the common tools of `ubuntu-latest`.
 ARG EXTRA_PACKAGES=""
 RUN apt-get update \
- && apt-get install -y --no-install-recommends bash ca-certificates curl git iptables jq libicu74 libssl3t64 tar gzip unzip zstd $EXTRA_PACKAGES \
+ && apt-get install -y --no-install-recommends bash ca-certificates curl git iptables jq libicu74 libssl3t64 sudo tar gzip unzip zstd $EXTRA_PACKAGES \
  && rm -rf /var/lib/apt/lists/*
 
-RUN useradd --create-home --uid 1001 runner
+# `sudo` with no password, as on ubuntu-latest (T-315). apt runs as root:
+# its sandbox user `_apt` has no uid in a user namespace of one uid.
+RUN useradd --create-home --uid 1001 runner \
+ && echo 'runner ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/runner && chmod 0440 /etc/sudoers.d/runner \
+ && echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/10podrunner-sandbox
 WORKDIR /home/runner
 
 # The tarball of the release, checked against the digest of runner.toml.
