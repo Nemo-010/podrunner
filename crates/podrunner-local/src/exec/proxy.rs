@@ -42,7 +42,11 @@ pub(crate) fn unit_env(dir: &str, vars: impl Iterator<Item = (String, String)>) 
         };
         env.push((k.to_string(), format!("{dir}/{name}")));
     }
-    if env.iter().any(|(k, _)| k.to_ascii_lowercase().ends_with("_proxy")) {
+    let view: Vec<(&str, String)> = env.iter().map(|(k, v)| (k.as_str(), v.clone())).collect();
+    if let Some((k, v)) = super::host::node_proxy(&view) {
+        env.push((k.to_string(), v));
+    }
+    if env.iter().any(|(k, _)| k.to_ascii_lowercase().ends_with("_proxy") && k != "NODE_USE_ENV_PROXY") {
         let mut no = vec!["127.0.0.1".to_string(), "localhost".to_string(), "::1".to_string()];
         for k in ["NO_PROXY", "no_proxy"] {
             let more = vars.get(k).into_iter().flat_map(|v| v.split(',')).map(str::trim);
@@ -80,6 +84,7 @@ mod tests {
         assert_eq!(get("NODE_EXTRA_CA_CERTS"), Some("/podrunner/.runner/podrunner-ca-0.crt"));
         assert_eq!(get("PATH"), None, "the unit keeps the PATH of its image");
         assert_eq!(get("NO_PROXY"), Some("127.0.0.1,localhost,::1,intra.example"));
+        assert_eq!(get("NODE_USE_ENV_PROXY"), Some("1"), "fetch of Node uses the proxy (T-299)");
         assert_eq!(files.len(), 1, "one file for one path");
         let (env, files) = unit_env("/d", std::iter::empty()).unwrap();
         assert!(env.is_empty() && files.is_empty(), "no proxy, nothing");

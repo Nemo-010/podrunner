@@ -202,6 +202,10 @@ pub fn job_message(base: &str, request: u64, job: &Job) -> Value {
             // The runner gives ACTIONS_CACHE_SERVICE_V2 to the steps: the
             // cache client calls the CacheService of this broker (T-120).
             "actions_uses_cache_service_v2": { "value": "true" },
+            // GitHub runs a `node20` action on Node 24 (the flag of the
+            // runner); ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION opts out.
+            // Node 20 ignores NODE_USE_ENV_PROXY (T-299).
+            "actions.runner.usenode24bydefault": { "value": "true" },
             "system.github.token": { "value": job.token.as_deref().unwrap_or(TOKEN), "isSecret": true },
             // The runner does not derive `secrets.GITHUB_TOKEN` from the
             // token above: it is a secret variable of its own.

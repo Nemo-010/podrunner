@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**296 entries: 24 open, 22 partial, 15 blocked, 235 done.**
+**296 entries: 23 open, 23 partial, 15 blocked, 235 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 16 | 9 | 9 | 104 | 138 |
+| P2 | 15 | 10 | 9 | 104 | 138 |
 | P3 | 7 | 4 | 4 | 80 | 95 |
-| **All** | 24 | 22 | 15 | 235 | 296 |
+| **All** | 23 | 23 | 15 | 235 | 296 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -343,4 +343,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-296](later.md) | P2 | S | later | defect | done | The lines of the results come at the end, and a SIGHUP loses them |
 | [T-297](later.md) | P2 | S | later | defect | done | `--microvm` does not check its image and `/dev/kvm` before the run |
 | [T-298](later.md) | P3 | M | later | defect | open | The P3 findings of the second QA, agent B |
-| [T-299](later.md) | P2 | S | later | defect | open | In the lane proxy-only, the lint of rq on `--runner-dir` fails |
+| [T-299](later.md) | P2 | S | later | defect | partial | In the lane proxy-only, the lint of rq on `--runner-dir` fails |

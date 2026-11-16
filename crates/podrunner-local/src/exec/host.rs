@@ -304,7 +304,18 @@ pub const PASSED: &[&str] = &[
     "https_proxy",
     "HTTP_PROXY",
     "http_proxy",
+    "NODE_USE_ENV_PROXY",
 ];
+
+/// The variable that makes the `fetch` of Node use the proxy variables
+/// (Node 22.21 and 24.5 or later). Actions that call the API of GitHub by
+/// `fetch` connect direct without it, and a proxy-only host refuses them
+/// (T-299). The value of the user has priority.
+pub(crate) fn node_proxy(vars: &[(&str, String)]) -> Option<(&'static str, String)> {
+    let proxy = vars.iter().any(|(k, _)| k.to_ascii_lowercase().ends_with("_proxy") && *k != "NODE_USE_ENV_PROXY");
+    let set = vars.iter().any(|(k, _)| *k == "NODE_USE_ENV_PROXY");
+    (proxy && !set).then(|| ("NODE_USE_ENV_PROXY", "1".to_string()))
+}
 
 /// The environment of the runner of one job: the variables of `PASSED`
 /// from `vars`, `HOME` and `NO_PROXY`.
@@ -315,6 +326,7 @@ pub(crate) fn host_env(
     let vars: std::collections::BTreeMap<String, String> = vars.collect();
     let mut out: Vec<(&'static str, String)> =
         PASSED.iter().filter_map(|k| vars.get(*k).filter(|v| !v.is_empty()).map(|v| (*k, v.clone()))).collect();
+    out.extend(node_proxy(&out));
     out.push(("HOME", home.display().to_string()));
     let mut no_proxy = vec!["127.0.0.1".to_string(), "localhost".to_string(), "::1".to_string()];
     for k in ["NO_PROXY", "no_proxy"] {
@@ -385,5 +397,19 @@ mod env_tests {
         assert_eq!(get("HOME"), Some("/r/_work/_home"));
         assert_eq!(get("NO_PROXY"), Some("127.0.0.1,localhost,::1,intra.example,10.0.0.0/8"));
         assert_eq!(get("AWS_SECRET_ACCESS_KEY"), None, "only the listed variables pass");
+        assert_eq!(get("NODE_USE_ENV_PROXY"), Some("1"), "fetch of Node uses the proxy (T-299)");
+    }
+
+    /// With no proxy, Node gets no proxy variable; a value of the user stays.
+    #[test]
+    fn node_takes_the_proxy_only_with_a_proxy() {
+        let home = std::path::Path::new("/h");
+        let env = host_env(home, [("PATH".to_string(), "/bin".to_string())].into_iter());
+        assert!(env.iter().all(|(k, _)| *k != "NODE_USE_ENV_PROXY"));
+        let vars =
+            [("https_proxy", "http://p:1"), ("NODE_USE_ENV_PROXY", "0")].map(|(k, v)| (k.to_string(), v.to_string()));
+        let env = host_env(home, vars.into_iter());
+        let node: Vec<_> = env.iter().filter(|(k, _)| *k == "NODE_USE_ENV_PROXY").collect();
+        assert_eq!(node, [&("NODE_USE_ENV_PROXY", "0".to_string())]);
     }
 }

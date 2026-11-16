@@ -119,11 +119,12 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   `--runner-dir` times out in CI (T-255; it passes on the sandbox);
   express-lint on podvm passed in one lane (T-262, flaky until podvm
   releases its fix); rq-lint on `--runner-dir` in the new lane
-  `proxy-only` (T-299). The lanes plain, small-tmp, userns-off and
+  `proxy-only` (T-299: the `fetch` of a Node action ignored the proxy;
+  fixed, the next gate run proves it). The lanes plain, small-tmp, userns-off and
   inherited-fds and bind-denied pass each other row.
-- #194 (the request of those runs) is open: close it. Then ask a new
-  `[gh action] requested` issue (a new issue each time, the owner's rule)
-  for the gate, level2 and the user-path gate on the new `main`.
+- #194 is closed. Dispatch the gate, level2 and the user-path gate
+  (`-f version=0.1.0-beta.7 -f images_run=43789352527`) on each new
+  `main` with `actions_run_trigger`.
 - Wait on podvm: T-261 and T-262 (a volume moves a unit to the loader
   family of the userland rung; the fix is on podvm `main`, `1298b66a`,
   PodUtils/podvm#439, #442): then bump podvm, and the rows of uv, ruff and
@@ -166,10 +167,11 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   and the runner-image run 43704601731 of its tag; the App needs
   "Actions: read and write" (Q7). Read their comments;
   fix each defect they find.
-- The account of this session starts no GitHub Actions run: neither a
-  push nor a dispatch. Ask the local agent with an issue `[gh action]
-  requested` (`docs/maintenance.md`, "A run of a workflow"). #150 ran the
-  runs of `88cc4d7` and released `v0.1.0-beta.6`.
+- A cloud session can dispatch a workflow with the MCP tool
+  `actions_run_trigger` (gate 43814582586, level2 43814590789 and
+  user-gate 43814594849 on `9a27d59`). When a dispatch is refused, ask
+  the local agent with an issue `[gh action] requested`
+  (`docs/maintenance.md`, "A run of a workflow").
 - podvm answers COORD issues `(to podvm)` in its repository with
   `(to podrunner)`. podssh is on break.
 - The x86_64 job of `runner-image.yml` takes up to 120 minutes; it has

@@ -5306,7 +5306,7 @@ Fix each one; the report of the QA lists the commands.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -5314,7 +5314,7 @@ In the lane `proxy-only` (mitmproxy on the loopback, the lab user reaches the ne
 
 ## Premise
 
-The summary of run 43795123788. Not read yet: the log `logs/rq-lint-runner-dir` in the artifact `lane-proxy-only`.
+The log `logs/rq-lint-runner-dir` of the artifact `lane-proxy-only` of run 43795123788: the step `astral-sh/ruff-action@v3` (`using: node20`) fails with "connect ECONNREFUSED 20.29.134.17:443". The action asks the API of GitHub for the ruff version by `fetch`, and the `fetch` of Node ignores `HTTPS_PROXY`. Node 22.21 and 24.5 or later use the proxy variables with `NODE_USE_ENV_PROXY=1`; Node 20 does not. The runner v2.338.2 runs a `node20` action on Node 20.20.2 unless the job message has the flag `actions.runner.usenode24bydefault` (GitHub sends it); the fake broker did not send it. Reproduced on the sandbox with the action at `4919ec5` and Node 22.23: with the variable, the call goes through the proxy; without it, the call goes direct.
 
 ## Approach
 
@@ -5323,3 +5323,5 @@ Read the log of the step that failed (ruff, or the setup of Python or of uv thro
 ## Prove
 
 `python3 -I scripts/user-gate.py`: the row `rq-lint` on `runner-dir` passes in the lane `proxy-only`.
+
+State (2026-11-16): the fake broker sends `actions.runner.usenode24bydefault` (`message.rs`), so a `node20` action runs on Node 24 as on GitHub. A job on a runner directory and a unit with the proxy of the host get `NODE_USE_ENV_PROXY=1` when a proxy variable is set and the user did not set it (`exec/host.rs`, `node_proxy`; `exec/proxy.rs`). Unit tests: `cargo test -p podrunner-local --lib`. The proof is the next run of the user-path gate.
