@@ -5803,7 +5803,7 @@ Fix each one; a finding that the code cannot change goes into the documents.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** blocked
 
 ## Problem
 
@@ -5820,3 +5820,7 @@ Ask podvm (a COORD issue) to map the uid of the caller to the user of the image 
 ## Prove
 
 `cargo test -p podrunner-podvm`; a job on podvm runs as `runner`, and `hostname` gives `podrunner-u-1`.
+
+## Blocker
+
+2026-11-16: COORD-070 (GitHub #196) asks podvm to map the uid of the caller to the user of the image on the namespace rung, and for a UTS namespace there.

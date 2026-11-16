@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 37 open, 22 partial, 15 blocked, 240 done.**
+**314 entries: 36 open, 22 partial, 16 blocked, 240 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 2 | 10 | 2 | 53 | 67 |
-| P2 | 26 | 8 | 9 | 107 | 150 |
+| P2 | 25 | 8 | 10 | 107 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 37 | 22 | 15 | 240 | 314 |
+| **All** | 36 | 22 | 16 | 240 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -361,4 +361,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-314](later.md) | P2 | S | later | defect | open | A relative trusted path is read from the current directory |
 | [T-315](later.md) | P2 | S | later | defect | open | The runner images have no sudo and lack tools of ubuntu-latest |
 | [T-316](later.md) | P3 | M | later | defect | open | The P3 findings of the third QA, agent B |
-| [T-317](later.md) | P2 | S | later | defect | open | On the namespace rung of podvm the job runs as root of a one-uid namespace |
+| [T-317](later.md) | P2 | S | later | defect | blocked | On the namespace rung of podvm the job runs as root of a one-uid namespace |
