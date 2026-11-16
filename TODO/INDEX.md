@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 24 open, 24 partial, 15 blocked, 251 done.**
+**314 entries: 24 open, 24 partial, 14 blocked, 252 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 10 | 2 | 54 | 67 |
-| P2 | 14 | 10 | 9 | 117 | 150 |
+| P2 | 14 | 10 | 8 | 118 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 24 | 24 | 15 | 251 | 314 |
+| **All** | 24 | 24 | 14 | 252 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -306,7 +306,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-256](later.md) | P1 | S | later | defect | done | The checks of a session do not run the suites that need the official runner |
 | [T-260](later.md) | P2 | S | later | defect | partial | An expression in the image of a service or a job container fails the job |
 | [T-261](later.md) | P2 | S | later | defect | blocked | In a podvm unit, the persist of a temporary file gets EACCES |
-| [T-262](later.md) | P2 | S | later | defect | blocked | In a podvm unit, Node sometimes reads an invalid package.json |
+| [T-262](later.md) | P2 | S | later | defect | done | In a podvm unit, Node sometimes reads an invalid package.json |
 | [T-263](later.md) | P1 | S | later | defect | done | The installer keeps a directory that the group can write |
 | [T-264](later.md) | P2 | M | later | chore | open | Take podcrates `v0.55.0`: the sync of the issues and pod-lab |
 | [T-265](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` does not get the PATH, the proxy and the CA of the user |

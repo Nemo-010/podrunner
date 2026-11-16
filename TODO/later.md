@@ -4275,7 +4275,7 @@ State (2026-11-16): podvm `v0.2.0-beta.25` (PodUtils/podvm#439, PodUtils/podvm@T
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** blocked
+**Status:** done
 
 ## Problem
 
@@ -4295,15 +4295,18 @@ State: 2026-11-16: `UV_USE_IO_URING=0` in the environment of a unit that is not 
 
 The row `express-lint` on `podvm` passes in each lane of two runs of the user-path gate.
 
-## Blocker
 
-2026-11-16: user-gate 43787604846 on `12cb64e` (with `UV_USE_IO_URING=0`): the job fails in three lanes of four, at the first read of a `package.json` (of npm in the tool cache) by the module loader of Node 26; `UV_USE_IO_URING=0` is not the fix. The row is an xfail again; waits for podvm (COORD-068, GitHub #193). podvm (PodUtils/podvm#442): the cause is the loader family of #439; the fix (a volume as a bind mount on the namespace rung for a foreground `run`) is on podvm `main` (`1298b66a`) and comes in its next release; no variable closes it on beta.24. user-gate 43795123788 on `a4b41b9`: the row passed in the lane `inherited-fds` and failed in the other four, so an xfail of it can fail the gate as "passes now"; until podvm releases the fix, a run of the gate can need a second attempt.
+The blocker of the time: 2026-11-16: user-gate 43787604846 on `12cb64e` (with `UV_USE_IO_URING=0`): the job fails in three lanes of four, at the first read of a `package.json` (of npm in the tool cache) by the module loader of Node 26; `UV_USE_IO_URING=0` is not the fix. The row is an xfail again; waits for podvm (COORD-068, GitHub #193). podvm (PodUtils/podvm#442): the cause is the loader family of #439; the fix (a volume as a bind mount on the namespace rung for a foreground `run`) is on podvm `main` (`1298b66a`) and comes in its next release; no variable closes it on beta.24. user-gate 43795123788 on `a4b41b9`: the row passed in the lane `inherited-fds` and failed in the other four, so an xfail of it can fail the gate as "passes now"; until podvm releases the fix, a run of the gate can need a second attempt.
 
 State (2026-11-16): user-gate 43816078517 on `12a1300`: `corpus:express-lint:podvm` passed in the lanes inherited-fds and proxy-only and failed in plain, small-tmp and userns-off. The row is `flaky` now (`scripts/user-gate.py`: a flaky row takes either result, and its note names the entry); it goes to `ok` with the podvm release that carries the fix.
 
 State (2026-11-16): T-309 found a likely cause: a write or a seek of podvm's memo on descriptor 17 after a program closed it (COORD-071, GitHub #197).
 
 State (2026-11-16): podvm `0.2.0-beta.26` fixes the memo on descriptor 17 (T-309), the likely cause. The row `express-lint` on podvm stays `flaky` until a run of the user-path gate on beta.26 shows it.
+
+## Done
+
+2026-11-16: the cause was the memo of podvm on descriptor 17 (T-309), fixed in podvm `0.2.0-beta.26`. Proven in CI: user-gate 43870085390 on `43dce45` (podvm `0.2.0-beta.27`): `corpus:express-lint:podvm` passes in each of the five lanes; the row is `ok` again.
 
 
 # T-263: The installer keeps a directory that the group can write
@@ -5136,6 +5139,8 @@ State (2026-11-16): podvm (PodUtils/podvm#444, COORD-151) passes the machine tie
 State (2026-11-16): with podvm `0.2.0-beta.25`, the probe of user-gate 43834454578 says `the emulator was still running, and podvm killed it, before the guest reached the command`, with no console line. COORD-072 (GitHub #198) sends it to podvm.
 
 State (2026-11-16): podvm (PodUtils/podvm#451, COORD-158) booted the machine tier as a user made by `sudo -u` and with an image of 300 MiB; the console of the emulator closed while QEMU ran. `microvm_probe` now removes the cached base archives of the store and probes the runner image and `alpine:3.20`, with podvm `0.2.0-beta.26`, whose message names the seconds and the size of the initrd. Next: send its lines to podvm.
+
+State (2026-11-16, user-gate 43870085390, podvm `0.2.0-beta.27`): with no cached base, `alpine:3.20` passes the machine tier as the lab user; the runner image fails: `the console of the emulator closed 2.6 s after the start, with an initrd of 1348 MiB`. COORD-073 (GitHub #199) sends it to podvm.
 
 
 # T-292: A project file reads a file out of the project through `.actrc` or a link

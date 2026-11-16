@@ -124,13 +124,13 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   `runner`). In the CI lanes the units ran on the loader family (Go finds
   no GOROOT; uv and ruff get EACCES): the rows of uv and ruff on podvm are
   `xfail` (T-261), until podvm binds the volumes of `run -d`.
-- The last runs: user-gate 43845950155 green on `0954146` (podvm
-  beta.25, the images of runner-image 43839111223 of `7d62176`): each row
-  passes or is a known xfail in the six lanes; `confine:podvm` passes in
-  each. podvm beta.27 is pinned since: when the runner-image run of
-  that commit is green, dispatch user-gate with `-f version=0.1.0-beta.7
-  -f images_run=RUN_ID`. runner-image, level2
-  and the gate of the release commit run again before a release.
+- The last runs, on `43dce45` (podvm beta.27): gate 43862847171,
+  level2 43862903999, runner-musl 43862847094, runner-image 43862847276
+  and user-gate 43870085390 green. In the user-path gate each row passes
+  or is a known xfail; `express-lint` on podvm passes in each lane now
+  (T-262 done). Before a release: dispatch them again on its commit
+  (user-gate with `-f images_run=` the runner-image run of that commit,
+  or 43862847276 while `images/` stays the same).
 - Each push that changes the crates starts `runner-image.yml` (about 2
   hours, no concurrency group): cancel the runs of older commits with
   `actions_run_trigger` (`cancel_workflow_run`) when a newer one covers
