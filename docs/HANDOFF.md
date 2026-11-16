@@ -107,7 +107,7 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   `docs/releases/v0.1.0-beta.7.md` list them, with the level of proof.
 - Round 3 ran (2026-11-16) on the release files of `12a1300` (T-246):
   agent A gave T-300 to T-308, agent B T-309 to T-316; the lead session
-  T-301 and T-317. Done since: T-301, T-302, T-304, T-309, T-315, T-317, T-303, T-305, T-306, T-307,
+  T-301 and T-317. Done since: T-260, T-262, T-291, T-301, T-302, T-304, T-309, T-315, T-317, T-303, T-305, T-306, T-307,
   T-310, T-311, T-312, T-313, T-314. Open P1 and P2 that block the
   release (T-309 is done with podvm beta.26): T-300 (P1,
   partial: the loader family is no boundary for a static binary; waits

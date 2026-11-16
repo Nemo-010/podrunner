@@ -60,9 +60,7 @@ jobs:
 
 # The executors whose hello fails for a known cause with an entry: an xfail,
 # and a pass fails the gate until the entry goes.
-HELLO_XFAIL = {
-    "microvm": "as a user with no root, the machine tier ends before the exit code of the payload (T-291, GitHub #193)",
-}
+HELLO_XFAIL: dict[str, str] = {}
 
 class GateError(Exception):
     pass

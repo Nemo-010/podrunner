@@ -5116,7 +5116,7 @@ F3: on `--runner-dir`, the refusal of containers before the check of a digest, a
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** blocked
+**Status:** done
 
 ## Problem
 
@@ -5134,9 +5134,8 @@ podvm names what the machine tier needs from a user with no root (COORD-068, Git
 
 `python3 -I scripts/user-gate.py`: `hello:microvm` passes in the lane `plain` of the gate.
 
-## Blocker
 
-2026-11-16: podvm (PodUtils/podvm#442) did not reproduce it as uid 1000 under TCG; its guess, a guest memory of 512 MiB, does not hold (podrunner gives `--podvm-mem 4G`). The gate now runs `podvm run --verbose` of the image on the machine tier when `hello:microvm` fails (`scripts/user-gate.py`, `microvm_probe`), for the last line of the emulator; podvm `main` prints that line with no `--verbose` in its next release. Waits for that line. The probe of user-gate 43795123788 gave the line: "podvm run: machine tier: a guest under KVM ..., base archive from the cache"; "the guest ended before it gave the exit code of the payload; qemu: qemu-system-x86_64: -chardev socket,id=podvmerr,path=/tmp/podvm-guest-ID.err,server=on,wait=on: info: QEMU waiting for connection on: disconnected:unix:...". The probe fails with no podrunner in it (`podvm run --rm --podvm-tier=machine IMAGE true`). COORD-069 (GitHub #195, 2026-11-16) sends podvm the line and the environment of the lab user. Waits for its answer.
+The blocker of the time: 2026-11-16: podvm (PodUtils/podvm#442) did not reproduce it as uid 1000 under TCG; its guess, a guest memory of 512 MiB, does not hold (podrunner gives `--podvm-mem 4G`). The gate now runs `podvm run --verbose` of the image on the machine tier when `hello:microvm` fails (`scripts/user-gate.py`, `microvm_probe`), for the last line of the emulator; podvm `main` prints that line with no `--verbose` in its next release. Waits for that line. The probe of user-gate 43795123788 gave the line: "podvm run: machine tier: a guest under KVM ..., base archive from the cache"; "the guest ended before it gave the exit code of the payload; qemu: qemu-system-x86_64: -chardev socket,id=podvmerr,path=/tmp/podvm-guest-ID.err,server=on,wait=on: info: QEMU waiting for connection on: disconnected:unix:...". The probe fails with no podrunner in it (`podvm run --rm --podvm-tier=machine IMAGE true`). COORD-069 (GitHub #195, 2026-11-16) sends podvm the line and the environment of the lab user. Waits for its answer.
 
 State (2026-11-16): podvm (PodUtils/podvm#444, COORD-151) passes the machine tier as a new user made by `sudo -u` on a runner with KVM, so a user with no root is not the cause. podvm `v0.2.0-beta.25` names how the emulator ended (its exit code or signal, whether the guest reached the command, the last console lines). podrunner pins it; the probe of the next user-path gate gives that message. Next: send it to podvm in a new COORD issue, with the size of the root of the image (`podvm image inspect`).
 
@@ -5147,6 +5146,10 @@ State (2026-11-16): podvm (PodUtils/podvm#451, COORD-158) booted the machine tie
 State (2026-11-16, user-gate 43870085390, podvm `0.2.0-beta.27`): with no cached base, `alpine:3.20` passes the machine tier as the lab user; the runner image fails: `the console of the emulator closed 2.6 s after the start, with an initrd of 1348 MiB`. COORD-073 (GitHub #199) sends it to podvm.
 
 State (2026-11-16): podvm (PodUtils/podvm#454, COORD-161) names the cause: the initrd of the runner image (1348 MiB) needs a guest of more than 4 GiB. The microvm kind and `--microvm` now give each guest 8 GiB by default (`[unit.microvm] mem`), and the probe of the gate uses 8G. The proof is the next user-path gate: `hello:microvm` then passes, and the gate asks to remove it from `HELLO_XFAIL`.
+
+## Done
+
+2026-11-16, `a98857a`: the cause was the memory of the guest: the initrd of the runner image (1348 MiB) needs more than 4 GiB (PodUtils/podvm#454); each guest of the microvm kind and of `--microvm` gets 8 GiB by default. Proven in CI: user-gate 43877528216 on `a98857a`, lane `plain` (a user with no root, KVM): `hello:microvm` and `corpus:rg-rustfmt:microvm` pass; both are `ok` rows now.
 
 
 # T-292: A project file reads a file out of the project through `.actrc` or a link

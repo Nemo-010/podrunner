@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 23 open, 22 partial, 14 blocked, 255 done.**
+**314 entries: 23 open, 22 partial, 13 blocked, 256 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 10 | 2 | 54 | 67 |
-| P2 | 13 | 8 | 8 | 121 | 150 |
+| P2 | 13 | 8 | 7 | 122 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 23 | 22 | 14 | 255 | 314 |
+| **All** | 23 | 22 | 13 | 256 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -335,7 +335,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-288](later.md) | P2 | S | later | defect | done | A Docker action of the tree on `--runner-dir` starts its job |
 | [T-289](later.md) | P3 | S | later | defect | done | The P3 findings of the second QA, agent A, part 1 |
 | [T-290](later.md) | P3 | M | later | defect | open | The P3 findings of the second QA, agent A, part 2 |
-| [T-291](later.md) | P2 | S | later | defect | blocked | As a user with no root, the machine tier ends before the exit code of the runner |
+| [T-291](later.md) | P2 | S | later | defect | done | As a user with no root, the machine tier ends before the exit code of the runner |
 | [T-292](later.md) | P2 | S | later | defect | done | A project file reads a file out of the project through `.actrc` or a link |
 | [T-293](later.md) | P2 | S | later | defect | done | `github.api_url` of a job names the fake broker |
 | [T-294](later.md) | P2 | S | later | defect | done | A runner that a SIGKILL of podrunner leaves breaks the runner directory |

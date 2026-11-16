@@ -29,7 +29,7 @@
 # a C compiler and the tools of ubuntu-latest.
 rg-rustfmt	BurntSushi/ripgrep	178cc027e283fd965cb72d0a7395b219eada170c	.github/workflows/ci.yml	rustfmt	-	success	podvm	*	ok	-	-
 rg-rustfmt	BurntSushi/ripgrep	178cc027e283fd965cb72d0a7395b219eada170c	.github/workflows/ci.yml	rustfmt	-	success	runner-dir	*	ok	-	-
-rg-rustfmt	BurntSushi/ripgrep	178cc027e283fd965cb72d0a7395b219eada170c	.github/workflows/ci.yml	rustfmt	-	success	microvm	plain	xfail	--allow sh.rustup.rs --allow static.rust-lang.org	a guest has no NIC: rustup reaches its hosts through --allow; as a user with no root the machine tier ends before the exit code (T-291)
+rg-rustfmt	BurntSushi/ripgrep	178cc027e283fd965cb72d0a7395b219eada170c	.github/workflows/ci.yml	rustfmt	-	success	microvm	plain	ok	--allow sh.rustup.rs --allow static.rust-lang.org	a guest has no NIC: rustup reaches its hosts through --allow
 rg-docs	BurntSushi/ripgrep	178cc027e283fd965cb72d0a7395b219eada170c	.github/workflows/ci.yml	docs	-	success	podvm	*	ok	-	-
 rg-docs	BurntSushi/ripgrep	178cc027e283fd965cb72d0a7395b219eada170c	.github/workflows/ci.yml	docs	-	success	runner-dir	*	ok	-	-
 click-py313	pallets/click	e38188e9e205005d5af5f9e59df51904c984586a	.github/workflows/tests.yaml	tests	python=3.13	success	podvm	*	xfail	-	in a podvm unit the rename of a temporary file of uv or ruff gets EACCES: podvm keeps a run -d with a volume off the namespace rung until pod-enter binds it (T-261, PodUtils/podvm#442)
