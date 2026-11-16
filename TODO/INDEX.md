@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 23 open, 23 partial, 14 blocked, 254 done.**
+**314 entries: 23 open, 22 partial, 14 blocked, 255 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 10 | 2 | 54 | 67 |
-| P2 | 13 | 9 | 8 | 120 | 150 |
+| P2 | 13 | 8 | 8 | 121 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 23 | 23 | 14 | 254 | 314 |
+| **All** | 23 | 22 | 14 | 255 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -304,7 +304,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-254](later.md) | P1 | S | later | defect | done | The made-up `github.token` fails each action that calls the API of a real forge |
 | [T-255](later.md) | P2 | S | later | defect | done | On `--runner-dir`, the tests of express miss headers and hang |
 | [T-256](later.md) | P1 | S | later | defect | done | The checks of a session do not run the suites that need the official runner |
-| [T-260](later.md) | P2 | S | later | defect | partial | An expression in the image of a service or a job container fails the job |
+| [T-260](later.md) | P2 | S | later | defect | done | An expression in the image of a service or a job container fails the job |
 | [T-261](later.md) | P2 | S | later | defect | blocked | In a podvm unit, the persist of a temporary file gets EACCES |
 | [T-262](later.md) | P2 | S | later | defect | done | In a podvm unit, Node sometimes reads an invalid package.json |
 | [T-263](later.md) | P1 | S | later | defect | done | The installer keeps a directory that the group can write |

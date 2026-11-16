@@ -368,3 +368,16 @@ fn an_env_of_one_expression_is_one_token_for_the_runner() {
         assert!(e.contains("one expression that gives a mapping"), "{bad}: {e}");
     }
 }
+
+/// T-260: an image takes the values of the matrix of its cell; another
+/// expression stays unknown.
+#[test]
+fn an_image_takes_the_values_of_the_matrix() {
+    let v = |k: &str| (k == "v").then(|| "8.0".to_string());
+    assert_eq!(super::image_with("valkey/valkey:${{ matrix.v }}", v).as_deref(), Some("valkey/valkey:8.0"));
+    assert_eq!(super::image_with("valkey/valkey:${{matrix.v}}-alpine", v).as_deref(), Some("valkey/valkey:8.0-alpine"));
+    assert_eq!(super::image_with("pg:${{ matrix.other }}", v), None, "a key with no value");
+    assert_eq!(super::image_with("pg:${{ github.sha }}", v), None, "not the matrix");
+    assert_eq!(super::image_with("pg:16", v).as_deref(), Some("pg:16"));
+    assert_eq!(super::matrix_text(&pod_actions_expr::Value::Number(15.0)).as_deref(), Some("15"));
+}

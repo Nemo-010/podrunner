@@ -69,7 +69,14 @@ pub(super) fn pin(
         }
     }
     let tags = match images {
-        Some(_) => workflow_images(&run_jobs(&workflow, &a.jobs)).map_err(s)?,
+        Some(_) => {
+            let (w, more) = run_jobs(&workflow, &a.jobs);
+            let mut t = workflow_images(&w).map_err(s)?;
+            t.extend(more);
+            t.sort();
+            t.dedup();
+            t
+        }
         None => Vec::new(),
     };
     if uses.is_empty() && trees.is_empty() && tags.is_empty() {
@@ -129,11 +136,45 @@ pub(super) fn pin(
     Ok(Some(Pinned { dir, commits: r.commits, note }))
 }
 
+/// The static values of each key of the matrix of a job: its vectors and
+/// the values of `include`.
+fn matrix_values(job: &pod_actions_workflow::Job) -> std::collections::BTreeMap<String, Vec<String>> {
+    use pod_actions_workflow::yaml::Kind;
+    let text = |n: &pod_actions_workflow::yaml::Node| match &n.kind {
+        Kind::String(s) if !s.contains("${{") => Some(s.clone()),
+        Kind::Number(x) => Some(x.to_string()),
+        Kind::Bool(b) => Some(b.to_string()),
+        _ => None,
+    };
+    let mut out: std::collections::BTreeMap<String, Vec<String>> = Default::default();
+    let Some(Kind::Map(m)) = job.strategy.as_ref().and_then(|s| s.matrix.as_ref()).map(|m| &m.kind) else { return out };
+    for (k, v) in m {
+        match (&*k.name, &v.kind) {
+            ("include", Kind::Seq(items)) => {
+                for item in items {
+                    if let Kind::Map(e) = &item.kind {
+                        for (k, v) in e {
+                            out.entry(k.name.clone()).or_default().extend(text(v));
+                        }
+                    }
+                }
+            }
+            ("exclude", _) => {}
+            (_, Kind::Seq(items)) => out.entry(k.name.clone()).or_default().extend(items.iter().filter_map(text)),
+            _ => {}
+        }
+    }
+    out
+}
+
 /// The workflow with the jobs whose images the run pulls (T-260): the jobs
-/// of `--job` and each job that they need (each job with no `--job`), less
-/// each job whose `container:` or service image is an expression, which is
-/// named here and fails at its start, as its image is in no store.
-fn run_jobs(w: &pod_actions_workflow::Workflow, selected: &[String]) -> pod_actions_workflow::Workflow {
+/// of `--job` and each job that they need (each job with no `--job`). An
+/// image that takes values of the matrix of its job gives one image for
+/// each combination of those values (the second part), and leaves the
+/// workflow; an image with another expression leaves it too, is named
+/// here, and its job fails at its start, as no store holds it.
+fn run_jobs(w: &pod_actions_workflow::Workflow, selected: &[String]) -> (pod_actions_workflow::Workflow, Vec<String>) {
+    use pod_actions_workflow::yaml::{Kind, Node};
     let mut keep: std::collections::BTreeSet<String> = match selected.is_empty() {
         true => w.jobs.iter().map(|j| j.id.clone()).collect(),
         false => selected.iter().cloned().collect(),
@@ -151,29 +192,64 @@ fn run_jobs(w: &pod_actions_workflow::Workflow, selected: &[String]) -> pod_acti
         }
         keep.extend(more);
     }
-    use pod_actions_workflow::yaml::{Kind, Node};
-    // The image of a `container:` or of a service: the string, or `image:`.
-    let image = |n: &Node| match &n.kind {
-        Kind::String(s) => Some(s.clone()),
-        Kind::Map(_) => n.get("image").and_then(|i| match &i.kind {
-            Kind::String(s) => Some(s.clone()),
-            _ => None,
-        }),
-        _ => None,
-    };
     let mut out = w.clone();
-    out.jobs.retain(|j| {
-        let services = match j.services.as_ref().map(|s| &s.kind) {
-            Some(Kind::Map(m)) => m.iter().filter_map(|(_, s)| image(s)).collect(),
-            _ => Vec::new(),
+    out.jobs.retain(|j| keep.contains(&j.id));
+    let mut more = Vec::new();
+    for j in &mut out.jobs {
+        let values = matrix_values(j);
+        // The images of an image with values of the matrix, else `None`.
+        let expand = |image: &str| -> Option<Vec<String>> {
+            let keys: Vec<&String> = values.keys().filter(|k| image.contains(&format!("matrix.{k}"))).collect();
+            let mut combos: Vec<std::collections::BTreeMap<&str, &str>> = vec![Default::default()];
+            for k in keys {
+                combos = combos
+                    .iter()
+                    .flat_map(|c| {
+                        values[k].iter().map(move |v| {
+                            let mut c = c.clone();
+                            c.insert(k.as_str(), v.as_str());
+                            c
+                        })
+                    })
+                    .collect();
+            }
+            combos
+                .iter()
+                .map(|c| {
+                    podrunner_local::message::image_with(image, |key| {
+                        c.iter().find(|(k, _)| k.eq_ignore_ascii_case(key)).map(|(_, v)| v.to_string())
+                    })
+                })
+                .collect()
         };
-        let expr = j.container.as_ref().and_then(image).into_iter().chain(services).any(|i| i.contains("${{"));
-        if keep.contains(&j.id) && expr {
-            eprintln!("podrunner: job {}: an image of it is an expression, which no store holds: the job fails at its start (T-260)", j.id);
+        // Each image of a node: the node stays when it has no expression.
+        let mut take = |n: &Node| -> bool {
+            let image = match &n.kind {
+                Kind::String(s) => Some(s.clone()),
+                Kind::Map(_) => n.get("image").and_then(|i| match &i.kind {
+                    Kind::String(s) => Some(s.clone()),
+                    _ => None,
+                }),
+                _ => None,
+            };
+            let Some(image) = image.filter(|i| i.contains("${{")) else { return true };
+            match expand(&image) {
+                Some(list) => more.extend(list.iter().filter_map(|i| podrunner_local::images::by_tag(i))),
+                None => eprintln!(
+                    "podrunner: job {}: the image {image:?} is an expression that is not a value of its matrix, which no store holds: the job fails at its start (T-260)",
+                    j.id
+                ),
+            }
+            false
+        };
+        if j.container.as_ref().is_some_and(|c| !take(c)) {
+            j.container = None;
         }
-        keep.contains(&j.id) && !expr
-    });
-    out
+        if let Some(Node { kind: Kind::Map(m), .. }) = &mut j.services {
+            m.retain(|(_, s)| take(s));
+        }
+    }
+    (out, more)
 }
 
 #[cfg(test)]
@@ -183,14 +259,18 @@ mod run_jobs_tests {
     #[test]
     fn a_job_with_an_image_of_an_expression_is_left_out() {
         let text = "on: push\njobs:\n  lint:\n    runs-on: ubuntu-latest\n    steps: [{run: 'true'}]\n  \
-            db:\n    runs-on: ubuntu-latest\n    needs: lint\n    strategy: {matrix: {v: [1, 2]}}\n    \
+            db:\n    runs-on: ubuntu-latest\n    needs: lint\n    strategy: {matrix: {v: [15, '16']}}\n    \
             services:\n      pg: {image: 'postgres:${{ matrix.v }}'}\n    steps: [{run: 'true'}]\n  \
-            other:\n    runs-on: ubuntu-latest\n    services:\n      pg:\n        image: postgres:16\n        \
-            env: {P: '${{ secrets.P }}'}\n    steps: [{run: 'true'}]\n";
+            other:\n    runs-on: ubuntu-latest\n    services:\n      pg:\n        image: postgres:17\n        \
+            env: {P: '${{ secrets.P }}'}\n      x: {image: 'x:${{ github.sha }}'}\n    steps: [{run: 'true'}]\n";
         let w = pod_actions_workflow::parse(text).unwrap().workflow;
         let ids = |w: &pod_actions_workflow::Workflow| w.jobs.iter().map(|j| j.id.clone()).collect::<Vec<_>>();
-        assert_eq!(ids(&super::run_jobs(&w, &[])), ["lint", "other"]);
-        assert_eq!(ids(&super::run_jobs(&w, &["lint".to_string()])), ["lint"]);
-        assert_eq!(ids(&super::run_jobs(&w, &["db".to_string()])), ["lint"], "db needs lint");
+        let (all, more) = super::run_jobs(&w, &[]);
+        assert_eq!(ids(&all), ["lint", "db", "other"]);
+        assert_eq!(more, ["postgres:15", "postgres:16"], "one image for each value of the matrix");
+        let tags = podrunner_local::images::workflow_images(&all).unwrap();
+        assert_eq!(tags, ["postgres:17"], "the image of another expression leaves; an env expression is no image");
+        assert_eq!(ids(&super::run_jobs(&w, &["lint".to_string()]).0), ["lint"]);
+        assert_eq!(ids(&super::run_jobs(&w, &["db".to_string()]).0), ["lint", "db"], "db needs lint");
     }
 }

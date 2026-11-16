@@ -103,17 +103,50 @@ fn pin_image(image: &str, pins: &BTreeMap<String, String>) -> String {
     }
 }
 
-/// A `container:` or a service with its image pinned (T-130).
-fn pin_node(node: &Node, pins: &BTreeMap<String, String>) -> Node {
+/// `image` with each `${{ matrix.KEY }}` replaced by `value(KEY)` (T-260);
+/// `None` when another expression stays, or a key has no value.
+pub fn image_with(image: &str, value: impl Fn(&str) -> Option<String>) -> Option<String> {
+    let mut out = String::new();
+    let mut rest = image;
+    while let Some(i) = rest.find("${{") {
+        let end = rest[i..].find("}}")? + i;
+        let key = rest[i + 3..end].trim().strip_prefix("matrix.")?;
+        out.push_str(&rest[..i]);
+        out.push_str(&value(key)?);
+        rest = &rest[end + 2..];
+    }
+    out.push_str(rest);
+    Some(out)
+}
+
+/// A scalar of a matrix as GitHub writes it in a text.
+pub fn matrix_text(v: &XValue) -> Option<String> {
+    match v {
+        XValue::String(s) => Some(s.clone()),
+        XValue::Number(n) if n.fract() == 0.0 && n.abs() < 1e15 => Some(format!("{}", *n as i64)),
+        XValue::Number(n) => Some(n.to_string()),
+        XValue::Bool(b) => Some(b.to_string()),
+        _ => None,
+    }
+}
+
+/// A `container:` or a service with its image pinned (T-130), after the
+/// values of the matrix of the cell (T-260).
+fn pin_node(node: &Node, pins: &BTreeMap<String, String>, matrix: &XValue) -> Node {
+    let cell = |key: &str| match matrix {
+        XValue::Object(o) => o.get(key).and_then(matrix_text),
+        _ => None,
+    };
+    let one = |s: &str| pin_image(&image_with(s, cell).unwrap_or_else(|| s.to_string()), pins);
     let mut n = node.clone();
     match &mut n.kind {
-        Kind::String(s) => *s = pin_image(s, pins),
+        Kind::String(s) => *s = one(s),
         Kind::Map(e) => {
             for (k, v) in e.iter_mut() {
                 if k.name == "image"
                     && let Kind::String(s) = &mut v.kind
                 {
-                    *s = pin_image(s, pins);
+                    *s = one(s);
                 }
             }
         }
@@ -359,7 +392,7 @@ pub fn broker_job(
     }
     let mut containers = Map::new();
     if let Some(c) = &job.container {
-        let c = pin_node(c, pins);
+        let c = pin_node(c, pins, &cell.instance.matrix);
         container_image(&c, "container")?;
         containers.insert("jobContainer".into(), node_token(&c)?);
     }
@@ -368,7 +401,8 @@ pub fn broker_job(
             return Err(format!("line {}: services must be a mapping", s.mark.line));
         };
         let mut s = s.clone();
-        let pinned: Vec<_> = entries.iter().map(|(k, v)| (k.clone(), pin_node(v, pins))).collect();
+        let pinned: Vec<_> =
+            entries.iter().map(|(k, v)| (k.clone(), pin_node(v, pins, &cell.instance.matrix))).collect();
         for (name, service) in &pinned {
             container_image(service, &format!("service {}", name.name))?;
         }

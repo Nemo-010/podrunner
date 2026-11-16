@@ -4032,7 +4032,7 @@ Take the workflow and the check of podcrates when they are out; give it the map 
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -4053,6 +4053,10 @@ A test of `crates/podrunner-local`: a service image `valkey/valkey:${{ matrix.v 
 State (2026-11-16): the third QA, agent A (finding A4): on `--podvm`, the image `ghcr.io/...:${{ matrix.postgres }}` of a service refuses the whole run before any job, exit 78, also with `--job lint`, and `--validate` says `valid` (brianc/node-postgres at `2a5850fb`). Each job with no such image must run, and the refusal must name its cell.
 
 State (2026-11-16, partial): the run pulls only the images of the jobs that run (`--job` and their needs), and leaves out a job whose `container:` or service image is an expression, with a line; that job fails at its start, and each other job runs (`run_local/actions.rs`, `run_jobs`; test `a_job_with_an_image_of_an_expression_is_left_out`). Next: give such an image for each cell of the matrix (the values of `matrix`), pull each one, and give the runner the digest of its cell.
+
+## Done
+
+2026-11-16: an image of `container:` or of a service that takes values of the matrix of its job (`${{ matrix.KEY }}`) gives one image for each combination of the static values of the matrix (its vectors and `include`), each one pulled and pinned before the first job (`run_local/actions.rs`, `run_jobs`); the job message of each cell gives the runner the image of its own values, by digest (`message::image_with`, `pin_node`). An image with another expression fails its own job only, with a line. The run pulls only the images of the jobs that run. Unit tests: `a_job_with_an_image_of_an_expression_is_left_out`, `an_image_takes_the_values_of_the_matrix`.
 
 
 # T-251: The gate and the host of an agent run shellcheck of other versions
