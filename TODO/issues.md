@@ -197,6 +197,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #195 | COORD-069: the machine tier ends before the exit code as a user with no root: the line of QEMU (to podvm) | open | T-291 |
 | #196 | COORD-070: on the namespace rung of run -d, the payload is root of a one-uid namespace, with no UTS namespace (to podvm) | open | T-317, T-182 |
 | #197 | COORD-071: a program that closes descriptor 17 gets podvm's ownership memo written into the next file it opens (to podvm) | open | T-309, T-262 |
+| #198 | COORD-072: the machine tier as a user with no root, with v0.2.0-beta.25: the guest does not reach the command (to podvm) | open | T-291 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

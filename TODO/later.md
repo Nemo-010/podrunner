@@ -5129,6 +5129,8 @@ podvm names what the machine tier needs from a user with no root (COORD-068, Git
 
 State (2026-11-16): podvm (PodUtils/podvm#444, COORD-151) passes the machine tier as a new user made by `sudo -u` on a runner with KVM, so a user with no root is not the cause. podvm `v0.2.0-beta.25` names how the emulator ended (its exit code or signal, whether the guest reached the command, the last console lines). podrunner pins it; the probe of the next user-path gate gives that message. Next: send it to podvm in a new COORD issue, with the size of the root of the image (`podvm image inspect`).
 
+State (2026-11-16): with podvm `0.2.0-beta.25`, the probe of user-gate 43834454578 says `the emulator was still running, and podvm killed it, before the guest reached the command`, with no console line. COORD-072 (GitHub #198) sends it to podvm.
+
 
 # T-292: A project file reads a file out of the project through `.actrc` or a link
 
@@ -5386,6 +5388,8 @@ Take podvm `0.2.0-beta.25` or later, which runs `run -d` of a user with no root 
 The new row of `scripts/user-gate.py` passes in each lane; `cargo test -p podrunner-podvm`.
 
 State (2026-11-16): podvm `0.2.0-beta.25` is pinned (`ede07ea`) and its unit starts again (T-301). `scripts/user-gate.py` has the check `confine:podvm`: a job builds a Go 1.20 program that writes into the home of the lab user, and the file must not come on the host. Proven on a constrained host as a user (the job of the agent, as `qa1`): no file with beta.25; the file with beta.24. The proof in CI is the next user-path gate.
+
+State (2026-11-16, user-gate 43834454578 on `a5079e6`): in CI each lane ran the podvm units on the loader family (`go` finds no GOROOT; uv and ruff get EACCES), as a `run -d` with a volume stays off the namespace rung in podvm `0.2.0-beta.25` until pod-enter binds its volumes (PodUtils/podvm#442). There a static binary of a job can still reach the files of the user; the check `confine:podvm` now fails only on the file on the host. Waits for the podvm release with the binds of `run -d`; a host with no user namespace keeps the loader family, so the notes name the limit.
 
 
 # T-301: With podvm 0.2.0-beta.25 the runner of a podvm unit ends with no result
