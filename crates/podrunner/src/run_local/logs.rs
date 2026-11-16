@@ -105,6 +105,45 @@ pub(super) fn write_dir(
     Ok(())
 }
 
+/// Write each result line to stdout when its job ends, not in the `Out` of
+/// the run: the binary sets it; a test reads the lines in `Out` (T-296).
+pub static STREAM: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Add `text` to `out`, or with [`STREAM`] write it to stdout at once.
+pub(super) fn emit(out: &mut String, text: &str) {
+    if STREAM.load(std::sync::atomic::Ordering::SeqCst) {
+        use std::io::Write;
+        let mut o = std::io::stdout().lock();
+        let _ = o.write_all(text.as_bytes());
+        let _ = o.flush();
+    } else {
+        out.push_str(text);
+    }
+}
+
+/// The end of stderr of a failed run. The live lines gave each log once;
+/// with `-q`, the logs come here (T-289), as JSON with `--json` (T-296).
+pub(super) fn failed_end<J: std::fmt::Display>(logs: &[(J, String)], quiet: bool, json: bool, dry: bool) -> String {
+    let mut out = String::new();
+    match (quiet, json) {
+        (true, true) => {
+            for (job, log) in logs {
+                for l in log.lines() {
+                    out.push_str(&format!("{}\n", json!({ "event": "log", "job": job.to_string(), "line": l })));
+                }
+            }
+        }
+        (true, false) => {
+            for (job, log) in logs {
+                out.push_str(&format!("--- log of {job}\n{log}\n"));
+            }
+        }
+        (false, _) if dry => {}
+        (false, _) => out.push_str("podrunner: a job failed; its log is above (and in --log-dir DIR)\n"),
+    }
+    out
+}
+
 #[cfg(test)]
 mod hint_tests {
     /// T-254: a failed job with "Bad credentials" in its log names the fix.

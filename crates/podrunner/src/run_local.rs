@@ -129,21 +129,8 @@ pub fn doctor(args: &[String]) -> Out {
     Out { code, stdout: doctor::text(&checks), stderr: String::new() }
 }
 
-/// Write each result line to stdout when its job ends, not in the `Out` of
-/// the run: the binary sets it; a test reads the lines in `Out` (T-296).
-pub static STREAM: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-
-/// Add `text` to `out`, or with [`STREAM`] write it to stdout at once.
-fn emit(out: &mut String, text: &str) {
-    if STREAM.load(std::sync::atomic::Ordering::SeqCst) {
-        use std::io::Write;
-        let mut o = std::io::stdout().lock();
-        let _ = o.write_all(text.as_bytes());
-        let _ = o.flush();
-    } else {
-        out.push_str(text);
-    }
-}
+pub use logs::STREAM;
+use logs::emit;
 
 /// Run `podrunner run ARGS`.
 pub fn run(args: &[String]) -> Out {
@@ -488,26 +475,7 @@ pub fn run(args: &[String]) -> Out {
     let out = match result {
         Ok(true) => Out { code: 0, stdout, stderr },
         Ok(false) => {
-            // The live lines gave each log once; with -q, the logs come at
-            // the end (T-289).
-            match a.quiet {
-                // With --json, each line of the dump is a JSON object (T-296).
-                true if a.json => {
-                    for (job, log) in &logs {
-                        for l in log.lines() {
-                            let o = serde_json::json!({ "event": "log", "job": job.to_string(), "line": l });
-                            stderr.push_str(&format!("{o}\n"));
-                        }
-                    }
-                }
-                true => {
-                    for (job, log) in &logs {
-                        stderr.push_str(&format!("--- log of {job}\n{log}\n"));
-                    }
-                }
-                false if a.dry_run => {}
-                false => stderr.push_str("podrunner: a job failed; its log is above (and in --log-dir DIR)\n"),
-            }
+            stderr.push_str(&logs::failed_end(&logs, a.quiet, a.json, a.dry_run));
             stderr.push_str(&logs::token_hint(&logs));
             Out { code: 1, stdout, stderr }
         }
