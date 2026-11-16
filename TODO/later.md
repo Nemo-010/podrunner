@@ -3885,7 +3885,7 @@ A table of each pair of the flags of `run`, with the answer that each pair must 
 **Milestone:** later
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -3902,6 +3902,8 @@ Before each request for a release, the lead session starts two or more agents wi
 ## Prove
 
 The record of each release names the QA run and its findings: `grep -n 'adversarial QA' docs/releases/v*.md`.
+
+State (2026-11-16): the first QA, two agents on `12cb64e` on this sandbox (`--runner-dir` only; no image of podvm, no installer before the release), found 2 P1, 11 P2 and 7 groups of P3: T-265 to T-284. The release of `v0.1.0-beta.7` waits for them and for a second QA.
 
 # T-247: The notes of a release name the level of the proof of each claim
 
@@ -4320,3 +4322,503 @@ Bump podcrates to `v0.55.0`. Add the column `Kind` to `TODO/issues.md` and repai
 ## Prove
 
 `cargo todo check` with `issue_rules = "on"`; a dry run of `issue-sync.yml` with no change that the record does not give; the lanes of the user-path gate green under `podlab run`.
+
+# T-265: A job on `--runner-dir` does not get the PATH, the proxy and the CA of the user
+
+**Source:** the adversarial QA of `12cb64e`, agents A and B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A job on `--runner-dir` gets `PATH=/usr/bin:/bin` and no `HTTPS_PROXY`, `NO_PROXY`, `SSL_CERT_FILE`, `NODE_EXTRA_CA_CERTS` or `GIT_SSL_CAINFO`. On a host with a proxy that intercepts TLS, `actions/setup-node` and `actions/setup-go` fail with "self-signed certificate in certificate chain"; tools in `/usr/local/bin` or `/opt` (`gh`, `node`) are not found. `doctor --run` gives each check `ok`, and no document tells how a local run gets a proxy or a CA.
+
+## Premise
+
+Findings A1, A4 and F21 of the reports of the QA (fatih/color, chalk/chalk, dtolnay/itoa, pallets/click on this sandbox; `--env NAME=VALUE` for each variable is the work-around that passed). The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+A job on `--runner-dir` takes the `PATH` of the user, and the proxy and CA variables of the user (the list of `docs/local-mode.md`). `doctor --run` names the proxy and the CA that a job gets. A section of `docs/local-mode.md` for a host with a proxy.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test of `crates/podrunner-local`: the environment of a job on `--runner-dir` has the `PATH` and the proxy variables of the caller; the run of chalk/chalk on this sandbox with no `--env`.
+
+# T-266: A job on `--runner-dir` writes into the home of the user
+
+**Source:** the adversarial QA of `12cb64e`, agent A (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A job on `--runner-dir` gets the `HOME` of the user. rustup of a job added a line to `~/.profile` and `~/.bashrc`, and about 2 GiB of caches (`~/.rustup`, `~/.cargo`, `~/.npm`, `~/.cache/uv`) stay. `docs/local-mode.md` says "a fresh unit for each job", which a reader applies to the quick start too.
+
+## Premise
+
+Finding A10 of the report of the QA (dtolnay/itoa on `--runner-dir`). The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+Each job on `--runner-dir` gets a scratch `HOME` under its work directory, removed after the job (with `--keep-failed`, kept). The documents say what `--runner-dir` isolates and what it does not.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test of `crates/podrunner-local`: a step that writes `$HOME/x` leaves no file in the home of the caller.
+
+# T-267: `--checkout .` gives no `.git`, so a step that runs `git` fails
+
+**Source:** the adversarial QA of `12cb64e`, agent A (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`actions/checkout` on GitHub gives a `.git`; `--checkout .` of the quick start does not, so `git` in a step fails with "not a git repository". `--with-git` fixes it, but no document of the quick start names it.
+
+## Premise
+
+Finding A2 of the report of the QA (fatih/color). The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+`--with-git` is the default for a checkout of a git tree, with a flag to turn it off; or the failure of `git` names `--with-git`. The quick start names the flag when it is not the default.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test: `--checkout` of a git tree gives a step `git rev-parse HEAD` equal to the commit of the run.
+
+# T-268: The lock of the actions goes into the next checkout as a new file
+
+**Source:** the adversarial QA of `12cb64e`, agent A (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A run writes `podrunner-actions.lock` beside the workflow into the tree of the user, and the next `--checkout .` takes it as a new file, so a job that checks for a clean tree (`go mod tidy`, `git status`) fails.
+
+## Premise
+
+Finding A3 of the report of the QA (fatih/color). The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+Leave the lock file of podrunner out of the tarball of a checkout (`crates/podrunner-local/src/tree.rs`), as `.git` is.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test of `crates/podrunner-local`: the tarball of a tree with `podrunner-actions.lock` has no such file.
+
+# T-269: The made-up token fails `actions/setup-python` with a 404, and the run names no fix
+
+**Source:** the adversarial QA of `12cb64e`, agent A (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`raw.githubusercontent.com` gives 404 to a request with the made-up `github.token`, so `actions/setup-python@v7.1.0` fails at the manifest of the versions. The hint of T-254 holds for "Bad credentials" only.
+
+## Premise
+
+Finding A5 of the report of the QA (rq/rq, job `mypy`; curl gives 200 with no `Authorization` and 404 with a made-up token). The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+The hint of `token_hint` (`crates/podrunner/src/run_local/logs.rs`) also for a failed fetch of `raw.githubusercontent.com` and an HTTP 401 or 404 of `api.github.com`; `docs/local-mode.md` says that an empty token variable gives no `Authorization`.
+
+## Prove
+
+`cargo test -p podrunner`: A test of `token_hint` with the log line of setup-python.
+
+# T-270: A Dockerfile action on `--runner-dir` starts the job and calls the docker of the host
+
+**Source:** the adversarial QA of `12cb64e`, agent A (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A job with an action of `runs.using: docker` starts on `--runner-dir`; the runner calls `docker build` of the host three times. `docs/cli.md` says that a job with containers fails before it starts (T-218), and `docs/local-mode.md` says that no Docker socket of the host reaches a job.
+
+## Premise
+
+Finding A6 of the report of the QA (rq/rq, supercharge/redis-github-action, docker/build-push-action). The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+The resolve of the actions marks an action of `runs.using: docker` (also a `docker://` step); on `--runner-dir` such a job fails before it starts, by name, also in `--dry-run`.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test of `crates/podrunner-local`: a job with a `docker://` step and one with a Dockerfile action fail on `--runner-dir` in a dry run.
+
+# T-271: `--job` does not select a need that calls a reusable workflow
+
+**Source:** the adversarial QA of `12cb64e`, agent A (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`--job test` skips its need `pre_ci` (`uses:` of a reusable workflow) as "not selected", and `--job pre_ci` does not select it either, so no job that needs a called workflow can run alone.
+
+## Premise
+
+Finding A8 of the report of the QA (dtolnay/itoa at its pinned commit). The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+The selection of `--job` takes the jobs of a call as members of the calling job: `--job ID` of a call selects each job of the call, and a need of a selected job selects the call.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test of the selection with a workflow whose job needs a call.
+
+# T-272: `--dry-run` on `--podvm` plans a `services:` job and does not check the image
+
+**Source:** the adversarial QA of `12cb64e`, agent A (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With `--podvm` and `--dry-run`, a job with `services:` is `planned`, and an `--image` that is not in the store is not named; the real run then asks Docker Hub for `library/runner`.
+
+## Premise
+
+Finding A9 of the report of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+The dry run on `--podvm` applies the refusal of `services:` of the real run and checks that `--image` is in `--images`; a missing image is a refusal that names `podvm load -i` with the store, with no pull from a registry.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test of the dry run: a `services:` job fails, and an image that is not in the store is named.
+
+# T-273: A SIGHUP leaves the runner running and breaks the runner directory
+
+**Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A closed terminal (SIGHUP) leaves the runner and the processes of the job, and files in `_diag/pages`; each later job on that runner directory fails with "The file ... already exists". `doctor --run` gives `ok`. SIGINT and SIGTERM clean up.
+
+## Premise
+
+Finding F1 of the report of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+SIGHUP does what SIGTERM does. A run on a runner directory clears `_diag/pages` before the start, and `doctor --run` names a runner process that holds the directory.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test: a SIGHUP to a run on a runner directory ends each process of the job; the next run passes.
+
+# T-274: Two runs on one runner directory at the same time break each other
+
+**Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A second run on a runner directory that a run uses fails with an internal error of the runner, and removes the `_work` of the first run during its job.
+
+## Premise
+
+Finding F2 of the report of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+A run takes an exclusive `flock` on a file of the runner directory; a second run fails at once and names the run that holds it.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test: a second run on the same runner directory fails with that text, and the first passes.
+
+# T-275: A project file reads a host file through a symbolic link
+
+**Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The check that a path of `.podrunner/run.toml` stays in the project reads the text of the path only. A symbolic link in the project passes it, so a project puts each host file that the user can read into the environment of a job (`env-file`, `var-file`, `input-file`).
+
+## Premise
+
+Finding F3 of the report of the QA (`env-file = "link"`, the link to a file outside the project). The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+Resolve each path of a project file (canonicalize) and refuse a path whose real path is not under the real path of the project.
+
+## Prove
+
+`cargo test -p podrunner`: A test of the configuration: a link out of the project is refused, and a link in the project passes.
+
+# T-276: `.secrets` of a checkout goes into the workspace of each job
+
+**Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The documents tell the user to put the secrets in `.secrets` of the tree. `--checkout .` copies a file that git does not ignore, so `.secrets` is in the workspace: each step, action, artifact, cache and `--export` reads each secret as plain text.
+
+## Premise
+
+Finding F4 of the report of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+Leave the files that podrunner reads as configuration (`.secrets`, `.vars`, `.env`, `.input`, the files of `.podrunner/run.toml`) out of the tarball of a checkout; the documents say so.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test of `crates/podrunner-local`: the tarball of a tree with `.secrets` has no such file.
+
+# T-277: Some refusals name the wrong cause or a fix that does not work
+
+**Source:** the adversarial QA of `12cb64e`, agents A and B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+From the QA: a `services:` job on `--runner-dir` first says "not pinned by digest" with the expression of the matrix (A7); a detached clone defaults to `refs/heads/main` and the refusal names only `--force-event` (A11); `run.toml` refuses `jobs` and `web` but says each flag is a key (F10); a directory as `--secret-file` gets `chmod 600`, a used `--web` port gets the loopback fix, the image fix loads into the default store, `doctor` names the wrong parent, `--offline` and an HTTP 503 of `git ls-remote` give no fix (F11); `--repository bad`, `--sha zz`, `--remote nosuch`, `--approve nosuch`, an unused `--platform` label and a `--matrix` value that matches no cell pass with no word (F17).
+
+## Premise
+
+Findings A7, A11, F10, F11 and F17 of the reports of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+Fix each text and each check; a test for each.
+
+## Prove
+
+`cargo test -p podrunner`: A test for each case of the list.
+
+# T-278: The output, the exit codes and the help disagree with the documents
+
+**Source:** the adversarial QA of `12cb64e`, agents A and B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+From the QA: `-q` prints the console of the runner, and `--log-dir` is written at the end only (A12, F14); `podrunner version` prints `0.1.0` for a beta (A13, F19); an unreadable workflow exits 69 and a missing `--event-path` 64 against `docs/cli.md` (F12); a job that did not start before SIGINT says `skipped`, and `--watch` says "a signal cancelled the run" on a change (F13); the layout of `--log-dir` and the stderr of `--json` differ from the documents (F14); `help` and `run --help` give different usages, `run --help` names `docs/cli.md`, the layout of `doctor --help` is broken, `doctor --run` with no executor prints the usage (F19).
+
+## Premise
+
+Findings A12, A13, F12, F13, F14 and F19 of the reports of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+Make the code or the document agree for each case; the version of a release build is the version of the release.
+
+## Prove
+
+`cargo test -p podrunner`: A test for each case.
+
+# T-279: `--rerun --failed`, `--validate` and `--schedule` disagree with GitHub or the documents
+
+**Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`--rerun --failed` runs again the cells of a matrix that passed (F5); `--validate` takes an invalid cron and `--list` a cycle of `needs` (F15); on `--schedule`, `github.event.schedule` is empty (F16).
+
+## Premise
+
+Findings F5, F15 and F16 of the report of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+Keep each passed cell; check the cron and refuse a cycle; give the cron text in the event.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test for each case.
+
+# T-280: `--break` on `--runner-dir` speaks of a unit, and two flags pass together
+
+**Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`--break` on `--runner-dir` offers a shell of a "unit" that is not there, and each typed text continues (F8); `--break-on-failure` with `--keep-failed` is not refused (F9).
+
+## Premise
+
+Findings F8 and F9 of the report of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+The text of `--break` on `--runner-dir` names the work directory; refuse the pair of flags or document it.
+
+## Prove
+
+`cargo test -p podrunner`: A test of the text and of the pair.
+
+# T-281: A runner directory with a space, and the growth of `_diag`
+
+**Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A runner directory with a space in its path passes `doctor --run`, and each `run:` step fails (F7); `_diag` grows with two files for each job, and a killed runner leaves files of dotnet in `/tmp` (F20).
+
+## Premise
+
+Findings F7 and F20 of the report of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+`doctor --run` and `run` refuse a runner directory with a space, with the fix; the run removes the `_diag` files of its job.
+
+## Prove
+
+`cargo test -p podrunner`: A test of each.
+
+# T-282: Each live log line comes twice
+
+**Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+Each live line of a job comes twice, the second with a byte order mark, on stderr, in `--json` and in the view of `--web`; the dump after a failure is out of order.
+
+## Premise
+
+Finding F6 of the report of the QA. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+Find the second source of the lines (the console of the runner and the feed of the broker) and keep one.
+
+## Prove
+
+`cargo test -p podrunner-local`: A test: a step that prints one line gives one live line.
+
+# T-283: `doctor` reports mount and chroot as denied where a user namespace mounts
+
+**Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The probe of `pod-hostprobe` clones `CLONE_NEWNS` with no `CLONE_NEWUSER`, so a host where a user namespace with a mount works shows the mount and the chroot as denied.
+
+## Premise
+
+Finding F18 of the report of the QA; the code of the probe is in podcrates. The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+A COORD issue to podcrates; then take its tag.
+
+## Prove
+
+`podrunner doctor`: `doctor` on this sandbox gives the mount as `ok`.
+
+# T-284: The user-path gate has no lane of a host with a proxy only
+
+**Source:** the adversarial QA of `12cb64e`, agent A (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The QA host has egress through a proxy that intercepts TLS only, and the jobs of the local mode failed there (T-265); the user-path gate has no such lane, so CI did not find it (`AGENTS.md`, section 12: each host class becomes a lane).
+
+## Premise
+
+The reports of the QA; `scripts/lab/` has no proxy lane; `pod-lab` does not hold `proxy-only` yet (PodUtils/podcrates#188). The reports are in the scratch directory of the session, not in the repository.
+
+## Approach
+
+A lane `proxy-only` in `user-gate.yml`: a local proxy with its own CA (for example mitmproxy or a small CONNECT proxy), direct egress refused for the lab user, and the corpus on `--runner-dir` and `--podvm`.
+
+## Prove
+
+`python3 -I scripts/user-gate.py`: The lane passes in a run of `user-gate.yml`.

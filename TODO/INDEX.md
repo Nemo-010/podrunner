@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**261 entries: 22 open, 19 partial, 12 blocked, 208 done.**
+**281 entries: 41 open, 20 partial, 12 blocked, 208 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 8 | 2 | 49 | 61 |
-| P2 | 15 | 8 | 7 | 86 | 116 |
-| P3 | 5 | 3 | 3 | 73 | 84 |
-| **All** | 22 | 19 | 12 | 208 | 261 |
+| P1 | 3 | 9 | 2 | 49 | 63 |
+| P2 | 26 | 8 | 7 | 86 | 127 |
+| P3 | 12 | 3 | 3 | 73 | 91 |
+| **All** | 41 | 20 | 12 | 208 | 281 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -293,7 +293,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-243](later.md) | P1 | M | later | release | partial | The user-path gate: the files of the release, installed and used as a user |
 | [T-244](later.md) | P1 | M | later | release | blocked | The host lanes of the user-path gate |
 | [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |
-| [T-246](later.md) | P1 | S | later | release | open | An adversarial QA before each release |
+| [T-246](later.md) | P1 | S | later | release | partial | An adversarial QA before each release |
 | [T-247](later.md) | P2 | S | later | release | open | The notes of a release name the level of the proof of each claim |
 | [T-248](later.md) | P1 | M | later | feature | blocked | The help and the manual of podrunner from the shared crate of PodUtils |
 | [T-249](later.md) | P1 | M | later | feature | open | The installer on each host class, and the shared core of podcrates |
@@ -309,3 +309,23 @@ acceptance, later The crate dependencies later than v1.
 | [T-262](later.md) | P2 | S | later | defect | partial | In a podvm unit, Node sometimes reads an invalid package.json |
 | [T-263](later.md) | P1 | S | later | defect | done | The installer keeps a directory that the group can write |
 | [T-264](later.md) | P2 | M | later | chore | open | Take podcrates `v0.55.0`: the sync of the issues and pod-lab |
+| [T-265](later.md) | P2 | S | later | defect | open | A job on `--runner-dir` does not get the PATH, the proxy and the CA of the user |
+| [T-266](later.md) | P2 | S | later | defect | open | A job on `--runner-dir` writes into the home of the user |
+| [T-267](later.md) | P2 | S | later | defect | open | `--checkout .` gives no `.git`, so a step that runs `git` fails |
+| [T-268](later.md) | P2 | S | later | defect | open | The lock of the actions goes into the next checkout as a new file |
+| [T-269](later.md) | P2 | S | later | defect | open | The made-up token fails `actions/setup-python` with a 404, and the run names no fix |
+| [T-270](later.md) | P2 | S | later | defect | open | A Dockerfile action on `--runner-dir` starts the job and calls the docker of the host |
+| [T-271](later.md) | P2 | S | later | defect | open | `--job` does not select a need that calls a reusable workflow |
+| [T-272](later.md) | P2 | S | later | defect | open | `--dry-run` on `--podvm` plans a `services:` job and does not check the image |
+| [T-273](later.md) | P2 | S | later | defect | open | A SIGHUP leaves the runner running and breaks the runner directory |
+| [T-274](later.md) | P2 | S | later | defect | open | Two runs on one runner directory at the same time break each other |
+| [T-275](later.md) | P1 | S | later | defect | open | A project file reads a host file through a symbolic link |
+| [T-276](later.md) | P1 | S | later | defect | open | `.secrets` of a checkout goes into the workspace of each job |
+| [T-277](later.md) | P3 | M | later | defect | open | Some refusals name the wrong cause or a fix that does not work |
+| [T-278](later.md) | P3 | S | later | defect | open | The output, the exit codes and the help disagree with the documents |
+| [T-279](later.md) | P3 | S | later | defect | open | `--rerun --failed`, `--validate` and `--schedule` disagree with GitHub or the documents |
+| [T-280](later.md) | P3 | S | later | defect | open | `--break` on `--runner-dir` speaks of a unit, and two flags pass together |
+| [T-281](later.md) | P3 | S | later | defect | open | A runner directory with a space, and the growth of `_diag` |
+| [T-282](later.md) | P3 | S | later | defect | open | Each live log line comes twice |
+| [T-283](later.md) | P3 | S | later | defect | open | `doctor` reports mount and chroot as denied where a user namespace mounts |
+| [T-284](later.md) | P2 | S | later | defect | open | The user-path gate has no lane of a host with a proxy only |
