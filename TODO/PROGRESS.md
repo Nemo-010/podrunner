@@ -1,6 +1,6 @@
 # Progress
 
-`TODO/INDEX.md` holds 314 entries: 27 open, 23 partial, 17 blocked, 247 done.
+`TODO/INDEX.md` holds 314 entries: 26 open, 23 partial, 17 blocked, 248 done.
 
 ## State
 
@@ -32,7 +32,7 @@ then take the next one.
 
 The queue, most valuable first:
 
-0. The release gate (the owner, 2026-11-15): T-243 and T-244 (P1: the user-path gate on the files of a release, with a lane for each host class; the labs are shared, COORD-061 #180, and podrunner's scripts go first), T-246 (P1: an adversarial QA before each release), T-245 (the command line as a contract), T-249 (P1: the installer in each lab). No release request after beta.7 before T-243, T-244 and T-246 hold (`AGENTS.md`, section 12). The findings of the third QA block beta.7: T-309 (P1), T-300 (P1, partial), T-317, T-304, T-310, T-312, T-315, T-260 (P2); then the P3 groups T-308 and T-316.
+0. The release gate (the owner, 2026-11-15): T-243 and T-244 (P1: the user-path gate on the files of a release, with a lane for each host class; the labs are shared, COORD-061 #180, and podrunner's scripts go first), T-246 (P1: an adversarial QA before each release), T-245 (the command line as a contract), T-249 (P1: the installer in each lab). No release request after beta.7 before T-243, T-244 and T-246 hold (`AGENTS.md`, section 12). The findings of the third QA block beta.7: T-309 (P1), T-300 (P1, partial), T-317, T-304, T-310, T-315, T-260 (P2); then the P3 groups T-308 and T-316.
 
 1. The live reports (GitHub #74, #75, and the issues #116 to #147 of the owner): T-192 (P1: `serve` stops after a unit ends `unit-failed`), T-179 (P1: H0, the seccomp hold and the egress module time out), then T-181, T-183 (P2), T-186 (P3). T-175 waits for its step on the test organization. `v0.1.0-beta.6` is out for LIVE-1 and LIVE-2 (#74, #75) and githome (#151).
 

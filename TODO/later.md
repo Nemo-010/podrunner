@@ -5712,7 +5712,7 @@ The dry run and `doctor --run` refuse such a job as the run does, with the fix (
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5729,6 +5729,11 @@ Each run writes its unit directory and process group where the next run finds it
 ## Prove
 
 `cargo test -p podrunner --test local`: a stale unit directory of a dead run is removed by the next run.
+
+## Done
+
+2026-11-16: `run_local/stale.rs`: each run finds the directories `podrunner-run-units-PID` and `podrunner-run-tree-PID` of this user in `TMPDIR` whose PID is no live podrunner, ends each process of their units (by the tag of each unit) and removes them, with a line. The first SIGINT or SIGTERM prints that the job ends and its unit goes. Unit test: `the_directories_of_dead_runs_are_found`. Proven on a constrained host as a user (`qa2`, podvm `0.2.0-beta.24`): a SIGKILL of a run in a podvm job left its directory and 8 unit processes; the next run said `the files of a run that died are gone (1 units, 8 processes ended)`, passed `hello`, and no unit process stayed.
+
 
 # T-313: A failed --export is silent
 

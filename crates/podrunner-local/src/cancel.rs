@@ -29,7 +29,15 @@ extern "C" fn on_signal(sig: libc::c_int) {
         }
     }
     SIGNALLED.store(true, Ordering::SeqCst);
-    if COUNT.fetch_add(1, Ordering::SeqCst) >= 2 {
+    let n = COUNT.fetch_add(1, Ordering::SeqCst);
+    if n == 0 && sig != libc::SIGHUP {
+        // The end of a unit can take a while: say what happens (T-312).
+        let m =
+            b"podrunner: stopping: the running job ends and its unit goes (a third signal ends podrunner at once)\n";
+        // SAFETY: write is async-signal-safe.
+        unsafe { libc::write(2, m.as_ptr().cast(), m.len()) };
+    }
+    if n >= 2 {
         // SAFETY: _exit is async-signal-safe.
         unsafe { libc::_exit(130) };
     }

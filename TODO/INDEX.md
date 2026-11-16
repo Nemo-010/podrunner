@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 27 open, 23 partial, 17 blocked, 247 done.**
+**314 entries: 26 open, 23 partial, 17 blocked, 248 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 10 | 3 | 53 | 67 |
-| P2 | 17 | 9 | 10 | 114 | 150 |
+| P2 | 16 | 9 | 10 | 115 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 27 | 23 | 17 | 247 | 314 |
+| **All** | 26 | 23 | 17 | 248 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -356,7 +356,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-309](later.md) | P1 | S | later | defect | blocked | A podvm unit reports ok for a failing test suite of npm 6 |
 | [T-310](later.md) | P2 | S | later | defect | open | The live log of a step comes only when the step ends |
 | [T-311](later.md) | P2 | S | later | defect | done | container: and docker:// steps on podvm are planned and then refused |
-| [T-312](later.md) | P2 | S | later | defect | open | A SIGKILL during a podvm job leaves the unit and its files |
+| [T-312](later.md) | P2 | S | later | defect | done | A SIGKILL during a podvm job leaves the unit and its files |
 | [T-313](later.md) | P2 | S | later | defect | done | A failed --export is silent |
 | [T-314](later.md) | P2 | S | later | defect | done | A relative trusted path is read from the current directory |
 | [T-315](later.md) | P2 | S | later | defect | partial | The runner images have no sudo and lack tools of ubuntu-latest |
