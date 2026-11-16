@@ -68,7 +68,7 @@ fn git(dir: &Path, args: &[&str]) -> Result<Vec<u8>, String> {
     Ok(out.stdout)
 }
 
-pub(crate) fn is_git_tree(dir: &Path) -> bool {
+pub fn is_git_tree(dir: &Path) -> bool {
     git(dir, &["rev-parse", "--is-inside-work-tree"]).is_ok_and(|o| o.starts_with(b"true"))
 }
 
@@ -155,6 +155,9 @@ pub fn tarball(dir: &Path, scratch: &Path, o: Options) -> Result<PathBuf, String
         b.append_path_with_name(dir.join(f), f).map_err(|e| format!("{}: {e}", dir.join(f).display()))
     };
     if !is_git_tree(dir) {
+        if !dir.is_dir() {
+            return Err(format!("{}: not a directory", dir.display()));
+        }
         let mut all = Vec::new();
         plain_files(dir, Path::new(""), &mut all);
         let mut list = Vec::new();

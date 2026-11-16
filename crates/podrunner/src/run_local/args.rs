@@ -79,6 +79,8 @@ pub(super) struct Args {
     pub(super) checkout: Option<PathBuf>,
     pub(super) checkout_head: bool,
     pub(super) with_git: bool,
+    /// `--no-git`: no `.git` in the checkout of a git tree (T-267).
+    pub(super) no_git: bool,
     pub(super) podnet: Option<PathBuf>,
     pub(super) allow: Vec<String>,
     pub(super) event: String,
@@ -211,6 +213,7 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
             "--checkout" => a.checkout = Some(PathBuf::from(value()?)),
             "--checkout-head" => a.checkout_head = true,
             "--with-git" => a.with_git = true,
+            "--no-git" => a.no_git = true,
             "--podnet" => a.podnet = Some(PathBuf::from(value()?)),
             "--allow" => a.allow.push(value()?),
             "--event" => a.event = value()?,
@@ -239,8 +242,11 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     if a.cache.is_some() && a.no_cache {
         return Err("--cache and --no-cache exclude each other".into());
     }
-    if (a.checkout_head || a.with_git) && a.checkout.is_none() {
-        return Err("--checkout-head and --with-git need --checkout".into());
+    if (a.checkout_head || a.with_git || a.no_git) && a.checkout.is_none() {
+        return Err("--checkout-head, --with-git and --no-git need --checkout".into());
+    }
+    if a.with_git && a.no_git {
+        return Err("--with-git and --no-git exclude each other".into());
     }
     // Each prints its own view: one at a time, as the usage gives (T-218).
     if [a.list, a.graph, a.validate, a.dry_run].iter().filter(|x| **x).count() > 1 {

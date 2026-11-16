@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**282 entries: 33 open, 20 partial, 12 blocked, 217 done.**
+**282 entries: 32 open, 20 partial, 12 blocked, 218 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 20 | 8 | 7 | 93 | 128 |
+| P2 | 19 | 8 | 7 | 94 | 128 |
 | P3 | 12 | 3 | 3 | 73 | 91 |
-| **All** | 33 | 20 | 12 | 217 | 282 |
+| **All** | 32 | 20 | 12 | 218 | 282 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -311,7 +311,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-264](later.md) | P2 | M | later | chore | open | Take podcrates `v0.55.0`: the sync of the issues and pod-lab |
 | [T-265](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` does not get the PATH, the proxy and the CA of the user |
 | [T-266](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` writes into the home of the user |
-| [T-267](later.md) | P2 | S | later | defect | open | `--checkout .` gives no `.git`, so a step that runs `git` fails |
+| [T-267](later.md) | P2 | S | later | defect | done | `--checkout .` gives no `.git`, so a step that runs `git` fails |
 | [T-268](later.md) | P2 | S | later | defect | done | The lock of the actions goes into the next checkout as a new file |
 | [T-269](later.md) | P2 | S | later | defect | done | The made-up token fails `actions/setup-python` with a 404, and the run names no fix |
 | [T-270](later.md) | P2 | S | later | defect | done | A Dockerfile action on `--runner-dir` starts the job and calls the docker of the host |

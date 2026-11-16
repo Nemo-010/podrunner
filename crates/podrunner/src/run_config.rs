@@ -34,6 +34,7 @@ const SAFE: &[&str] = &[
     "frozen",
     "checkout-head",
     "with-git",
+    "no-git",
     "force-event",
     "var-file",
     "input-file",

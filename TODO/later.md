@@ -4388,7 +4388,7 @@ Each job on `--runner-dir` gets a scratch `HOME` under its work directory, remov
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4405,6 +4405,10 @@ Finding A2 of the report of the QA (fatih/color). The reports are in the scratch
 ## Prove
 
 `cargo test -p podrunner-local`: A test: `--checkout` of a git tree gives a step `git rev-parse HEAD` equal to the commit of the run.
+
+## Done
+
+2026-11-16: `crates/podrunner/src/run_local.rs`: a checkout of a git tree has a `.git` by default; `--no-git` (also a key of a project file) leaves it out; `--with-git` and `--no-git` exclude each other (`run_local/args.rs`); `docs/cli.md`, `docs/local-mode.md`. Proven on this sandbox: with `--checkout .` only, a step `test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && git status --porcelain` passes on `--runner-dir`.
 
 # T-268: The lock of the actions goes into the next checkout as a new file
 

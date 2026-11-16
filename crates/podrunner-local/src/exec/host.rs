@@ -42,16 +42,24 @@ pub struct RunnerDir {
     /// The stop flag of the next job (T-132).
     stop: Option<crate::cancel::Stop>,
     /// The lock of the runner directory for this run (T-274).
-    _lock: std::fs::File,
+    _lock: Arc<std::fs::File>,
 }
 
 /// The lock file of a run in a runner directory.
 const LOCK: &str = ".podrunner-run.lock";
 
 /// Take the runner directory `dir` for this run: a second run on it fails
-/// at once, as two runners in one directory break each other (T-274).
-fn lock(dir: &std::path::Path) -> Result<std::fs::File, String> {
+/// at once, as two runners in one directory break each other (T-274). The
+/// executors of one process (the routes of `--platform`, the runs of
+/// `--watch`) share the lock, which holds until the process ends.
+fn lock(dir: &std::path::Path) -> Result<Arc<std::fs::File>, String> {
     use std::os::fd::AsRawFd;
+    static HELD: std::sync::Mutex<BTreeMap<PathBuf, Arc<std::fs::File>>> = std::sync::Mutex::new(BTreeMap::new());
+    let key = dir.canonicalize().unwrap_or_else(|_| dir.to_path_buf());
+    let mut held = HELD.lock().unwrap_or_else(|e| e.into_inner());
+    if let Some(f) = held.get(&key) {
+        return Ok(f.clone());
+    }
     let path = dir.join(LOCK);
     let f = std::fs::OpenOptions::new()
         .create(true)
@@ -66,6 +74,8 @@ fn lock(dir: &std::path::Path) -> Result<std::fs::File, String> {
             dir.display()
         ));
     }
+    let f = Arc::new(f);
+    held.insert(key, f.clone());
     Ok(f)
 }
 

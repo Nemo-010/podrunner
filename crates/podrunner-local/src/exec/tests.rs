@@ -94,19 +94,28 @@ fn a_runner_directory_refuses_a_job_with_containers() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-/// A second run on a runner directory that a run holds fails at once
-/// (T-274); the directory is free again when the first ends.
+/// A second run on a runner directory that another process holds fails at
+/// once (T-274); the executors of one process share the lock.
 #[test]
 fn a_second_run_on_a_runner_directory_fails_at_once() {
     let dir = std::env::temp_dir().join(format!("podrunner-local-lock-{}", std::process::id()));
     std::fs::create_dir_all(dir.join("bin")).unwrap();
     std::fs::write(dir.join("run.sh"), "").unwrap();
     std::fs::write(dir.join("bin/Runner.Listener"), "").unwrap();
-    let first = RunnerDir::new(dir.clone()).unwrap();
+    // Another process: flock(1) holds the lock file while it sleeps.
+    let mut other = std::process::Command::new("flock")
+        .args(["-x"])
+        .arg(dir.join(".podrunner-run.lock"))
+        .args(["sleep", "5"])
+        .spawn()
+        .unwrap();
+    std::thread::sleep(Duration::from_millis(500));
     let e = RunnerDir::new(dir.clone()).err().expect("the second run fails");
     assert!(e.contains("another run of podrunner"), "{e}");
+    other.wait().unwrap();
+    let first = RunnerDir::new(dir.clone()).unwrap();
+    assert!(RunnerDir::new(dir.clone()).is_ok(), "one process shares the lock");
     drop(first);
-    assert!(RunnerDir::new(dir.clone()).is_ok());
     let _ = std::fs::remove_dir_all(&dir);
 }
 
