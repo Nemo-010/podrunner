@@ -125,14 +125,13 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   the CI lanes the units ran on the loader family (Go finds no GOROOT; uv
   and ruff get EACCES): the rows of uv and ruff on podvm are `xfail`
   again (T-261).
-- The last runs: user-gate 43834454578 on `a5079e6` (images of
-  runner-image 43828189959, podvm beta.25): `confine:podvm`, `lab:check`,
-  and the rows of uv and ruff on podvm failed; each is fixed in the gate
-  script or the corpus since (`634e591`). `images/` changed at `7d62176`
-  (sudo, T-315): runner-image 43839111223 runs on it. When it is green,
-  dispatch user-gate with `-f version=0.1.0-beta.7 -f
-  images_run=RUN_ID`. runner-image, level2 and the gate of the release
-  commit run again before a release.
+- The last runs: user-gate 43845950155 green on `0954146` (podvm
+  beta.25, the images of runner-image 43839111223 of `7d62176`): each row
+  passes or is a known xfail in the six lanes; `confine:podvm` passes in
+  each. podvm beta.26 is pinned since (`af8c585`): runner-image
+  43854883507 runs on it; when it is green, dispatch user-gate with `-f
+  version=0.1.0-beta.7 -f images_run=43854883507`. runner-image, level2
+  and the gate of the release commit run again before a release.
 - Each push that changes the crates starts `runner-image.yml` (about 2
   hours, no concurrency group): cancel the runs of older commits with
   `actions_run_trigger` (`cancel_workflow_run`) when a newer one covers
