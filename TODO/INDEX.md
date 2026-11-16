@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 29 open, 23 partial, 17 blocked, 245 done.**
+**314 entries: 28 open, 23 partial, 17 blocked, 246 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 10 | 3 | 53 | 67 |
-| P2 | 19 | 9 | 10 | 112 | 150 |
+| P2 | 18 | 9 | 10 | 113 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 29 | 23 | 17 | 245 | 314 |
+| **All** | 28 | 23 | 17 | 246 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -349,7 +349,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-302](later.md) | P1 | S | later | defect | done | The egress hold of the installer refuses each run where user namespaces exist |
 | [T-303](later.md) | P2 | S | later | defect | done | An executor flag does not replace the executor of run.toml |
 | [T-304](later.md) | P2 | S | later | defect | open | The checkout of the tree answers 404 to later jobs of a run |
-| [T-305](later.md) | P2 | S | later | defect | open | actions/setup-python v7 fails with the made-up token |
+| [T-305](later.md) | P2 | S | later | defect | done | actions/setup-python v7 fails with the made-up token |
 | [T-306](later.md) | P2 | S | later | defect | open | On --runner-dir, a Python of setup-python cannot load libpython |
 | [T-307](later.md) | P2 | S | later | defect | done | The documents load the larger image into the wrong store |
 | [T-308](later.md) | P3 | M | later | defect | open | The P3 findings of the third QA, agent A |

@@ -15,18 +15,20 @@ use serde_json::json;
 /// The fix when a failed job gave the made-up `github.token` to a real API
 /// (T-254), else nothing.
 pub(super) fn token_hint<J>(logs: &[(J, String)]) -> String {
-    // A real API refuses the made-up token: the API with "Bad credentials",
-    // raw.githubusercontent.com with a 404 (the manifest of setup-python,
-    // T-269).
-    let refused = |log: &str| {
-        log.contains("Bad credentials")
-            || (log.contains("Unable to get manifest from https://raw.githubusercontent.com"))
-    };
     match logs.iter().any(|(_, log)| refused(log)) {
-        true => "podrunner: a job gave the made-up github.token to a real API, which refused it; fix: give a token with --github-token-env NAME (a token with read access to public repositories is enough); an empty NAME sends no token, which the manifests of setup-* take, but an action that requires a token input (actions/github-script) refuses it\n".into(),
+        true => format!("{TOKEN_HINT}\n"),
         false => String::new(),
     }
 }
+
+/// A real API refuses the made-up token: the API with "Bad credentials",
+/// raw.githubusercontent.com with a 404 (the manifest of setup-python,
+/// T-269).
+fn refused(log: &str) -> bool {
+    log.contains("Bad credentials") || log.contains("Unable to get manifest from https://raw.githubusercontent.com")
+}
+
+const TOKEN_HINT: &str = "podrunner: a job gave the made-up github.token to a real API, which refused it; fix: give a token with --github-token-env NAME (a token with read access to public repositories is enough); an empty NAME sends no token, which the manifests of setup-* take, but an action that requires a token input (actions/github-script) refuses it";
 
 /// `text` with each secret value as `***`.
 pub(super) fn mask(text: &str, secrets: &[String]) -> String {
@@ -39,8 +41,13 @@ pub(super) fn mask(text: &str, secrets: &[String]) -> String {
 
 /// The live sink: one line on stderr for each line of a log.
 pub(super) fn live(secrets: Vec<String>, as_json: bool) -> Live {
+    // The fix of a refused token comes at once, not after the run (T-305).
+    let hinted = std::sync::atomic::AtomicBool::new(false);
     Arc::new(move |job: &JobId, text: &str| {
         for line in mask(text, &secrets).lines() {
+            if refused(line) && !hinted.swap(true, std::sync::atomic::Ordering::Relaxed) {
+                eprintln!("{TOKEN_HINT}");
+            }
             if as_json {
                 eprintln!("{}", json!({ "event": "log", "job": job.to_string(), "line": line }));
             } else {

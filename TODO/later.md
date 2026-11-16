@@ -5510,7 +5510,7 @@ Read the life of the tarball of the checkout (where it is written, when it is re
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5527,6 +5527,11 @@ Do not give the made-up token where it changes an answer of a real host: for exa
 ## Prove
 
 A test of `setup-python` v7 on `--runner-dir` with no flag passes.
+
+## Done
+
+2026-11-16: the live sink prints the fix (`--github-token-env NAME`; an empty NAME for the manifests of setup-*) once, at the first line of a job that shows the refusal of the made-up token, and the end of the run gives it again (`logs::refused`, `TOKEN_HINT`). The made-up token stays (T-254: `actions/github-script` refuses an empty one).
+
 
 # T-306: On --runner-dir, a Python of setup-python cannot load libpython
 
