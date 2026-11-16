@@ -24,7 +24,9 @@ use crate::text::display;
 /// and mount (a driver with namespaces), chroot, KVM and Landlock.
 pub const HOST_ROWS: [&str; 5] = [
     "unshare(CLONE_NEWUSER)",
-    "mount(tmpfs,/mnt) in clone(NEWNS)",
+    // A mount in a user namespace with an ID map, as a driver with no root
+    // does it (T-283, PodUtils/podcrates#201).
+    pod_hostprobe::probes::USERNS_LEG,
     "chroot(/tmp)",
     "open(/dev/kvm, O_RDWR)",
     "landlock_create_ruleset(VERSION)",

@@ -164,8 +164,8 @@ jobs:
         # the user with no root. A new host class of a report is a new lane
         # (AGENTS.md, section 12). T-244, next: bind-denied (a seccomp
         # filter of bind and getsockname: `podvm lab run`, PodUtils/podvm#424)
-        # and proxy-only (egress through an authenticated proxy only:
-        # podnet), when podvm and podnet give them.
+        # and an authenticated proxy (podnet), when podvm and podnet give
+        # them.
         include:
           - lane: plain
             lab: sh scripts/lab/nonroot.sh --
@@ -178,6 +178,11 @@ jobs:
             executors: podvm,runner-dir
           - lane: inherited-fds
             lab: sh scripts/lab/nonroot.sh -- bash scripts/lab/inherited-fds.sh --
+            executors: podvm,runner-dir
+          # A host with an HTTPS proxy only, that intercepts TLS (the
+          # adversarial QA, T-265, T-284).
+          - lane: proxy-only
+            lab: sh scripts/lab/proxy-only.sh -- sh scripts/lab/nonroot.sh --
             executors: podvm,runner-dir
           # podvm 0.2.0-beta.24 makes the class around podrunner only (the
           # local server of the lane binds): the install, then doctor and a
@@ -266,7 +271,7 @@ jobs:
           set +e
           # The lanes of the matrix of the job lanes: a lane with no results
           # fails the gate.
-          python3 -I scripts/user-gate.py summary --lanes plain,small-tmp,userns-off,inherited-fds,bind-denied results > table.md
+          python3 -I scripts/user-gate.py summary --lanes plain,small-tmp,userns-off,inherited-fds,proxy-only,bind-denied results > table.md
           rc=$?
           cat table.md | tee -a "$GITHUB_STEP_SUMMARY"
           exit "$rc"

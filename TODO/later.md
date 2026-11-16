@@ -4848,7 +4848,7 @@ Finding F18 of the report of the QA; the code of the probe is in podcrates. The 
 
 ## Approach
 
-COORD-067 (GitHub #191) asks podcrates for a mount and a chroot probe in a user namespace with an ID map. podrunner tried `run_probe(name, ns_flags | CLONE_NEWUSER)`: the rows stay EPERM, as an `execve` with no uid map drops the capabilities of the namespace (measured as a user with no root on this sandbox). Then take the tag and show the new rows in `doctor`.
+COORD-067 (GitHub #191) asks podcrates for a mount and a chroot probe in a user namespace with an ID map. podrunner tried `run_probe(name, ns_flags | CLONE_NEWUSER)`: the rows stay EPERM, as an `execve` with no uid map drops the capabilities of the namespace (measured as a user with no root on this sandbox). podcrates answered (PodUtils/podcrates#201): the row `mount(tmpfs,/tmp) in unshare(NEWUSER+maps,NEWNS)` (`USERNS_LEG`) is in `v0.52.0`, and `doctor` shows it now (`crates/podrunner/src/doctor.rs`; as qa2 on this sandbox: `ok`). The chroot row comes in the next tag; then `doctor` shows it in place of `chroot(/tmp)`.
 
 ## Prove
 
@@ -4856,7 +4856,7 @@ COORD-067 (GitHub #191) asks podcrates for a mount and a chroot probe in a user 
 
 ## Blocker
 
-2026-11-16: waits for the answer of podcrates to COORD-067 (GitHub #191).
+2026-11-16: the mount row is done; the chroot row `chroot(/tmp) in unshare(NEWUSER+maps)` waits for the next tag of podcrates (PodUtils/podcrates#201, T-264).
 
 # T-284: The user-path gate has no lane of a host with a proxy only
 

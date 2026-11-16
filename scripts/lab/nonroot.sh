@@ -9,4 +9,7 @@ id "$user" >/dev/null 2>&1 || sudo useradd -m -s /bin/sh "$user"
 caps=$(sudo -u "$user" sh -c 'grep CapEff /proc/self/status' | awk '{print $2}')
 [ "$caps" = "0000000000000000" ] || { echo "lab nonroot: $user has CapEff $caps" >&2; exit 70; }
 echo "lab nonroot: as $user, CapEff 0" >&2
-exec sudo -u "$user" --preserve-env=PATH,TMPDIR,PODRUNNER_GATE_TOKEN -- "$@"
+# The proxy and the CA of proxy-only.sh stay.
+keep=PATH,TMPDIR,PODRUNNER_GATE_TOKEN,HTTPS_PROXY,HTTP_PROXY,https_proxy,http_proxy,NO_PROXY,no_proxy
+keep=$keep,SSL_CERT_FILE,NODE_EXTRA_CA_CERTS,GIT_SSL_CAINFO,REQUESTS_CA_BUNDLE,CURL_CA_BUNDLE
+exec sudo -u "$user" --preserve-env="$keep" -- "$@"
