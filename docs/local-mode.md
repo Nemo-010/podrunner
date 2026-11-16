@@ -21,7 +21,10 @@ case forms), `SSL_CERT_FILE`, `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`,
 `GIT_SSL_CAINFO`, `REQUESTS_CA_BUNDLE` and `CURL_CA_BUNDLE`. Its
 `NO_PROXY` always holds the loopback, where the broker of the run is.
 `podrunner doctor --run` names the variables that a job takes. Set each
-one before the run; give another variable with `--env NAME=VALUE`.
+one before the run; give another variable with `--env NAME=VALUE`. With a
+proxy variable, a job also gets `NODE_USE_ENV_PROXY=1`, so that `fetch` of
+Node uses the proxy, and a `node20` action runs on Node 24, as on GitHub
+(T-299).
 
 A job in a podvm unit with no `--podnet` (the unit has the network of the
 host) takes the same proxy variables; each CA file goes into the unit as a
@@ -37,6 +40,15 @@ installer puts it in `~/.local/share/podrunner`), the work directory is
 `podrunner-work/NAME-HASH` in the directory before that name (for example
 `~/podrunner-work/2.338.2-1a2b3c4d`). Some tools refuse a path with such a
 name: the `send` module of Node gives 404 for it (T-255).
+
+On `--runner-dir`, the Pythons of `actions/setup-python` find
+`libpython` at the path of the tool cache of GitHub
+(`/opt/hostedtoolcache`), which a user with no root cannot make. A step
+that runs the Python of the tool cache with `update-environment: false`
+then fails with `error while loading shared libraries: libpython3.X.so`.
+Give the path of the libraries:
+`--env LD_LIBRARY_PATH=WORK/_tool/Python/VERSION/x64/lib` (WORK is the
+work directory above), or keep `update-environment` on (T-306).
 
 ## The runner images
 

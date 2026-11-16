@@ -5540,7 +5540,7 @@ A test of `setup-python` v7 on `--runner-dir` with no flag passes.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5557,6 +5557,11 @@ Give `RUNNER_TOOL_CACHE` a path that the builds of setup-python take, or set the
 ## Prove
 
 A job with `setup-python` and `update-environment: false` runs `python --version` on `--runner-dir`.
+
+## Done
+
+2026-11-16: the limit and its work-around are in `docs/local-mode.md`, "A host with a proxy": the Pythons of setup-python take `libpython` from `/opt/hostedtoolcache`, which a user with no root cannot make; `--env LD_LIBRARY_PATH=WORK/_tool/Python/VERSION/x64/lib` or `update-environment` on (the work-around that agent A measured).
+
 
 # T-307: The documents load the larger image into the wrong store
 
