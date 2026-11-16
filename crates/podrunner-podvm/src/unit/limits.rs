@@ -43,6 +43,20 @@ pub(super) fn ulimit_args(
     a
 }
 
+/// The variables of the payload that the runner needs in a unit.
+pub(super) fn runner_env(env: &mut std::collections::BTreeMap<String, String>) {
+    // The .NET runner dies at start under a small RLIMIT_FSIZE with W^X on.
+    env.insert("DOTNET_EnableWriteXorExecute".into(), "0".into());
+    // On the namespace rung of a user with no root, the payload is uid 0 of a
+    // user namespace, and the runner refuses root without this (podvm
+    // 0.2.0-beta.25, T-301).
+    env.insert("RUNNER_ALLOW_RUNASROOT".into(), "1".into());
+    // Root there maps one uid only: a chown of tar fails with EINVAL, and npm
+    // 6 runs its scripts as the unmapped `nobody` (T-301, T-317).
+    env.insert("TAR_OPTIONS".into(), "--no-same-owner".into());
+    env.insert("npm_config_unsafe_perm".into(), "true".into());
+}
+
 #[cfg(test)]
 mod tests {
     use podrunner_unit::limits::Limits;
