@@ -54,12 +54,16 @@ work directory above), or keep `update-environment` on (T-306).
 
 The runner images are Ubuntu 24.04 with the official runner, not the
 image of `ubuntu-latest`. A job that needs a tool that they do not have
-installs it in a step (`sudo apt-get install -y TOOL`), or runs on
-`--runner-dir` with the tools of the host (T-315).
+installs it in a step, or runs on `--runner-dir` with the tools of the
+host (T-315). The images have `sudo` with no password, as ubuntu-latest,
+and it works in a guest of `--microvm` or `--incus`. In a podvm unit it
+fails: a unit of a user with no root maps one uid (the user of the job,
+or no user namespace at all), so no process becomes root; install a tool
+into a directory of the job, or use a guest.
 
 | Image | Tools |
 | --- | --- |
-| base (`runner-ARCH.tar`) | bash, curl, git, jq, sudo (no password), tar, gzip, unzip, zstd, iptables |
+| base (`runner-ARCH.tar`) | bash, curl, git, jq, sudo (no password; a guest only), tar, gzip, unzip, zstd, iptables |
 | larger (`runner-full-ARCH.tar`, `--full`) | the base, and `images/runner/full.txt`: build-essential, cmake, pkg-config, libssl-dev, python3 with pip and venv, nodejs, npm, zip, xz-utils, bzip2, rsync, openssh-client, wget, file, patch |
 
 Neither image has Docker, Rust (`cargo`, `rustup`), Go, Java, .NET or

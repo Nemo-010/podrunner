@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 24 open, 24 partial, 14 blocked, 252 done.**
+**314 entries: 24 open, 23 partial, 14 blocked, 253 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 10 | 2 | 54 | 67 |
-| P2 | 14 | 10 | 8 | 118 | 150 |
+| P2 | 14 | 9 | 8 | 119 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 24 | 24 | 14 | 252 | 314 |
+| **All** | 24 | 23 | 14 | 253 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -359,6 +359,6 @@ acceptance, later The crate dependencies later than v1.
 | [T-312](later.md) | P2 | S | later | defect | done | A SIGKILL during a podvm job leaves the unit and its files |
 | [T-313](later.md) | P2 | S | later | defect | done | A failed --export is silent |
 | [T-314](later.md) | P2 | S | later | defect | done | A relative trusted path is read from the current directory |
-| [T-315](later.md) | P2 | S | later | defect | partial | The runner images have no sudo and lack tools of ubuntu-latest |
+| [T-315](later.md) | P2 | S | later | defect | done | The runner images have no sudo and lack tools of ubuntu-latest |
 | [T-316](later.md) | P3 | M | later | defect | open | The P3 findings of the third QA, agent B |
 | [T-317](later.md) | P2 | S | later | defect | done | On the namespace rung of podvm the job runs as root of a one-uid namespace |
