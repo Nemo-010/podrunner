@@ -84,6 +84,10 @@ jobs:
         run: |
           set -eu
           sh scripts/test-install.sh
+      # T-247: the newest notes of a release name the level of the proof of
+      # each claim.
+      - name: The levels of proof of the notes
+        run: sh scripts/check-notes.sh --latest
       - name: No agent attribution line in a commit
         env:
           BEFORE: ${{ github.event.before }}

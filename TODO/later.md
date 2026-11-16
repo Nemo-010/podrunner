@@ -3912,7 +3912,7 @@ State (2026-11-16): the first QA, two agents on `12cb64e` on this sandbox (`--ru
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -3929,6 +3929,10 @@ Each claim of the notes names its level: CI on GitHub-hosted runners, a lane of 
 ## Prove
 
 `sh scripts/agent/check.sh`: a note of a release with no level of proof fails the check.
+
+## Done
+
+2026-11-16: `scripts/check-notes.sh` refuses notes with no section "What is proven in CI", "What is proven on a constrained host as a user" or "What is not proven", or with an empty "What is not proven". `release.yml` checks the notes of the version; the gate and `scripts/agent/check.sh` check the newest notes. Measured: the notes of beta.7 pass; the notes of beta.6 (no section of a user host) and a file with an empty "What is not proven" fail. Proven in CI: the next gate run.
 
 # T-248: The help and the manual of podrunner from the shared crate of PodUtils
 

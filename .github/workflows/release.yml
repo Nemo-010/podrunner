@@ -83,6 +83,7 @@ jobs:
             # stops after the tag cannot try again.
             notes="docs/releases/v$VERSION.md"
             [ -f "$notes" ] || { echo "no $notes: write the notes of the release first"; exit 1; }
+            sh scripts/check-notes.sh "$notes"
             if [ -n "$NO_USER_GATE" ]; then
               grep -q "user-path gate: not run" "$notes" ||
                 { echo "no_user_gate is set: $notes must say 'user-path gate: not run' and why"; exit 1; }

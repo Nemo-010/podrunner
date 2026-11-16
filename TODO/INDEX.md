@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**296 entries: 23 open, 23 partial, 15 blocked, 235 done.**
+**296 entries: 22 open, 23 partial, 15 blocked, 236 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 15 | 10 | 9 | 104 | 138 |
+| P2 | 14 | 10 | 9 | 105 | 138 |
 | P3 | 7 | 4 | 4 | 80 | 95 |
-| **All** | 23 | 23 | 15 | 235 | 296 |
+| **All** | 22 | 23 | 15 | 236 | 296 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -294,7 +294,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-244](later.md) | P1 | M | later | release | blocked | The host lanes of the user-path gate |
 | [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |
 | [T-246](later.md) | P1 | S | later | release | partial | An adversarial QA before each release |
-| [T-247](later.md) | P2 | S | later | release | open | The notes of a release name the level of the proof of each claim |
+| [T-247](later.md) | P2 | S | later | release | done | The notes of a release name the level of the proof of each claim |
 | [T-248](later.md) | P1 | M | later | feature | blocked | The help and the manual of podrunner from the shared crate of PodUtils |
 | [T-249](later.md) | P1 | M | later | feature | open | The installer on each host class, and the shared core of podcrates |
 | [T-250](later.md) | P2 | S | later | chore | blocked | The state of each issue comes from the record by a tool |
