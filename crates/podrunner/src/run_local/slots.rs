@@ -44,8 +44,13 @@ pub(super) fn build(
                             .map_err(|e| super::fail(pod_core::failure::Class::Config, e))?;
                     }
                 }
-                Box::new(inspect::DryRun { host, podvm, actions: common.actions.clone(), pins: common.pins.clone() })
-                    as Box<dyn Executor>
+                Box::new(inspect::DryRun {
+                    host,
+                    podvm,
+                    actions: common.actions.clone(),
+                    pins: common.pins.clone(),
+                    tree: common.checkout.clone(),
+                }) as Box<dyn Executor>
             }
             false => routes::build(a, common, &dir)?,
         };

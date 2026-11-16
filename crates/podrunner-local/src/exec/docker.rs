@@ -29,15 +29,56 @@ fn action_text(dir: &Path, repo: &str, commit: &str, path: &str) -> Option<Strin
     None
 }
 
-/// Each Docker action that `uses` (`OWNER/REPO[/PATH]@REF`) is or holds,
-/// to the depth of composite actions that GitHub allows (10).
-fn docker_of(uses: &str, dir: &Path, pins: &BTreeMap<String, String>, depth: u8, out: &mut Vec<String>) {
-    let Some((left, r)) = uses.rsplit_once('@') else { return };
-    let mut parts = left.splitn(3, '/');
-    let (Some(owner), Some(repo)) = (parts.next(), parts.next()) else { return };
-    let repo = format!("{owner}/{repo}");
-    let Some(commit) = pins.get(&format!("{repo}@{r}")) else { return };
-    let Some(text) = action_text(dir, &repo, commit, parts.next().unwrap_or("")) else { return };
+/// The text of `action.yml` (or `action.yaml`) at `path` (`./PATH`) of the
+/// tarball of the tree of `--checkout`, which has no top directory (T-287).
+fn tree_action_text(tree: &Path, path: &str) -> Option<String> {
+    let file = std::fs::File::open(tree).ok()?;
+    let mut tar = tar::Archive::new(flate2::read::GzDecoder::new(file));
+    let want: Vec<&str> = path.split('/').filter(|c| !c.is_empty() && *c != ".").collect();
+    for entry in tar.entries().ok()? {
+        let mut entry = entry.ok()?;
+        let name = entry.path().ok()?.to_string_lossy().into_owned();
+        let parts: Vec<&str> = name.split('/').filter(|c| !c.is_empty() && *c != ".").collect();
+        let Some((file, dirs)) = parts.split_last() else { continue };
+        if dirs == want.as_slice() && (*file == "action.yml" || *file == "action.yaml") {
+            let mut text = String::new();
+            entry.read_to_string(&mut text).ok()?;
+            return Some(text);
+        }
+    }
+    None
+}
+
+/// Where the actions of a job are: the store and its pins, and the tarball
+/// of the tree for a `./` action.
+pub struct Sources<'a> {
+    pub store: Option<&'a Path>,
+    pub pins: &'a BTreeMap<String, String>,
+    pub tree: Option<&'a Path>,
+}
+
+/// Each Docker action that `uses` (`OWNER/REPO[/PATH]@REF`, or `./PATH` of
+/// the tree) is or holds, to the depth of composite actions that GitHub
+/// allows (10).
+fn docker_of(uses: &str, src: &Sources, depth: u8, out: &mut Vec<String>) {
+    let text = match uses.strip_prefix("./") {
+        // With no tarball of a tree, the tree is the current directory.
+        Some(path) => match src.tree {
+            Some(t) => tree_action_text(t, path),
+            None => {
+                ["action.yml", "action.yaml"].iter().find_map(|f| std::fs::read_to_string(Path::new(path).join(f)).ok())
+            }
+        },
+        None => (|| {
+            let (left, r) = uses.rsplit_once('@')?;
+            let mut parts = left.splitn(3, '/');
+            let (owner, repo) = (parts.next()?, parts.next()?);
+            let repo = format!("{owner}/{repo}");
+            let commit = src.pins.get(&format!("{repo}@{r}"))?;
+            action_text(src.store?, &repo, commit, parts.next().unwrap_or(""))
+        })(),
+    };
+    let Some(text) = text else { return };
     let Ok(root) = load(&text, Limits::default()) else { return };
     let Some(runs) = root.get("runs") else { return };
     match runs.get("using").map(|n| &n.kind) {
@@ -48,8 +89,7 @@ fn docker_of(uses: &str, dir: &Path, pins: &BTreeMap<String, String>, depth: u8,
                 if let Some(Kind::String(u)) = s.get("uses").map(|n| &n.kind) {
                     match u.strip_prefix("docker://") {
                         Some(_) => out.push(u.clone()),
-                        None if !u.starts_with("./") => docker_of(u, dir, pins, depth + 1, out),
-                        None => {}
+                        None => docker_of(u, src, depth + 1, out),
                     }
                 }
             }
@@ -58,14 +98,20 @@ fn docker_of(uses: &str, dir: &Path, pins: &BTreeMap<String, String>, depth: u8,
     }
 }
 
-/// Each Docker action of the steps of the job `message`, with the store of
-/// the actions `dir` and the commit of each `OWNER/REPO@REF` (`pins`).
-pub fn docker_actions(message: &crate::Job, dir: &Path, pins: &BTreeMap<String, String>) -> Vec<String> {
+/// Each Docker action of the steps of the job `message`.
+pub fn docker_actions(message: &crate::Job, src: &Sources) -> Vec<String> {
     let mut out = Vec::new();
     let steps = message.overrides.get("steps").and_then(|s| s.as_array()).cloned().unwrap_or_default();
     for s in &steps {
         let r = &s["reference"];
-        if r["type"] != "repository" || r["repositoryType"] != "GitHub" {
+        if r["type"] != "repository" {
+            continue;
+        }
+        if r["repositoryType"] == "self" {
+            if let Some(p) = r["path"].as_str() {
+                let p = if p.starts_with("./") { p.to_string() } else { format!("./{p}") };
+                docker_of(&p, src, 0, &mut out);
+            }
             continue;
         }
         let (Some(name), Some(git_ref)) = (r["name"].as_str(), r["ref"].as_str()) else { continue };
@@ -73,15 +119,15 @@ pub fn docker_actions(message: &crate::Job, dir: &Path, pins: &BTreeMap<String, 
             Some(p) => format!("{name}/{p}@{git_ref}"),
             None => format!("{name}@{git_ref}"),
         };
-        docker_of(&uses, dir, pins, 0, &mut out);
+        docker_of(&uses, src, 0, &mut out);
     }
     out.dedup();
     out
 }
 
 /// The refusal of a job with Docker actions on a runner directory, if any.
-pub fn refusal(message: &crate::Job, dir: Option<&Path>, pins: &BTreeMap<String, String>) -> Option<String> {
-    let found = docker_actions(message, dir?, pins);
+pub fn refusal(message: &crate::Job, src: &Sources) -> Option<String> {
+    let found = docker_actions(message, src);
     (!found.is_empty()).then(|| {
         format!(
             "the job uses the Docker action {}: run it in a unit (--podvm, or --microvm with --engine), not on a runner directory",
@@ -129,12 +175,43 @@ mod tests {
         };
         let mut job = crate::Job::scripts("a", &["true"]);
         job.overrides.insert("steps".into(), serde_json::json!([step("o/n", "v2", None)]));
-        assert!(refusal(&job, Some(&dir), &pins).is_none(), "a node action passes");
+        assert!(
+            refusal(&job, &Sources { store: Some(&dir), pins: &pins, tree: None }).is_none(),
+            "a node action passes"
+        );
         job.overrides.insert("steps".into(), serde_json::json!([step("o/c", "v3", Some("sub"))]));
-        let e = refusal(&job, Some(&dir), &pins).expect("a composite with a Docker action");
+        let e = refusal(&job, &Sources { store: Some(&dir), pins: &pins, tree: None })
+            .expect("a composite with a Docker action");
         assert!(e.contains("o/d@v1") && e.contains("--podvm"), "{e}");
         job.overrides.insert("steps".into(), serde_json::json!([step("o/d", "v1", None)]));
-        assert!(refusal(&job, Some(&dir), &pins).is_some());
+        assert!(refusal(&job, &Sources { store: Some(&dir), pins: &pins, tree: None }).is_some());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_docker_action_of_the_tree_is_found() {
+        let dir = std::env::temp_dir().join(format!("podrunner-docker-tree-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let a = dir.join("tree/.github/actions");
+        std::fs::create_dir_all(a.join("dact")).unwrap();
+        std::fs::create_dir_all(a.join("comp")).unwrap();
+        std::fs::write(a.join("dact/action.yml"), "runs:\n  using: docker\n  image: Dockerfile\n").unwrap();
+        std::fs::write(
+            a.join("comp/action.yml"),
+            "runs:\n  using: composite\n  steps:\n    - uses: docker://alpine@sha256:00\n",
+        )
+        .unwrap();
+        let tree = crate::tree::tarball(&dir.join("tree"), &dir.join("scratch"), Default::default()).unwrap();
+        let pins = BTreeMap::new();
+        let src = Sources { store: None, pins: &pins, tree: Some(&tree) };
+        for path in ["./.github/actions/dact", "./.github/actions/comp"] {
+            let mut job = crate::Job::scripts("a", &["true"]);
+            job.overrides.insert(
+                "steps".into(),
+                serde_json::json!([{ "reference": { "type": "repository", "repositoryType": "self", "path": path } }]),
+            );
+            assert!(refusal(&job, &src).is_some(), "{path}");
+        }
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

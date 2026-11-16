@@ -23,7 +23,7 @@ pub(super) fn token_hint<J>(logs: &[(J, String)]) -> String {
             || (log.contains("Unable to get manifest from https://raw.githubusercontent.com"))
     };
     match logs.iter().any(|(_, log)| refused(log)) {
-        true => "podrunner: a job gave the made-up github.token to a real API, which refused it; fix: give a token with --github-token-env NAME, or for public data only an empty NAME, which sends no token\n".into(),
+        true => "podrunner: a job gave the made-up github.token to a real API, which refused it; fix: give a token with --github-token-env NAME (a token with read access to public repositories is enough); an empty NAME sends no token, which the manifests of setup-* take, but an action that requires a token input (actions/github-script) refuses it\n".into(),
         false => String::new(),
     }
 }

@@ -4954,3 +4954,61 @@ Write the end `cancelled` of each cell that the drive cancels into the ends of t
 ## Done
 
 2026-11-16: `crates/podrunner-local/src/drive.rs` (`cancel_the_rest`) and `rerun.rs` (`note_end`): each cell that a stop cancelled before it ran is an end of the run, and so in `state.json`; test `a_signal_cancels_the_job_that_runs_and_each_job_after_it`.
+
+# T-287: An empty token does not reach a job of `permissions: {}`, and the hint names a fix that fails
+
+**Source:** the second adversarial QA of `f5d1de7`, agent A, finding F1 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+python-humanize/humanize has `permissions: {}` at the top of its workflow. `--github-token-env NAME` with an empty NAME, the fix that the run named (T-269), did not reach such a job, so `actions/setup-python` still sent the made-up token and failed; and `actions/github-script` (in `codecov/codecov-action`) refuses an empty token as its required input.
+
+## Premise
+
+Finding F1 of the report of the second QA (a run as a user with no root on this sandbox).
+
+## Approach
+
+An empty token is no credential: a job of `permissions: {}` takes it in place of the made-up one. The hint says that a token with read access to public repositories is the fix, and that an empty one serves the manifests of `setup-*` only.
+
+## Prove
+
+`cargo test -p podrunner-local --lib permissions_none`
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/lib.rs` (`broker_job`): an empty token reaches a job of `permissions: {}`; `crates/podrunner/src/run_local/logs.rs` (`token_hint`): the text; test `the_secrets_and_the_token_are_secret_variables_and_permissions_none_gets_no_real_token`.
+
+# T-288: A Docker action of the tree on `--runner-dir` starts its job
+
+**Source:** the second adversarial QA of `f5d1de7`, agent A, finding F2 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+T-270 refused a Docker action of a repository (`OWNER/REPO@REF`) on `--runner-dir`, but not a `./` action of the tree with `runs.using: docker`, nor a `./` composite action with a `docker://` step: the dry run planned the job, and the run called the docker of the host.
+
+## Premise
+
+Finding F2 of the report of the second QA.
+
+## Approach
+
+`exec/docker.rs` reads the `action.yml` of a `./` action from the tarball of the tree of `--checkout` (or from the current directory with no `--checkout`), and follows a composite action into `./` and remote actions.
+
+## Prove
+
+`cargo test -p podrunner-local --lib a_docker_action_of_the_tree_is_found`
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/exec/docker.rs` (`Sources`, `tree_action_text`), used by `exec/host.rs` and the dry run (`run_local/inspect.rs`, `slots.rs`); test `a_docker_action_of_the_tree_is_found`.

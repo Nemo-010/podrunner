@@ -107,6 +107,8 @@ pub(super) struct DryRun {
     /// The store of the actions and the pins, to find a Docker action (T-270).
     pub actions: Option<std::path::PathBuf>,
     pub pins: std::collections::BTreeMap<String, String>,
+    /// The tarball of the tree of `--checkout`, for a `./` action.
+    pub tree: Option<std::path::PathBuf>,
 }
 
 impl Executor for DryRun {
@@ -118,7 +120,14 @@ impl Executor for DryRun {
             return Err("the job has services: a podvm unit of the local mode is on the host network, so it runs no services; run it with --microvm and --engine".into());
         }
         if self.host
-            && let Some(e) = podrunner_local::exec::docker::refusal(&message, self.actions.as_deref(), &self.pins)
+            && let Some(e) = podrunner_local::exec::docker::refusal(
+                &message,
+                &podrunner_local::exec::docker::Sources {
+                    store: self.actions.as_deref(),
+                    pins: &self.pins,
+                    tree: self.tree.as_deref(),
+                },
+            )
         {
             return Err(e);
         }

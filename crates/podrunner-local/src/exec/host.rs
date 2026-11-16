@@ -177,7 +177,14 @@ impl RunnerDir {
         if needs_containers(&message) {
             return Err("the job needs containers: run it in a unit (--podvm, or --microvm with --engine), not on a runner directory".into());
         }
-        if let Some(e) = super::docker::refusal(&message, self.actions.as_deref(), &self.pins) {
+        if let Some(e) = super::docker::refusal(
+            &message,
+            &super::docker::Sources {
+                store: self.actions.as_deref(),
+                pins: &self.pins,
+                tree: self.checkout.as_deref(),
+            },
+        ) {
             return Err(e);
         }
         let broker = Broker::start().map_err(super::broker_error)?;

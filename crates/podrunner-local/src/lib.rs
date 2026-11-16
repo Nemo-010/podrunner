@@ -356,7 +356,10 @@ impl LocalSource {
         }
         let none = |p: Option<&pod_actions_workflow::Node>| matches!(p.map(|n| &n.kind), Some(pod_actions_workflow::Kind::Map(e)) if e.is_empty());
         let permissions = w.job(id).and_then(|j| j.permissions.as_ref()).or(w.permissions.as_ref());
-        b.token = if none(permissions) { None } else { self.token.clone() };
+        // An empty token is no credential: a job of `permissions: {}` takes
+        // it too, in place of the made-up one (T-287).
+        let empty = self.token.as_deref() == Some("");
+        b.token = if none(permissions) && !empty { None } else { self.token.clone() };
         if oidc::may_ask(permissions) {
             b.id_token = Some(oidc::claims(&self.github, &cell.job, self.environment_of(job)?.as_deref()));
         }

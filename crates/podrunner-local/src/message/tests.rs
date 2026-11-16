@@ -226,6 +226,9 @@ fn the_secrets_and_the_token_are_secret_variables_and_permissions_none_gets_no_r
     let v = vars(&s, "b.0");
     assert_eq!(v["system.github.token"]["value"], podrunner_broker_fake::message::TOKEN, "permissions: {{}}");
     assert_eq!(v["API_KEY"]["isSecret"], true);
+    // An empty token is no credential: `permissions: {}` takes it (T-287).
+    s.set_secrets(vec![], Some(String::new()));
+    assert_eq!(vars(&s, "b.0")["system.github.token"]["value"], "", "an empty token, not the made-up one");
 }
 
 #[test]

@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**283 entries: 21 open, 23 partial, 13 blocked, 226 done.**
+**285 entries: 21 open, 23 partial, 13 blocked, 228 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 15 | 10 | 7 | 96 | 128 |
+| P2 | 15 | 10 | 7 | 98 | 130 |
 | P3 | 5 | 4 | 4 | 79 | 92 |
-| **All** | 21 | 23 | 13 | 226 | 283 |
+| **All** | 21 | 23 | 13 | 228 | 285 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -331,3 +331,5 @@ acceptance, later The crate dependencies later than v1.
 | [T-284](later.md) | P2 | S | later | defect | partial | The user-path gate has no lane of a host with a proxy only |
 | [T-285](later.md) | P2 | M | later | defect | open | A Dockerfile action on `--podvm` gets no container hooks |
 | [T-286](later.md) | P3 | S | later | defect | done | A cell that a signal cancelled is not in `state.json` |
+| [T-287](later.md) | P2 | S | later | defect | done | An empty token does not reach a job of `permissions: {}`, and the hint names a fix that fails |
+| [T-288](later.md) | P2 | S | later | defect | done | A Docker action of the tree on `--runner-dir` starts its job |

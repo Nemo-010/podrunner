@@ -230,7 +230,7 @@ fn the_values_of_the_github_context_are_checked() {
 #[test]
 fn a_dry_run_on_podvm_refuses_services() {
     use podrunner_local::drive::Executor;
-    let mut dry = inspect::DryRun { host: false, podvm: true, actions: None, pins: Default::default() };
+    let mut dry = inspect::DryRun { host: false, podvm: true, actions: None, pins: Default::default(), tree: None };
     let mut job = podrunner_local::Job::scripts("a", &["true"]);
     let id = podrunner_schema::JobId::new("a.0").unwrap();
     assert!(dry.run(&id, job.clone(), std::time::Duration::from_secs(1)).is_ok());
