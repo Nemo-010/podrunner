@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**281 entries: 36 open, 20 partial, 12 blocked, 213 done.**
+**281 entries: 34 open, 20 partial, 12 blocked, 215 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 23 | 8 | 7 | 89 | 127 |
+| P2 | 21 | 8 | 7 | 91 | 127 |
 | P3 | 12 | 3 | 3 | 73 | 91 |
-| **All** | 36 | 20 | 12 | 213 | 281 |
+| **All** | 34 | 20 | 12 | 215 | 281 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -317,8 +317,8 @@ acceptance, later The crate dependencies later than v1.
 | [T-270](later.md) | P2 | S | later | defect | open | A Dockerfile action on `--runner-dir` starts the job and calls the docker of the host |
 | [T-271](later.md) | P2 | S | later | defect | open | `--job` does not select a need that calls a reusable workflow |
 | [T-272](later.md) | P2 | S | later | defect | open | `--dry-run` on `--podvm` plans a `services:` job and does not check the image |
-| [T-273](later.md) | P2 | S | later | defect | open | A SIGHUP leaves the runner running and breaks the runner directory |
-| [T-274](later.md) | P2 | S | later | defect | open | Two runs on one runner directory at the same time break each other |
+| [T-273](later.md) | P2 | S | later | defect | done | A SIGHUP leaves the runner running and breaks the runner directory |
+| [T-274](later.md) | P2 | S | later | defect | done | Two runs on one runner directory at the same time break each other |
 | [T-275](later.md) | P1 | S | later | defect | done | A project file reads a host file through a symbolic link |
 | [T-276](later.md) | P1 | S | later | defect | done | `.secrets` of a checkout goes into the workspace of each job |
 | [T-277](later.md) | P3 | M | later | defect | open | Some refusals name the wrong cause or a fix that does not work |

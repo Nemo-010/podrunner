@@ -41,6 +41,32 @@ pub struct RunnerDir {
     pub export: Option<PathBuf>,
     /// The stop flag of the next job (T-132).
     stop: Option<crate::cancel::Stop>,
+    /// The lock of the runner directory for this run (T-274).
+    _lock: std::fs::File,
+}
+
+/// The lock file of a run in a runner directory.
+const LOCK: &str = ".podrunner-run.lock";
+
+/// Take the runner directory `dir` for this run: a second run on it fails
+/// at once, as two runners in one directory break each other (T-274).
+fn lock(dir: &std::path::Path) -> Result<std::fs::File, String> {
+    use std::os::fd::AsRawFd;
+    let path = dir.join(LOCK);
+    let f = std::fs::OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(&path)
+        .map_err(|e| format!("{}: {e}", path.display()))?;
+    // SAFETY: flock of a descriptor that `f` owns.
+    if unsafe { libc::flock(f.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
+        return Err(format!(
+            "{}: another run of podrunner uses this runner directory; wait for it to end, or give each run its own --runner-dir",
+            dir.display()
+        ));
+    }
+    Ok(f)
 }
 
 impl RunnerDir {
@@ -48,7 +74,9 @@ impl RunnerDir {
         if !dir.join("run.sh").is_file() || !dir.join("bin/Runner.Listener").is_file() {
             return Err(format!("{}: no unpacked runner (run.sh, bin/Runner.Listener)", dir.display()));
         }
+        let lock = lock(&dir)?;
         Ok(RunnerDir {
+            _lock: lock,
             dir,
             logs: Vec::new(),
             actions: None,
@@ -121,6 +149,9 @@ impl RunnerDir {
         broker.queue(message);
         // Each job starts in a fresh work directory (T-146).
         crate::work::clear(&self.dir.join("_work"))?;
+        // The pages of a runner that a signal ended make the next runner
+        // fail ("The file ... already exists", T-273).
+        crate::work::clear(&self.dir.join("_diag").join("pages"))?;
         // A scratch home for each job: a step must not change the home of
         // the user (T-266); the next job clears it with `_work`.
         let home = self.dir.join("_work").join("_home");

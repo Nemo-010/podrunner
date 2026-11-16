@@ -4542,7 +4542,7 @@ The dry run on `--podvm` applies the refusal of `services:` of the real run and 
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4560,6 +4560,10 @@ SIGHUP does what SIGTERM does. A run on a runner directory clears `_diag/pages` 
 
 `cargo test -p podrunner-local`: A test: a SIGHUP to a run on a runner directory ends each process of the job; the next run passes.
 
+## Done
+
+2026-11-16: `crates/podrunner-local/src/cancel.rs`: SIGHUP cancels as SIGTERM does, and sends the output to /dev/null; `exec/host.rs` clears `_diag/pages` before each job; `docs/cli.md`. Proven on this sandbox: a SIGHUP to a run during `sleep 60` on a runner directory ends podrunner and each runner process ("Canceled"), and the next run passes.
+
 # T-274: Two runs on one runner directory at the same time break each other
 
 **Source:** the adversarial QA of `12cb64e`, agent B (T-246, 2026-11-16)
@@ -4567,7 +4571,7 @@ SIGHUP does what SIGTERM does. A run on a runner directory clears `_diag/pages` 
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4584,6 +4588,10 @@ A run takes an exclusive `flock` on a file of the runner directory; a second run
 ## Prove
 
 `cargo test -p podrunner-local`: A test: a second run on the same runner directory fails with that text, and the first passes.
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/exec/host.rs` (`lock`): an exclusive `flock` on `.podrunner-run.lock` of the runner directory for the run; `docs/cli.md`; test `a_second_run_on_a_runner_directory_fails_at_once`. Proven on this sandbox: a second run during a job fails at once with the text, and the first ends as before.
 
 # T-275: A project file reads a host file through a symbolic link
 

@@ -1,4 +1,5 @@
-//! The cancel of a local run at SIGINT or SIGTERM (T-141). The handler only
+//! The cancel of a local run at SIGINT, SIGTERM or SIGHUP (T-141, T-273).
+//! The handler only
 //! sets a flag: the drive loop then cancels the running job (the executor
 //! ends the runner, or destroys its unit), prints `cancelled` for each job
 //! that did not end, and the run removes its scratch directories. A third
@@ -10,7 +11,19 @@ use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 pub static SIGNALLED: AtomicBool = AtomicBool::new(false);
 static COUNT: AtomicU8 = AtomicU8::new(0);
 
-extern "C" fn on_signal(_: libc::c_int) {
+extern "C" fn on_signal(sig: libc::c_int) {
+    if sig == libc::SIGHUP {
+        // The terminal is gone: a write to it would fail and stop the
+        // cleanup, so the output goes to /dev/null.
+        // SAFETY: open and dup2 are async-signal-safe.
+        unsafe {
+            let null = libc::open(c"/dev/null".as_ptr(), libc::O_WRONLY);
+            if null >= 0 {
+                libc::dup2(null, 1);
+                libc::dup2(null, 2);
+            }
+        }
+    }
     SIGNALLED.store(true, Ordering::SeqCst);
     if COUNT.fetch_add(1, Ordering::SeqCst) >= 2 {
         // SAFETY: _exit is async-signal-safe.
@@ -18,9 +31,9 @@ extern "C" fn on_signal(_: libc::c_int) {
     }
 }
 
-/// Install the handler of SIGINT and SIGTERM.
+/// Install the handler of SIGINT, SIGTERM and SIGHUP.
 pub fn install() {
-    for sig in [libc::SIGINT, libc::SIGTERM] {
+    for sig in [libc::SIGINT, libc::SIGTERM, libc::SIGHUP] {
         // SAFETY: the handler only touches atomics and calls _exit.
         unsafe {
             let mut act: libc::sigaction = std::mem::zeroed();
