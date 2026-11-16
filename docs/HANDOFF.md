@@ -132,6 +132,9 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   or 43862847276 while `images/` stays the same). `bca83b4` changed
   `images/podnet.toml`: the next user-gate takes the runner-image run of
   `b5d616c` (43922356588) or of a later commit.
+- On `b5d616c` (`6834836` adds documents only): gate 43926340918,
+  level2 43922356619, runner-image 43922356588 and user-gate 43930264381
+  green (proven in CI on GitHub-hosted runners).
 - The fourth QA: agent B found T-318 to T-323 and T-203 (each P2 and the
   P1 T-319 done; T-318 blocked on podvm, COORD #200). Agent A (user
   `qa3`) stopped before its report: it gave no findings. The adversarial
