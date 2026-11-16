@@ -58,7 +58,7 @@ fn free_disk(dir: &Path) -> Result<String, String> {
 }
 
 /// `podvm inspect IMAGE` in `store`: the image is there.
-fn image_in_store(podvm: &Path, store: &Path, image: &str) -> Result<String, String> {
+pub(super) fn image_in_store(podvm: &Path, store: &Path, image: &str) -> Result<String, String> {
     let out = std::process::Command::new(podvm)
         .args(["inspect", image])
         .env("PODVM_STORE", store)
@@ -68,7 +68,8 @@ fn image_in_store(podvm: &Path, store: &Path, image: &str) -> Result<String, Str
     match out.status.success() {
         true => Ok(format!("{image} is in {}", store.display())),
         false => Err(format!(
-            "{} does not hold {image}; fix: load the runner image (podvm load -i runner-ARCH.tar) or name another --image",
+            "{} does not hold {image}; fix: load the runner image (PODVM_STORE={} podvm load -i runner-ARCH.tar) or name another --image",
+            store.display(),
             store.display()
         )),
     }

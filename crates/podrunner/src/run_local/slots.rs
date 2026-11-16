@@ -35,7 +35,16 @@ pub(super) fn build(
         let mut exec = match a.dry_run {
             true => {
                 let host = a.podvm.is_none() && a.guest.is_none() && a.platforms.is_empty() && a.runner_dir.is_some();
-                Box::new(inspect::DryRun { host, actions: common.actions.clone(), pins: common.pins.clone() })
+                let podvm = a.podvm.is_some() && a.guest.is_none() && a.platforms.is_empty();
+                // Each runner image of the run is in the store (T-272).
+                if let (Some(binary), Some(store), None) = (&a.podvm, &a.images, &a.guest) {
+                    let images = a.image.iter().chain(a.platforms.iter().map(|(_, t)| t).filter(|t| *t != "host"));
+                    for image in images {
+                        super::doctor::image_in_store(binary, store, image)
+                            .map_err(|e| super::fail(pod_core::failure::Class::Config, e))?;
+                    }
+                }
+                Box::new(inspect::DryRun { host, podvm, actions: common.actions.clone(), pins: common.pins.clone() })
                     as Box<dyn Executor>
             }
             false => routes::build(a, common, &dir)?,

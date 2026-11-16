@@ -127,6 +127,9 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
             .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?;
         egress = Some((std::sync::Arc::new(e), policy(&a.allow)));
     }
+    // The runner image comes from the store only: a missing one is named,
+    // and no registry is asked (T-272).
+    super::doctor::image_in_store(binary, images, image).map_err(|e| fail(Class::Config, e))?;
     let platform = if arch() == "aarch64" { "linux/arm64" } else { "linux/amd64" };
     let prepared = unit.prepare(image, platform, false).map_err(|e| fail(Class::Config, format!("{image}: {e}")))?;
     let mut exec = InUnit::new(std::sync::Arc::new(unit), prepared);

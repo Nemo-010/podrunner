@@ -4529,7 +4529,7 @@ The selection of `--job` takes the jobs of a call as members of the calling job:
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4546,6 +4546,10 @@ The dry run on `--podvm` applies the refusal of `services:` of the real run and 
 ## Prove
 
 `cargo test -p podrunner-local`: A test of the dry run: a `services:` job fails, and an image that is not in the store is named.
+
+## Done
+
+2026-11-16: `crates/podrunner/src/run_local/inspect.rs` (`DryRun::podvm`) refuses a job with services; `slots.rs` (the dry run) and `routes.rs` (`in_podvm`, before `prepare`) check each runner image in the store with `podvm inspect` and name the fix with the store; `docs/cli.md`; test `a_dry_run_on_podvm_refuses_services`. Proven on this sandbox with podvm `0.2.0-beta.24`: a run and a dry run with an empty store fail with the fix, and ask no registry.
 
 # T-273: A SIGHUP leaves the runner running and breaks the runner directory
 
