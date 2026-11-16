@@ -4832,7 +4832,7 @@ Find the second source of the lines (the console of the runner and the feed of t
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** blocked
 
 ## Problem
 
@@ -4844,11 +4844,15 @@ Finding F18 of the report of the QA; the code of the probe is in podcrates. The 
 
 ## Approach
 
-A COORD issue to podcrates; then take its tag.
+COORD-067 (GitHub #191) asks podcrates for a mount and a chroot probe in a user namespace with an ID map. podrunner tried `run_probe(name, ns_flags | CLONE_NEWUSER)`: the rows stay EPERM, as an `execve` with no uid map drops the capabilities of the namespace (measured as a user with no root on this sandbox). Then take the tag and show the new rows in `doctor`.
 
 ## Prove
 
 `podrunner doctor`: `doctor` on this sandbox gives the mount as `ok`.
+
+## Blocker
+
+2026-11-16: waits for the answer of podcrates to COORD-067 (GitHub #191).
 
 # T-284: The user-path gate has no lane of a host with a proxy only
 
