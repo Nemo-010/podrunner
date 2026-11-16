@@ -5560,7 +5560,7 @@ A job with `setup-python` and `update-environment: false` runs `python --version
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5577,6 +5577,11 @@ Finding A9 of agent A.
 ## Prove
 
 `python3 -I scripts/user-gate.py`: the row `install:full` runs the commands of the documents as written and a job on the larger image.
+
+## Done
+
+2026-11-16: `docs/local-mode.md` gives `sh podrunner-install.sh --full`, and by hand the store of the installer (`PODVM_STORE=~/.local/share/podrunner/images`), the command of the digest (`podvm images --digests`) and the `--platform` line; `docs/install.md` names the store at the asset. The row `install:full` of the user-path gate runs `--full`.
+
 
 # T-308: The P3 findings of the third QA, agent A
 

@@ -114,7 +114,7 @@ of an image archive are gzip already.
 | File | What it is |
 | --- | --- |
 | `podrunner-install.sh` | The installer with the pins of the release |
-| `runner-ARCH.tar` | The base runner image, as `podvm load -i` takes it |
+| `runner-ARCH.tar` | The base runner image, as `podvm load -i` takes it; load it into the store of the installer (`PODVM_STORE=~/.local/share/podrunner/images`), as `podvm` with no `PODVM_STORE` uses another store |
 | `runner-full-ARCH.tar` | The larger runner image |
 | `podrunner-bundle-ARCH.tar.gz` | The offline bundle |
 
