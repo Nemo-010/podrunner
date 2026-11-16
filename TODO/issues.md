@@ -199,6 +199,8 @@ numbers. `TODO/RULES.md` gives the rules.
 | #197 | COORD-071: a program that closes descriptor 17 gets podvm's ownership memo written into the next file it opens (to podvm) | closed (podvm beta.26, PodUtils/podvm#450; T-309 done) | T-309, T-262 |
 | #198 | COORD-072: the machine tier as a user with no root, with v0.2.0-beta.25: the guest does not reach the command (to podvm) | closed (PodUtils/podvm#451; T-291 done) | T-291 |
 | #199 | COORD-073: the machine tier as a user with no root: alpine boots, the runner image (initrd 1348 MiB) closes its console after 2.6 s (to podvm) | closed (PodUtils/podvm#454: 8 GiB; T-291 done) | T-291 |
+| #200 | COORD-074: a PID namespace for run -d on the namespace rung: a job sees and signals the processes of the host (to podvm) | open | T-318 |
+| #201 | COORD-075: the seccomp hold of podnet pod lets a job connect to each port on the loopback, also a proxy (to podnet) | open | T-319 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

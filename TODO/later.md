@@ -2720,6 +2720,8 @@ Then the installer prints `podrunner run .github/workflows/ci.yml` as the next c
 
 `cargo test -p podrunner --test local` (a workflow with `uses: actions/checkout@v4` and no `--checkout`: the step gets the tree, or the job fails with the fix before a unit starts).
 
+State (2026-11-16): the fourth QA (agent B, F3) met it again: `--dry-run` says `planned`, `doctor --run` says `ok`, and the step fails with a raw curl 404.
+
 
 # T-204: The packages of the image archives and their sources
 
@@ -5928,3 +5930,182 @@ State (2026-11-16): podvm answered (PodUtils/podvm#448, COORD-155): `--hostname`
 ## Done
 
 2026-11-16: podvm `0.2.0-beta.26` keeps `--hostname` of `run -d` on the namespace rung (PodUtils/podvm@T-1926), and `0.2.0-beta.27` runs the payload as the `USER` of the image there (PodUtils/podvm@T-1927, PodUtils/podvm#448); podrunner pins beta.27. Proven on a constrained host as a user (`qa1`): a job prints `uid=1001(runner)` and the host name `podrunner-u-1`, with no line of the start with no name; the job of T-300 passes and writes no file on the host. The three variables of T-301 stay: `TAR_OPTIONS` for a program that closed descriptor 17 (PodUtils/podvm#450), and the two others do nothing for a user that is not root.
+
+# T-318: A podvm unit shares the processes of the host: a job can kill processes of the user
+
+**Source:** the fourth adversarial QA of the release files of `30b35ec` (podvm `0.2.0-beta.27`), agent B, as the user `qa4` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** M
+**Status:** blocked
+
+## Problem
+
+On the namespace rung of podvm, a step lists each process of the host with its argv (`ps -eo user,pid,args`: the run of another user, root's processes) and kills a process of the user on the host (`kill -TERM` of a `sleep` started on the host; and `pkill -KILL` of its own podrunner, exit 137). `/proc/PID/root` and `/proc/PID/environ` of host processes cannot be read. `docs/local-mode.md` says the job sees only the image and its work directory.
+
+## Premise
+
+Finding F1 of agent B (round 4).
+
+## Approach
+
+Write a COORD issue to podvm: a PID namespace (and a `/proc` of it) on the namespace rung of `run -d`. Until then the documents say that a podvm unit shares the processes of the host with the user, and name `--microvm`.
+
+## Prove
+
+`python3 -I scripts/user-gate.py`: a check `pids:podvm`: a job does not see a process of the host.
+
+State (2026-11-16): the documents (`docs/local-mode.md`, "What a podvm unit holds", the notes) say that a podvm unit has no process namespace and name `--microvm`. Next: a COORD issue to podvm for a PID namespace on the namespace rung.
+
+## Blocker
+
+2026-11-16: COORD-074 (GitHub #200) asks podvm for a PID namespace on the namespace rung.
+
+
+# T-319: The egress hold of the local mode lets a job out through a proxy on the loopback
+
+**Source:** the fourth adversarial QA of the release files of `30b35ec` (podvm `0.2.0-beta.27`), agent B, as the user `qa4` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+With `podnet` and `allow` of `run.toml`, a direct connect is refused, but a step reaches any host through the proxy of the host on `127.0.0.1` (`curl -x http://127.0.0.1:PORT ...`), also with a POST of a secret. `docs/local-mode.md` says that a secret cannot leave to another host; the installer says that the hold of podnet is enforced with user namespaces, while the run takes the seccomp hold (advisory, T-302), which does not hold loopback TCP.
+
+## Premise
+
+Finding F2 and F32 of agent B; `crates/podrunner-podvm/src/unit/hold.rs` (the seccomp hold does not hold loopback TCP).
+
+## Approach
+
+The documents and the installer say what the hold of the local mode is: advisory, with each loopback port of the host open (a proxy there is a way out). Then ask podnet for a seccomp hold that refuses loopback ports other than the broker (a COORD issue), or reach the broker of the local mode through the netns hold (T-220: the forward of podnet).
+
+## Prove
+
+`grep -n advisory docs/local-mode.md docs/install.md`; the installer names the hold of the local mode.
+
+State (2026-11-16): the documents (`docs/local-mode.md`, "Where podrunner exceeds them", the notes) and the installer say that the hold of `--podnet` in the local mode is advisory, with each loopback port of the host open; the hold of a guest stays the enforced one. Next: ask podnet for a seccomp hold that refuses loopback ports other than the broker.
+
+## Blocker
+
+2026-11-16: COORD-075 (GitHub #201) asks podnet for a seccomp hold that refuses loopback ports but the broker, or a forward for the netns hold.
+
+
+# T-320: Under the egress hold a Node action does not take the CA of the host
+
+**Source:** the fourth adversarial QA of the release files of `30b35ec` (podvm `0.2.0-beta.27`), agent B, as the user `qa4` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+With `podnet` and `allow` on a host whose proxy intercepts TLS, `actions/setup-go` fails: `self-signed certificate in certificate chain`. curl in the same unit works; the job has no `NODE_EXTRA_CA_CERTS`; with no `--podnet` it has it.
+
+## Premise
+
+Finding F4 of agent B.
+
+## Approach
+
+Give a held unit the CA files and their variables (`exec/proxy.rs`, `unit_env`) as an unheld one gets them.
+
+## Prove
+
+`cargo test -p podrunner-local --lib`: a held unit gets the CA variables.
+
+## Done
+
+2026-11-16: a held unit takes the CA files and their variables of the caller, and no proxy variable (`exec/proxy.rs`, `unit_env` with `held`). Unit test: `a_unit_gets_the_proxy_and_each_ca_file_once` (the held case).
+
+
+# T-321: doctor --run does not check the paths of many flags
+
+**Source:** the fourth adversarial QA of the release files of `30b35ec` (podvm `0.2.0-beta.27`), agent B, as the user `qa4` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`doctor --run` gives exit 0 with no FAIL for `--checkout /nonexist`, `--secret-file /nonexist`, `--env-file /nonexist`, `--log-dir /proc/x`, `--export /proc/x`, `--toolcache /nonexist`, `--state /proc/x` and `--actions /proc/x`; the documents say that it checks each input with its fix.
+
+## Premise
+
+Finding F5 of agent B.
+
+## Approach
+
+Check each path of a flag in `doctor --run` (a directory that exists or can be made and written, a file that can be read), each with its fix.
+
+## Prove
+
+`cargo test -p podrunner`: doctor fails each of those paths by name.
+
+## Done
+
+2026-11-16: `doctor --run` checks `--secret-file`, `--env-file`, `--var-file` and `--input-file` (a file to read), `--checkout` and `--toolcache` (a directory that exists), and `--log-dir`, `--export`, `--state` and `--actions` (a directory that exists and takes files, or can be made), each with its fix. Measured as `nobody`: each bad path gives a FAIL line, and the doctor exits 1.
+
+
+# T-322: An unwritable --log-dir is found after the run, with exit 0
+
+**Source:** the fourth adversarial QA of the release files of `30b35ec` (podvm `0.2.0-beta.27`), agent B, as the user `qa4` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+`--log-dir` in a directory of mode 555 gives `ok build`, then `podrunner: --log-dir: ...: Permission denied` and exit 0: the logs are lost.
+
+## Premise
+
+Finding F6 of agent B.
+
+## Approach
+
+Check `--log-dir` before the first job, as `--export` (T-313); a failed write after the run fails the run.
+
+## Prove
+
+`cargo test -p podrunner`: an unwritable `--log-dir` fails before the first job.
+
+## Done
+
+2026-11-16: `--log-dir` gets the check of `--export` before the first job: made, and a probe file written and removed (`routes::export_dir`); a failure stops the run with the flag, the path and the cause.
+
+
+# T-323: The P3 findings of the fourth QA, agent B
+
+**Source:** the fourth adversarial QA of the release files of `30b35ec` (podvm `0.2.0-beta.27`), agent B, as the user `qa4` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+F7 `check --help` second line. F8 `help --help`. F9 the help links `blob/main`. F10 `--break-on-failure | --keep-failed` and the usage line of 1,500 characters. F11 exit codes of missing files of flags (78, no flag name). F12 Rust error kinds (`entity not found`) reach the user. F13 a file that is not YAML. F14 `TMPDIR` that does not exist or is read-only. F15 `--list` and `--graph` of a directory. F16 `--validate --json` prints text. F17 live lines twice in 1 of 4 runs of a called workflow on `--runner-dir`. F18 `-q` prints the last requests of the broker. F19 ANSI codes to a non-terminal and in the web view. F20 `--allow "*"`, `--toolcache /nonexist` and `--incus` with no incusd pass a dry run. F21 `--image runner@sha256:00`. F22 `run` does not check the parents of the runner directory. F23 `--approve nosuch`; the text of `--environment-secret-file`. F24 `--web` with `--dry-run` waits. F25 dry-run refusals on `--runner-dir` say "not pinned by digest". F26 the container refusal names `doctor --config`. F27 a `paths` refusal names `--ref`. F28 `--export` with `--microvm --runner-dir`. F29 `--action-server` on the loopback is refused (`fixed:loopback`); an unknown action gives a git prompt error. F30 a cancel of a concurrency group. F31 `--watch` exit code and stop line. F33 `--prefix` rewrites the one `run.toml`. F34 `doctor --run` on podvm does not name the proxy variables. F35 local-mode.md says a podvm job runs as root (it runs as `runner`, `HOME=/root`). F36 noise lines under the hold. F37 `ubuntu-22.04` runs on the 24.04 image with no line. F38 an early refusal leaves `podrunner-run-tree-PID`, and the next run says that a run died. F39 after a SIGKILL during `podvm extract`, the cleanup fails at `Directory not empty` (4.3 GB). F40 the shell of `--break-on-failure` does not see the `/tmp` of the job. F41 `skipped test: if: success()` with `--job`.
+
+## Premise
+
+The report of agent B, round 4 (the commands and outputs are in it).
+
+## Approach
+
+Fix each one; a finding that the code cannot change goes into the documents.
+
+## Prove
+
+`cargo test -p podrunner -p podrunner-local`

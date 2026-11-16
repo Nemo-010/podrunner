@@ -319,7 +319,7 @@ say "the checks of podrunner doctor:"
 doc=$("$bin/podrunner" doctor 2>&1 || true)
 case $doc in *"probe unshare(CLONE_NEWUSER): ok"*) userns=yes ;; *) userns=no ;; esac
 case $doc in *"kvm: no"* | *"kvm: denied"*) kvm=no ;; *) kvm=yes ;; esac
-say "user namespaces: $userns (the egress hold of podnet is enforced with them, else advisory)"
+say "user namespaces: $userns (podvm takes its namespace rung with them; the egress hold of podnet in the local mode is advisory: see docs/local-mode.md)"
 say "/dev/kvm: $kvm (the --microvm kind needs it)"
 [ "$got" -eq 0 ] && say "nothing was downloaded: each file was present and correct"
 

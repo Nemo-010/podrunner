@@ -18,8 +18,18 @@ const CA_VARS: &[&str] =
 pub(crate) type UnitEnv = (Vec<(String, String)>, Vec<CredentialFile>);
 
 /// The environment of a unit and its CA files, from the variables `vars` of
-/// the caller; `dir` is where the unit sees its credential files.
-pub(crate) fn unit_env(dir: &str, vars: impl Iterator<Item = (String, String)>) -> Result<UnitEnv, String> {
+/// the caller; `dir` is where the unit sees its credential files. A `held`
+/// unit takes the CA files only: its hold gives it its way out, and the
+/// proxy of the host behind the hold can intercept TLS (T-320).
+pub(crate) fn unit_env(dir: &str, vars: impl Iterator<Item = (String, String)>, held: bool) -> Result<UnitEnv, String> {
+    let (env, files) = all_env(dir, vars)?;
+    Ok(match held {
+        true => (env.into_iter().filter(|(k, _)| CA_VARS.contains(&k.as_str())).collect(), files),
+        false => (env, files),
+    })
+}
+
+fn all_env(dir: &str, vars: impl Iterator<Item = (String, String)>) -> Result<UnitEnv, String> {
     let vars: BTreeMap<String, String> = vars.filter(|(_, v)| !v.is_empty()).collect();
     let mut env = Vec::new();
     let mut files: Vec<CredentialFile> = Vec::new();
@@ -77,7 +87,7 @@ mod tests {
             ("NO_PROXY", "::,intra.example"),
         ]
         .map(|(k, v)| (k.to_string(), v.to_string()));
-        let (env, files) = unit_env("/podrunner/.runner", vars.into_iter()).unwrap();
+        let (env, files) = unit_env("/podrunner/.runner", vars.clone().into_iter(), false).unwrap();
         let get = |k: &str| env.iter().find(|(n, _)| n == k).map(|(_, v)| v.as_str());
         assert_eq!(get("HTTPS_PROXY"), Some("http://127.0.0.1:3128"));
         assert_eq!(get("SSL_CERT_FILE"), Some("/podrunner/.runner/podrunner-ca-0.crt"));
@@ -86,7 +96,13 @@ mod tests {
         assert_eq!(get("NO_PROXY"), Some("127.0.0.1,localhost,::1,intra.example"));
         assert_eq!(get("NODE_USE_ENV_PROXY"), Some("1"), "fetch of Node uses the proxy (T-299)");
         assert_eq!(files.len(), 1, "one file for one path");
-        let (env, files) = unit_env("/d", std::iter::empty()).unwrap();
+        let (held, _) = unit_env("/podrunner/.runner", vars.into_iter(), true).unwrap();
+        let held = |k: &str| held.iter().any(|(n, _)| n == k);
+        assert!(
+            held("NODE_EXTRA_CA_CERTS") && !held("HTTPS_PROXY") && !held("NO_PROXY"),
+            "a held unit: the CA only (T-320)"
+        );
+        let (env, files) = unit_env("/d", std::iter::empty(), false).unwrap();
         assert!(env.is_empty() && files.is_empty(), "no proxy, nothing");
         let _ = std::fs::remove_file(&ca);
     }

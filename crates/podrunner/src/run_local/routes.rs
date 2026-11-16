@@ -37,15 +37,18 @@ pub(super) fn issuer(a: &Args) -> Result<Arc<podrunner_local::oidc::Issuer>, Str
     Ok(Arc::new(issuer))
 }
 
-/// `--export DIR` can take files: it is made, and a probe file is written
-/// and removed, before the first job (T-313).
+/// `--export DIR` and `--log-dir DIR` can take files: each is made, and a
+/// probe file is written and removed, before the first job (T-313, T-322).
 fn export_dir(a: &Args) -> Result<(), Out> {
-    let Some(dir) = &a.export else { return Ok(()) };
-    let bad = |e: std::io::Error| fail(Class::Config, format!("--export {}: {e}", dir.display()));
-    std::fs::create_dir_all(dir).map_err(bad)?;
-    let probe = dir.join(format!(".podrunner-export-{}", std::process::id()));
-    std::fs::write(&probe, b"").map_err(bad)?;
-    std::fs::remove_file(&probe).map_err(bad)
+    for (flag, dir) in [("--export", &a.export), ("--log-dir", &a.log_dir)] {
+        let Some(dir) = dir else { continue };
+        let bad = |e: std::io::Error| fail(Class::Config, format!("{flag} {}: {e}", dir.display()));
+        std::fs::create_dir_all(dir).map_err(bad)?;
+        let probe = dir.join(format!(".podrunner-probe-{}", std::process::id()));
+        std::fs::write(&probe, b"").map_err(bad)?;
+        std::fs::remove_file(&probe).map_err(bad)?;
+    }
+    Ok(())
 }
 
 fn host(a: &Args, c: &Common) -> Result<Box<dyn Executor>, Out> {

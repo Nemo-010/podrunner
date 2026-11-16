@@ -141,6 +141,40 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
             .map(|_| "a bind of 127.0.0.1:0 holds".to_string())
             .map_err(|e| format!("bind 127.0.0.1:0: {e}; fix: allow a bind of the loopback on this host")),
     ));
+    // Each path of a flag (T-321): a file to read, or a directory to use.
+    let files = [
+        ("--secret-file", &a.secret_file),
+        ("--env-file", &a.env_file),
+        ("--var-file", &a.var_file),
+        ("--input-file", &a.input_file),
+    ];
+    for (flag, f) in files {
+        if let Some(f) = f {
+            out.push(check(
+                flag,
+                std::fs::File::open(f)
+                    .map(|_| f.display().to_string())
+                    .map_err(|e| format!("{}: {e}; fix: give a file that you can read", f.display())),
+            ));
+        }
+    }
+    for (flag, d) in [("--checkout", &a.checkout), ("--toolcache", &a.toolcache)] {
+        if let Some(d) = d {
+            out.push(check(
+                flag,
+                match d.is_dir() {
+                    true => Ok(d.display().to_string()),
+                    false => Err(format!("{}: not a directory; fix: give a directory that exists", d.display())),
+                },
+            ));
+        }
+    }
+    let dirs = [("--log-dir", &a.log_dir), ("--export", &a.export), ("--state", &a.state), ("--actions", &a.actions)];
+    for (flag, d) in dirs {
+        if let Some(d) = d {
+            out.push(check(flag, writable(d)));
+        }
+    }
     let lock = a.file.parent().unwrap_or(Path::new(".")).join(podrunner_local::lock::LOCK_FILE);
     out.push(check(
         "lock",
@@ -244,6 +278,21 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
     }
     out.push(check("hold", Ok(hold(a))));
     out
+}
+
+/// A directory that exists and takes files, or that can be made (its
+/// nearest existing parent takes files); nothing is made.
+fn writable(d: &Path) -> Result<String, String> {
+    let near = d.ancestors().find(|p| p.exists()).unwrap_or(Path::new("/"));
+    let probe = near.join(format!(".podrunner-doctor-{}", std::process::id()));
+    match std::fs::create_dir(&probe) {
+        Ok(()) if near.is_dir() => {
+            let _ = std::fs::remove_dir(&probe);
+            Ok(d.display().to_string())
+        }
+        Ok(()) => Err(format!("{}: {} is not a directory", d.display(), near.display())),
+        Err(e) => Err(format!("{}: {}: {e}; fix: give a directory that you can write", d.display(), near.display())),
+    }
 }
 
 /// The rung of `podvm system info`.

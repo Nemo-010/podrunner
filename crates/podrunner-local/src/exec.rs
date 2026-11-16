@@ -291,8 +291,8 @@ impl Executor for InUnit {
         .map(|(name, text)| CredentialFile { name, content: Secret::new(text) })
         .collect();
         let mut proxy_env = Vec::new();
-        if let (false, None, Some(dir)) = (self.guest, &self.egress, &self.credential_dir) {
-            let (env, more) = proxy::unit_env(dir, std::env::vars())?;
+        if let (false, Some(dir)) = (self.guest, &self.credential_dir) {
+            let (env, more) = proxy::unit_env(dir, std::env::vars(), self.egress.is_some())?;
             proxy_env = env;
             files.extend(more);
         }

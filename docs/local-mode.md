@@ -74,9 +74,11 @@ namespace of one uid (T-317).
 
 ## What a podvm unit holds
 
-A podvm unit is a boundary only on the namespace rung of podvm: a mount
-namespace of its own, where the job sees only the image and its work
-directory. Where podvm cannot take that rung (a host with no user
+A podvm unit is a boundary for files only on the namespace rung of podvm:
+a mount namespace of its own, where the job sees only the image and its
+work directory. A podvm unit has no process namespace of its own: a job
+sees the processes of the host and can send a signal to each process of
+your user (T-318). Where podvm cannot take that rung (a host with no user
 namespace, or with user namespaces that AppArmor restricts, as on Ubuntu
 24.04), podvm runs the unit on a userland rung, and a static binary of a
 job (Go up to 1.20, for example) can reach the files of your user.
@@ -192,9 +194,13 @@ runner directory in `runner-image.yml`.
 - **No root and no daemon.** No Docker socket of the host reaches a job.
   `services:` and `docker build` run in an engine inside the guest of the
   job (T-124, `docs/container-engine.md`).
-- **The egress hold.** A step reaches only the hosts of `--allow`, through
-  the egress module. A secret or a real token cannot leave to another host
-  (T-121, T-122). An environment can have its own egress policy (T-136).
+- **The egress hold.** With a guest of `--microvm` or `--incus` (no NIC,
+  one channel), a step reaches only the hosts of `--allow`, through the
+  egress module, so a secret or a real token cannot leave to another host
+  (T-121, T-122). With `--podvm` and `--podnet`, the hold is the seccomp
+  hold of podnet (advisory): a direct connect is refused, but each port on
+  the loopback of the host stays open, and a proxy there is a way out
+  (T-319). An environment can have its own egress policy (T-136).
 - **Pins.** Actions are pinned by commit and image by digest, recorded in a
   lock file with a SHA-256 (T-118, T-130). A moved tag fails by name. The
   host fetches; a unit never fetches.
