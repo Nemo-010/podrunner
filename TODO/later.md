@@ -4249,7 +4249,7 @@ The rows `click-py313` and `rq-lint` on `podvm` pass in the user-path gate.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** partial
+**Status:** blocked
 
 ## Problem
 
@@ -4263,13 +4263,15 @@ The step log `express-lint-podvm/lint.0` of the artifact of the lane `plain` of 
 
 podvm (PodUtils/podvm#439): the libuv of Node sends file calls through io_uring, which passes no libc call, so the interposer of the loader family does not map their paths (the cause of T-261). podrunner sets `UV_USE_IO_URING=0` in each unit that is not a guest (`crates/podrunner-local/src/exec.rs`), so each file call of libuv goes through libc. The corpus row `express-lint` on `podvm` is `ok`.
 
+State: 2026-11-16: `UV_USE_IO_URING=0` in the environment of a unit that is not a guest; the corpus row `express-lint` on `podvm` back to `ok`. Not reproduced: the proof is two runs of the user-path gate.
+
 ## Prove
 
 The row `express-lint` on `podvm` passes in each lane of two runs of the user-path gate.
 
-## Done
+## Blocker
 
-2026-11-16: `UV_USE_IO_URING=0` in the environment of a unit that is not a guest; the corpus row `express-lint` on `podvm` back to `ok`. Not reproduced: the proof is two runs of the user-path gate.
+2026-11-16: user-gate 43787604846 on `12cb64e` (with `UV_USE_IO_URING=0`): the job fails in three lanes of four, at the first read of a `package.json` (of npm in the tool cache) by the module loader of Node 26; `UV_USE_IO_URING=0` is not the fix. The row is an xfail again; waits for podvm (COORD-068, GitHub #193).
 
 # T-263: The installer keeps a directory that the group can write
 
@@ -4298,7 +4300,7 @@ The installer removes the write of the group and the others from `bin` and `shar
 
 ## Done
 
-2026-11-16: `scripts/install.sh` (`chmod go-w`), `scripts/test-install.sh` (step 4b). The proof of the gate is its next run.
+2026-11-16: `scripts/install.sh` (`chmod go-w`), `scripts/test-install.sh` (step 4b). The proof of the gate is its next run. Proven in CI: user-gate 43787604846 on `12cb64e`: `--microvm` takes the podvm of the install (the refusal of the mode is gone); the run then meets T-291.
 
 # T-264: Take podcrates `v0.55.0`: the sync of the issues and pod-lab
 
@@ -5066,3 +5068,32 @@ F3: on `--runner-dir`, the refusal of containers before the check of a digest, a
 ## Prove
 
 `cargo test -p podrunner -p podrunner-local`: a test for F3, F6 and F7; `docs/install.md` for F10.
+
+# T-291: As a user with no root, the machine tier ends before the exit code of the runner
+
+**Source:** user-gate 43787604846 on `12cb64e` (2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+`podrunner run --microvm PODVM` of a one-step job, as the user `labuser` with no root and the files of the installer, fails: "podvm run: machine tier: the guest ended before it gave the exit code of the payload", podvm exit 125. The same image passes on the machine tier in `runner-image.yml` as the user of the GitHub runner.
+
+## Premise
+
+The log of the lane `plain` of run 43787604846 (`hello-microvm.err`), read on 2026-11-16.
+
+## Approach
+
+podvm names what the machine tier needs from a user with no root (COORD-068, GitHub #193); then podrunner fixes its side (the installer, `doctor`) or takes the release of podvm. Until then `hello:microvm` and the row `rg-rustfmt` on `microvm` of the gate are an xfail (`scripts/user-gate.py`, `HELLO_XFAIL`).
+
+## Prove
+
+`python3 -I scripts/user-gate.py`: `hello:microvm` passes in the lane `plain` of the gate.
+
+## Blocker
+
+2026-11-16: waits for the answer of podvm to COORD-068 (GitHub #193).

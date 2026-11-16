@@ -57,6 +57,13 @@ jobs:
 """
 
 
+
+# The executors whose hello fails for a known cause with an entry: an xfail,
+# and a pass fails the gate until the entry goes.
+HELLO_XFAIL = {
+    "microvm": "as a user with no root, the machine tier ends before the exit code of the payload (T-291, GitHub #193)",
+}
+
 class GateError(Exception):
     pass
 
@@ -346,8 +353,13 @@ class Lane:
             lines = [line for line in err if line.startswith("podrunner:")][-2:]
         return ok, f"podrunner run: exit {rc}: " + "; ".join(lines[-5:])
 
-    def hello(self, executor: str) -> str:
+    def hello(self, executor: str):
         ok, detail = self.podrunner([self.data / "hello.yml", *self.flags(executor)], self.work, f"hello-{executor}", True)
+        known = HELLO_XFAIL.get(executor)
+        if known and ok:
+            raise GateError(f"hello on {executor} passes now (an xfail of HELLO_XFAIL): remove it")
+        if known:
+            return "xfail", f"{known} ({detail})"
         if not ok:
             raise GateError(detail)
         return detail

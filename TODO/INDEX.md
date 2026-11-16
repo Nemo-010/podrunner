@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**287 entries: 22 open, 23 partial, 13 blocked, 229 done.**
+**288 entries: 22 open, 22 partial, 15 blocked, 229 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 15 | 10 | 7 | 98 | 130 |
+| P2 | 15 | 9 | 9 | 98 | 131 |
 | P3 | 6 | 4 | 4 | 80 | 94 |
-| **All** | 22 | 23 | 13 | 229 | 287 |
+| **All** | 22 | 22 | 15 | 229 | 288 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -306,7 +306,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-256](later.md) | P1 | S | later | defect | done | The checks of a session do not run the suites that need the official runner |
 | [T-260](later.md) | P2 | S | later | defect | open | An expression in the image of a service or a job container fails the job |
 | [T-261](later.md) | P2 | S | later | defect | blocked | In a podvm unit, the persist of a temporary file gets EACCES |
-| [T-262](later.md) | P2 | S | later | defect | partial | In a podvm unit, Node sometimes reads an invalid package.json |
+| [T-262](later.md) | P2 | S | later | defect | blocked | In a podvm unit, Node sometimes reads an invalid package.json |
 | [T-263](later.md) | P1 | S | later | defect | done | The installer keeps a directory that the group can write |
 | [T-264](later.md) | P2 | M | later | chore | open | Take podcrates `v0.55.0`: the sync of the issues and pod-lab |
 | [T-265](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` does not get the PATH, the proxy and the CA of the user |
@@ -335,3 +335,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-288](later.md) | P2 | S | later | defect | done | A Docker action of the tree on `--runner-dir` starts its job |
 | [T-289](later.md) | P3 | S | later | defect | done | The P3 findings of the second QA, agent A, part 1 |
 | [T-290](later.md) | P3 | M | later | defect | open | The P3 findings of the second QA, agent A, part 2 |
+| [T-291](later.md) | P2 | S | later | defect | blocked | As a user with no root, the machine tier ends before the exit code of the runner |
