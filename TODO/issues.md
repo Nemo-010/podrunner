@@ -196,6 +196,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #194 | [gh action] requested | closed (gate 43795116133 and level2 43795119948 green on `a4b41b9`; user-gate 43795123788 red: express-node22 on runner-dir in CI (T-255), express-lint on podvm passed in one lane (T-262), rq-lint on runner-dir in proxy-only (T-299)) | T-246, T-284, T-291, T-299 |
 | #195 | COORD-069: the machine tier ends before the exit code as a user with no root: the line of QEMU (to podvm) | open | T-291 |
 | #196 | COORD-070: on the namespace rung of run -d, the payload is root of a one-uid namespace, with no UTS namespace (to podvm) | open | T-317, T-182 |
+| #197 | COORD-071: a program that closes descriptor 17 gets podvm's ownership memo written into the next file it opens (to podvm) | open | T-309, T-262 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

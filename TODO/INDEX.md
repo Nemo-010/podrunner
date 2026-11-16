@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 36 open, 22 partial, 16 blocked, 240 done.**
+**314 entries: 35 open, 22 partial, 17 blocked, 240 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 2 | 10 | 2 | 53 | 67 |
+| P1 | 1 | 10 | 3 | 53 | 67 |
 | P2 | 25 | 8 | 10 | 107 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 36 | 22 | 16 | 240 | 314 |
+| **All** | 35 | 22 | 17 | 240 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -353,7 +353,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-306](later.md) | P2 | S | later | defect | open | On --runner-dir, a Python of setup-python cannot load libpython |
 | [T-307](later.md) | P2 | S | later | defect | open | The documents load the larger image into the wrong store |
 | [T-308](later.md) | P3 | M | later | defect | open | The P3 findings of the third QA, agent A |
-| [T-309](later.md) | P1 | S | later | defect | open | A podvm unit reports ok for a failing test suite of npm 6 |
+| [T-309](later.md) | P1 | S | later | defect | blocked | A podvm unit reports ok for a failing test suite of npm 6 |
 | [T-310](later.md) | P2 | S | later | defect | open | The live log of a step comes only when the step ends |
 | [T-311](later.md) | P2 | S | later | defect | open | container: and docker:// steps on podvm are planned and then refused |
 | [T-312](later.md) | P2 | S | later | defect | open | A SIGKILL during a podvm job leaves the unit and its files |

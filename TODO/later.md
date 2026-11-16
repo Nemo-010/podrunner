@@ -4299,6 +4299,8 @@ The row `express-lint` on `podvm` passes in each lane of two runs of the user-pa
 
 State (2026-11-16): user-gate 43816078517 on `12a1300`: `corpus:express-lint:podvm` passed in the lanes inherited-fds and proxy-only and failed in plain, small-tmp and userns-off. The row is `flaky` now (`scripts/user-gate.py`: a flaky row takes either result, and its note names the entry); it goes to `ok` with the podvm release that carries the fix.
 
+State (2026-11-16): T-309 found a likely cause: a write or a seek of podvm's memo on descriptor 17 after a program closed it (COORD-071, GitHub #197).
+
 
 # T-263: The installer keeps a directory that the group can write
 
@@ -5603,7 +5605,7 @@ Fix each one; a finding that the code cannot change goes into the documents.
 **Milestone:** later
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** blocked
 
 ## Problem
 
@@ -5620,6 +5622,13 @@ Find what makes a node child of npm 6 end with no output in the unit: the enviro
 ## Prove
 
 `podrunner run .github/workflows/main.yml --checkout .` of that project on podvm gives `failure` for each cell, as on `--runner-dir`.
+
+State (2026-11-16): the cause, measured in a unit of podvm `0.2.0-beta.25`: podvm gives the payload descriptor 17 (`ownership.memo`); npm 6 closes it before a script; the first file that node opens then gets 17, and a read from its offset gives 0 bytes (a read at offset 0 gives the data). So ava, xo and tsd read empty files and end with no output and exit 0. Without npm: `bash -c 'exec 17<&-; exec 17</etc/passwd; head -c 20 <&17'` gives 0 bytes; with descriptor 18 it gives the data.
+
+## Blocker
+
+2026-11-16: COORD-071 (GitHub #197) asks podvm not to keep a fixed descriptor 17 for its memo.
+
 
 # T-310: The live log of a step comes only when the step ends
 
