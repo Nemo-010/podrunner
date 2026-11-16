@@ -164,6 +164,20 @@ fn an_unknown_event_and_a_missing_payload_fail_first() {
     assert!(parse(&args(&["w.yml", "--runner-dir", "/r", "--event", "workflow_dispatch"])).is_ok());
 }
 
+/// T-323 F11: a missing file or directory of a flag names its flag.
+#[test]
+fn a_missing_file_of_a_flag_names_the_flag() {
+    for (flag, value, text) in [
+        ("--var-file", "/nonexistent/v", "--var-file /nonexistent/v: not a file"),
+        ("--secret-file", "/", "--secret-file /: not a file"),
+        ("--environment-secret-file", "e=/nonexistent/s", "--environment-secret-file /nonexistent/s: not a file"),
+        ("--local-repository", "a/b@v1=/nonexistent/d", "--local-repository /nonexistent/d: not a directory"),
+    ] {
+        let e = parse(&args(&["w.yml", "--runner-dir", "/r", flag, value])).unwrap_err();
+        assert!(e.contains(text), "{e}");
+    }
+}
+
 /// T-223, T-226: `doctor --run` checks that the store holds `--image`, and
 /// names the egress hold of the run.
 #[test]

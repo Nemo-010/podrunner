@@ -295,6 +295,19 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     if let Some(p) = a.event_path.as_ref().filter(|p| !p.is_file()) {
         return Err(format!("--event-path {}: not a file", p.display()));
     }
+    // A file or a directory of a flag, by the name of its flag (T-323 F11).
+    let files = [("--var-file", &a.var_file), ("--input-file", &a.input_file), ("--env-file", &a.env_file)]
+        .into_iter()
+        .chain([("--secret-file", &a.secret_file)])
+        .filter_map(|(f, p)| p.as_ref().map(|p| (f, p)));
+    let named = a.environment_secrets.iter().map(|(_, p)| ("--environment-secret-file", p));
+    let named = named.chain(a.environment_vars.iter().map(|(_, p)| ("--environment-var-file", p)));
+    if let Some((f, p)) = files.chain(named).find(|(_, p)| !p.is_file()) {
+        return Err(format!("{f} {}: not a file", p.display()));
+    }
+    if let Some((_, p)) = a.local_repos.iter().find(|(_, p)| !p.is_dir()) {
+        return Err(format!("--local-repository {}: not a directory", p.display()));
+    }
     if a.offline && a.frozen {
         return Err("--offline and --frozen exclude each other".into());
     }

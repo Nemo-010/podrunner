@@ -6115,7 +6115,7 @@ The report of agent B, round 4 (the commands and outputs are in it).
 
 Fix each one; a finding that the code cannot change goes into the documents.
 
-Fixed: F9 (a release links to the documents of its tag). F35 (`docs/local-mode.md` names the user `runner`). F38 (each return of a run removes its directories in `TMPDIR`).
+Fixed: F11 (a missing file or directory of a flag exits 64 with the flag). F9 (a release links to the documents of its tag). F35 (`docs/local-mode.md` names the user `runner`). F38 (each return of a run removes its directories in `TMPDIR`).
 
 ## Prove
 

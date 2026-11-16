@@ -435,11 +435,12 @@ fn the_environment_flags_of_run() {
         "--environment-allow",
         "prod=deploy.example",
         "--environment-var-file",
-        "prod=/v",
+        // A file that exists: a missing one is refused (T-323 F11).
+        "prod=/etc/passwd",
     ]))
     .unwrap();
     assert_eq!(a.environment_allow, [("prod".to_string(), "deploy.example".to_string())]);
-    assert_eq!(a.environment_vars, [("prod".to_string(), PathBuf::from("/v"))]);
+    assert_eq!(a.environment_vars, [("prod".to_string(), PathBuf::from("/etc/passwd"))]);
     let e = parse(&args(&["w.yml", "--runner-dir", "/r", "--environment-allow", "prod=x.example"])).unwrap_err();
     assert!(e.contains("egress hold"), "{e}");
     assert!(
