@@ -129,8 +129,7 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   family of the userland rung; the fix is on podvm `main`, `1298b66a`,
   PodUtils/podvm#439, #442): then bump podvm, and the rows of uv, ruff and
   Node 26 on podvm go to `ok`. T-291 (`--microvm` as a user with no root):
-  send podvm the QEMU line of the probe of run 43795123788 (in T-291) in a
-  new COORD issue.
+  COORD-069 (#195) sent podvm the QEMU line; wait for its answer.
 - Then T-264 (podcrates `v0.59.0`: the issue sync, pod-lab, the chroot
   row of T-283), after the release.
 - The kit of the QA on the old machine: `/srv/qa-kit` (podrunner, podvm
@@ -202,7 +201,7 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   CI plan that podrunner owns. Their bodies have the current state
   (2026-11-15); T-001 holds them.
 - COORD issues open: #110 (COORD-050, to podvm); #111 (COORD-051, to
-  podvm); #189 (COORD-066) and #193 (COORD-068) to podvm (T-261, T-262,
+  podvm); #189 (COORD-066) and #193 (COORD-068) and #195 (COORD-069) to podvm (T-261, T-262,
   T-291); #191 (COORD-067, to podcrates, T-283). No podcrates release notice is open; podrunner takes
   podcrates `v0.52.0`.
 - GitHub #9, #32, #33, #40: wait for the live gates (#74, #75). GitHub
