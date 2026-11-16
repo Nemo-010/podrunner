@@ -6115,7 +6115,7 @@ The report of agent B, round 4 (the commands and outputs are in it).
 
 Fix each one; a finding that the code cannot change goes into the documents.
 
-Fixed: F38 (each return of a run removes its directories in `TMPDIR`).
+Fixed: F35 (`docs/local-mode.md` names the user `runner`). F38 (each return of a run removes its directories in `TMPDIR`).
 
 ## Prove
 

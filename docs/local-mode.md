@@ -69,8 +69,9 @@ into a directory of the job, or use a guest.
 Neither image has Docker, Rust (`cargo`, `rustup`), Go, Java, .NET or
 yarn: the `setup-*` actions install a toolchain into the tool cache of
 the job. In a podvm unit on the namespace rung of podvm (a user with no
-root on a host with user namespaces), a job runs as root of a user
-namespace of one uid (T-317).
+root on a host with user namespaces), a job runs as the user `runner` of
+the image with `HOME=/root`, in a user namespace of one uid; `sudo` of the
+image does not work there (T-317).
 
 ## What a podvm unit holds
 
