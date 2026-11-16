@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**295 entries: 25 open, 22 partial, 15 blocked, 233 done.**
+**295 entries: 24 open, 22 partial, 15 blocked, 234 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 17 | 9 | 9 | 102 | 137 |
+| P2 | 16 | 9 | 9 | 103 | 137 |
 | P3 | 7 | 4 | 4 | 80 | 95 |
-| **All** | 25 | 22 | 15 | 233 | 295 |
+| **All** | 24 | 22 | 15 | 234 | 295 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -339,7 +339,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-292](later.md) | P2 | S | later | defect | done | A project file reads a file out of the project through `.actrc` or a link |
 | [T-293](later.md) | P2 | S | later | defect | done | `github.api_url` of a job names the fake broker |
 | [T-294](later.md) | P2 | S | later | defect | done | A runner that a SIGKILL of podrunner leaves breaks the runner directory |
-| [T-295](later.md) | P2 | S | later | defect | open | A rerun with a matrix filter rewrites a failed cell as skipped |
+| [T-295](later.md) | P2 | S | later | defect | done | A rerun with a matrix filter rewrites a failed cell as skipped |
 | [T-296](later.md) | P2 | S | later | defect | open | The lines of the results come at the end, and a SIGHUP loses them |
 | [T-297](later.md) | P2 | S | later | defect | done | `--microvm` does not check its image and `/dev/kvm` before the run |
 | [T-298](later.md) | P3 | M | later | defect | open | The P3 findings of the second QA, agent B |

@@ -5192,7 +5192,7 @@ The runner gets `PR_SET_PDEATHSIG` (SIGKILL) at its start, so it ends with podru
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5209,6 +5209,10 @@ A cell that the filter of a rerun leaves out keeps its end of the state (`kept`)
 ## Prove
 
 `cargo test -p podrunner-local`
+
+## Done
+
+2026-11-16: `crates/podrunner-local/src/rerun.rs` (`with_kept`), used when `run` writes `state.json`; test `a_rerun_keeps_the_end_of_a_cell_that_its_filter_leaves_out`. Proven on this sandbox: after `--rerun DIR --failed --matrix n=1`, `state.json` keeps `failure` for `m (2)`, and the next `--rerun DIR --failed` runs it.
 
 # T-296: The lines of the results come at the end, and a SIGHUP loses them
 

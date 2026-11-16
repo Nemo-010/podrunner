@@ -243,6 +243,9 @@ pub fn run(args: &[String]) -> Out {
     // `--job` names the jobs to run again, not a filter.
     let state_dir = a.state.clone().or_else(|| a.rerun.clone());
     let digest = podrunner_local::store::digest(text.as_bytes());
+    // The ends of the state that a rerun reads: a cell that its filter
+    // leaves out keeps its end there (T-295).
+    let mut before: std::collections::BTreeMap<String, podrunner_local::rerun::Ended> = Default::default();
     if let Some(dir) = &a.rerun {
         let kept = std::fs::read_to_string(dir.join("state.json"))
             .map_err(|e| format!("{}: {e}", dir.join("state.json").display()))
@@ -255,6 +258,7 @@ pub fn run(args: &[String]) -> Out {
                         dir.display()
                     ));
                 }
+                before = ends.clone();
                 let set = podrunner_local::rerun::rerun_jobs(source.workflow(), &ends, &a.jobs)?;
                 Ok(podrunner_local::rerun::kept(source.workflow(), &ends, &set, a.jobs.is_empty()))
             });
@@ -435,7 +439,8 @@ pub fn run(args: &[String]) -> Out {
     }
     // The state of the run, for a rerun (T-135).
     if let Some(dir) = &state_dir {
-        let text = podrunner_local::rerun::state_json(&digest, source.ends());
+        let ends = podrunner_local::rerun::with_kept(source.ends(), &before, |j| source.not_selected(j).is_some());
+        let text = podrunner_local::rerun::state_json(&digest, &ends);
         if let Err(e) = std::fs::create_dir_all(dir).and_then(|()| std::fs::write(dir.join("state.json"), text)) {
             stderr.push_str(&format!("podrunner: --state {}: {e}\n", dir.display()));
         }

@@ -51,6 +51,31 @@ impl LocalSource {
     }
 }
 
+/// The ends to write after a rerun: a cell that the filter of the rerun
+/// left out (`left_out`) keeps its end of the state `before`, and each cell
+/// of `before` that this run did not reach stays (T-295).
+pub fn with_kept(
+    ends: &[CellEnd],
+    before: &BTreeMap<String, Ended>,
+    left_out: impl Fn(&JobId) -> bool,
+) -> Vec<CellEnd> {
+    let mut out: Vec<CellEnd> = ends
+        .iter()
+        .map(|(j, r, o)| match (left_out(j), before.get(j.as_str())) {
+            (true, Some((br, bo))) => (j.clone(), *br, bo.clone()),
+            _ => (j.clone(), *r, o.clone()),
+        })
+        .collect();
+    for (cell, (r, o)) in before {
+        if !out.iter().any(|(j, _, _)| j.as_str() == cell)
+            && let Ok(j) = JobId::new(cell)
+        {
+            out.push((j, *r, o.clone()));
+        }
+    }
+    out
+}
+
 /// The state file of a run: the digest of the workflow and each end.
 pub fn state_json(digest: &str, ends: &[CellEnd]) -> String {
     let cells: Vec<Value> = ends
@@ -166,5 +191,20 @@ mod tests {
             (digest.as_str(), back["a.0"].clone()),
             ("sha256:00", (JobResult::Success, vec![("o".into(), "v".into())]))
         );
+    }
+
+    #[test]
+    fn a_rerun_keeps_the_end_of_a_cell_that_its_filter_leaves_out() {
+        let j = |s: &str| JobId::new(s).unwrap();
+        let ends: Vec<CellEnd> = vec![(j("m.0"), JobResult::Success, vec![]), (j("m.1"), JobResult::Skipped, vec![])];
+        let before: BTreeMap<String, Ended> = [
+            ("m.0".to_string(), (JobResult::Success, vec![])),
+            ("m.1".to_string(), (JobResult::Failure, vec![])),
+            ("n.0".to_string(), (JobResult::Failure, vec![])),
+        ]
+        .into();
+        let out = with_kept(&ends, &before, |c| c.as_str() == "m.1");
+        let got: Vec<(&str, JobResult)> = out.iter().map(|(c, r, _)| (c.as_str(), *r)).collect();
+        assert_eq!(got, [("m.0", JobResult::Success), ("m.1", JobResult::Failure), ("n.0", JobResult::Failure)]);
     }
 }
