@@ -4164,7 +4164,7 @@ The call of 2026-11-15, after a first change: an empty `github.token` made `acti
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -4181,6 +4181,8 @@ Run the job on a runner directory here; compare the environment of the job on `-
 ## Prove
 
 The row `express-node22` on `runner-dir` of the gate passes.
+
+State (2026-11-16): with the job environment of T-265 and T-266 (the `PATH`, the proxy and the CA of the user, a scratch `HOME`), the job `test` (Node.js 22) of express at `43fca52d` passes on `--runner-dir` on this sandbox as the user `tester` with no root: 1290 passing, exit 0. The row `express-node22` on `runner-dir` of the corpus is `ok` again; the proof is the next run of the user-path gate. Also fixed on the way: a lock file of the runner directory that another user made is opened read-only (`exec/host.rs`, `lock`).
 
 # T-256: The checks of a session do not run the suites that need the official runner
 

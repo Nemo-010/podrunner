@@ -91,12 +91,15 @@ fn lock(dir: &std::path::Path) -> Result<Arc<std::fs::File>, String> {
         return Ok(f.clone());
     }
     let path = dir.join(LOCK);
+    // A lock file of another user can be read, and flock takes a read
+    // descriptor.
     let f = std::fs::OpenOptions::new()
         .create(true)
         .truncate(false)
         .write(true)
         .open(&path)
-        .map_err(|e| format!("{}: {e}", path.display()))?;
+        .or_else(|_| std::fs::File::open(&path))
+        .map_err(|e| format!("{}: {e}; fix: the runner directory must be writable by you", path.display()))?;
     // SAFETY: flock of a descriptor that `f` owns.
     if unsafe { libc::flock(f.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
         return Err(format!(
