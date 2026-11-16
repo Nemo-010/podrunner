@@ -69,9 +69,14 @@ pub fn route(
 ) -> Option<(u16, Vec<u8>)> {
     let json = |v: Value| Some((200, v.to_string().into_bytes()));
     match (method, path) {
-        ("GET", p) if p.strip_prefix('/') == Some(CHECKOUT) => match tree.map(std::fs::read) {
-            Some(Ok(bytes)) => Some((200, bytes)),
-            _ => Some((404, Vec::new())),
+        ("GET", p) if p.strip_prefix('/') == Some(CHECKOUT) => match tree.map(|t| (t, std::fs::read(t))) {
+            Some((_, Ok(bytes))) => Some((200, bytes)),
+            // A tree that went during the run (T-304): name it.
+            Some((t, Err(e))) => {
+                eprintln!("podrunner: the tree of --checkout ({}) cannot be read: {e}", t.display());
+                Some((404, Vec::new()))
+            }
+            None => Some((404, Vec::new())),
         },
         ("POST", p) if p.starts_with("/actions/build/") && p.ends_with("/runnerresolve/actions") => {
             json(resolve(base, body, pins))

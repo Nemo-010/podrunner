@@ -9,9 +9,10 @@ use std::path::{Path, PathBuf};
 
 const PREFIXES: &[&str] = &["podrunner-run-units-", "podrunner-run-tree-"];
 
-/// Whether `pid` is a live podrunner.
+/// Whether a process `pid` lives. Any process counts, not only one named
+/// podrunner: a run started through a link of another name stays safe.
 fn live_podrunner(pid: u32) -> bool {
-    std::fs::read_to_string(format!("/proc/{pid}/comm")).is_ok_and(|c| c.trim_end().starts_with("podrunner"))
+    std::path::Path::new(&format!("/proc/{pid}")).exists()
 }
 
 /// The directories of dead runs of this user in `tmp`.

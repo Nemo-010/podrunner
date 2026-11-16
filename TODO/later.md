@@ -5500,7 +5500,7 @@ An executor on the command line replaces the executor of `run.toml`; the other k
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -5517,6 +5517,9 @@ Read the life of the tarball of the checkout (where it is written, when it is re
 ## Prove
 
 `cargo test -p podrunner --test local`: two runs on one tree at once; each job of both gets the tree.
+
+State (2026-11-16): the broker answers 404 only when it cannot read the tarball of the tree (`actions.rs`), which each run keeps in its own `TMPDIR/podrunner-run-tree-PID`. Both runs of the agent lost their tree at the same second, so the likely cause is a removal from outside (the cleanup of the agent, or of `TMPDIR`). The broker now names the path and the error on stderr. The cleanup of dead runs (T-312) counts each live process as a live run, so it never removes the tree of a running podrunner, also one started through a link of another name. Next: a test with two runs on one tree at once (the Prove).
+
 
 # T-305: actions/setup-python v7 fails with the made-up token
 
