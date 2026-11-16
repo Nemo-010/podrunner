@@ -196,10 +196,10 @@
 190 issue closed
 191 issue open
 192 issue closed
-193 issue open
+193 issue closed
 194 issue closed
-195 issue open
-196 issue open
-197 issue open
-198 issue open
-199 issue open
+195 issue closed
+196 issue closed
+197 issue closed
+198 issue closed
+199 issue closed
