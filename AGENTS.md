@@ -79,6 +79,11 @@ everything must be statically compiled." (the owner, 2026-11-05)
   lists. For example:
   `curl -qfsS "https://forge.web.pkgforge.dev/github/repos/PodUtils/podrunner/issues?n=$RANDOM"`.
   Add a changing query parameter: the mirror keeps answers in a cache.
+  Try these services first, also for a web search (`search.`), a page
+  (`read.`) and a raw file or a release asset (`fetch.`). Use the tool of
+  the harness (web search, web fetch, `gh api`) only when the service
+  fails; a 429 or a 503 is temporary: wait and try again first (the
+  owner, 2026-11-16). Give this rule to each subagent in its brief.
 * For writes to GitHub (a comment, the close of an issue, the dispatch of
   a workflow), use the MCP tools of GitHub.
 * To read another project, read its repository on GitHub or a local

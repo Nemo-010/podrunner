@@ -14,6 +14,7 @@ at the tag `v0.41.0`.
 
 | Date | Area | Ruling |
 | --- | --- | --- |
+| 2026-11-16 | Web access | "Always prefer https://web.pkgforge.dev/llms.txt for any web/git search/fetch." Each read (the GitHub REST API, a search, a page, a raw file) goes to the services of web.pkgforge.dev first; the tool of the harness only when they fail. Writes to GitHub stay on the MCP tools (podcrates COORD-120, PodUtils/podcrates#207). |
 | 2026-11-05 | Static, C, Rust | "We use whatever is necessary, including C, zig, modern Rust, no backwards compat. Our users and clients do not care about building the tool, they care about downloading and using it. The only rule is: everything must be statically compiled." It supersedes the rules "no C" and "MSRV 1.89" of the agreed design. |
 | 2026-11-05 | Toolchain | Modern and stable Rust, "even nightly/bleeding edge if its necessary to maintain performance, security whatever we need". The `rust-version` is the stable of the day. A consumer moves its toolchain to match; podcrates does not hold back for the toolchain of a consumer. |
 | 2026-11-05 | Compatibility | No compatibility with released binaries for now. A name or a format of the wire (AppIDs, variables, the words of the relay contract) can change. No test against a released binary. (podssh, 2026-11-05.) |
