@@ -98,7 +98,9 @@ impl MicrovmUnit {
             podvm,
             state_dir: state_dir.to_path_buf(),
             images: images.to_path_buf(),
-            mem: "4G".into(),
+            // A runner image unpacks to an initrd of about 1.4 GiB, which a
+            // guest of 4 GiB cannot boot (PodUtils/podvm#454, T-291).
+            mem: "8G".into(),
             cpus: 2,
             platform: platform.into(),
             references: Mutex::new(HashMap::new()),

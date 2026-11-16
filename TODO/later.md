@@ -5146,6 +5146,8 @@ State (2026-11-16): podvm (PodUtils/podvm#451, COORD-158) booted the machine tie
 
 State (2026-11-16, user-gate 43870085390, podvm `0.2.0-beta.27`): with no cached base, `alpine:3.20` passes the machine tier as the lab user; the runner image fails: `the console of the emulator closed 2.6 s after the start, with an initrd of 1348 MiB`. COORD-073 (GitHub #199) sends it to podvm.
 
+State (2026-11-16): podvm (PodUtils/podvm#454, COORD-161) names the cause: the initrd of the runner image (1348 MiB) needs a guest of more than 4 GiB. The microvm kind and `--microvm` now give each guest 8 GiB by default (`[unit.microvm] mem`), and the probe of the gate uses 8G. The proof is the next user-path gate: `hello:microvm` then passes, and the gate asks to remove it from `HELLO_XFAIL`.
+
 
 # T-292: A project file reads a file out of the project through `.actrc` or a link
 

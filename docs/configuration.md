@@ -124,7 +124,7 @@ slots = 1
 command = ["/home/runner/run.sh"]        # an absolute path: the job runs in a work directory
 binary = "/opt/podrunner/drivers/podvm"  # the released podvm binary
 images = "/var/lib/podrunner/images"     # a podvm store with the pinned images
-mem = "4G"                               # the memory of each guest (default 4G)
+mem = "8G"                               # the memory of each guest (default 8G: the initrd of a runner image is about 1.4 GiB)
 cpus = 2                                 # its vCPUs (default 2)
 engine = "/opt/podrunner/docker"         # optional: the static Docker binaries; each guest runs an engine
 ```

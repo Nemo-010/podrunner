@@ -65,7 +65,7 @@ pub fn build(u: &UnitConfig, state: &Path) -> Result<(Arc<dyn UnitDriver>, Capab
     let podvm = podrunner_podvm::Podvm { binary: u.binary.clone().unwrap_or_default().into() };
     let images = PathBuf::from(u.images.clone().unwrap_or_default());
     let unit = podrunner_microvm::MicrovmUnit::new(podvm, &state.join("microvm"), &images)
-        .with_size(u.mem.as_deref().unwrap_or("4G"), u.cpus.unwrap_or(2));
+        .with_size(u.mem.as_deref().unwrap_or("8G"), u.cpus.unwrap_or(2));
     let unit = match &u.engine {
         Some(e) => unit.with_engine(Path::new(e)),
         None => unit,

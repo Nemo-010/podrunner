@@ -410,7 +410,7 @@ class Lane:
         env = self.env(self.home, PODVM_STORE=str(store))
         out = []
         for image, log in ((self.image, "microvm-probe"), ("alpine:3.20", "microvm-probe-alpine")):
-            argv = [podvm, "run", "--verbose", "--rm", "--podvm-tier=machine", "--podvm-mem", "4G", image, "true"]
+            argv = [podvm, "run", "--verbose", "--rm", "--podvm-tier=machine", "--podvm-mem", "8G", image, "true"]
             rc, _ = self.run(argv, env, self.work, log, timeout=600)
             err = (self.out / "logs" / f"{log}.err").read_text(errors="replace").splitlines()
             out.append(f"{image}: exit {rc}: " + " / ".join(line.strip() for line in err[-4:]))
