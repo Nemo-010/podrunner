@@ -105,13 +105,18 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   T-286) and round 2 (T-287 to T-298). Each P1 and P2 of them is done;
   T-277, T-290 and T-298 hold the P3 that are open. The notes
   `docs/releases/v0.1.0-beta.7.md` list them, with the level of proof.
-- Round 3 did not finish: its two agents stopped at a limit of the
-  account. Start it again on the release build of the next commit
-  (`PODRUNNER_VERSION=0.1.0-beta.7 cargo build --release -p podrunner
-  --target x86_64-unknown-linux-musl`), with the brief and a kit of the
-  binary, podvm, the official runner and the documents, as users with no
-  root. The reports of rounds 1 and 2 were on the old machine only; each
-  finding of them is an entry.
+- Round 3 ran (2026-11-16) on the release files of `12a1300` (T-246):
+  agent A gave T-300 to T-308, agent B T-309 to T-316. The release
+  waits for each P1 and P2: T-300 (partial: podvm beta.25 and the gate
+  check `confine:podvm`), T-303 to T-307, T-309 (P1: a failing test suite
+  of npm 6 is `ok` in a podvm unit; cause not found yet), T-310 to T-315,
+  T-317 (the job runs as root of a one-uid namespace on podvm beta.25:
+  a COORD issue to podvm), and T-260. T-301 and T-302 are done. A round
+  4 runs on the files of the commit that fixes them.
+- The kit of the QA: `/srv/qa-kit` (the files of a user-gate run, podvm
+  from its release, the documents, `env.sh` with the proxy and CA of the
+  host); the users `qa1` and `qa2`. The reports are in T-308 and T-316,
+  and in the entries; the session copies are gone with the machine.
 - The last runs: gate 43819358691 green on `6527879`; level2 43816073382
   and runner-image 43816073298 green on `12a1300`. User-path gate
   43816078517 on `12a1300`: each row passes or is a known xfail, except
@@ -129,12 +134,6 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   `hello:microvm` to podvm in a new COORD issue (PodUtils/podvm#444).
 - Then T-264 (podcrates `v0.59.0`: the issue sync, pod-lab, the chroot
   row of T-283), after the release.
-- The kit of the QA on the old machine: `/srv/qa-kit` (podrunner, podvm
-  `0.2.0-beta.24` from its release, `actions-runner` 2.338.2, the
-  documents); QA users with no root. A fresh machine needs it again.
-
-## In flight
-
 - The LIVE-2 report (GitHub #75, 2026-11-15) ran W1, W3 (20 of 20) and
   W4 on the podvm kind with a fixed sidecar, and W6 held. Its defects are
   T-176 to T-189; T-176 to T-179 are P1.

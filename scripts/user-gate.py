@@ -366,6 +366,37 @@ class Lane:
             raise GateError(detail)
         return detail
 
+    def confine(self, executor: str):
+        """A static binary of a job (Go 1.20 makes raw system calls) writes
+        an absolute path of the home of the user: the file must not come on
+        the host (the third QA, finding A1, T-300)."""
+        mark = pathlib.Path.home() / "podrunner-gate-escaped"
+        mark.unlink(missing_ok=True)
+        src = self.work / "confine"
+        shutil.rmtree(src, ignore_errors=True)
+        (src / ".github" / "workflows").mkdir(parents=True)
+        (src / "esc.go").write_text(
+            'package main\n\nimport "os"\n\nfunc main() {\n'
+            f'\tos.WriteFile("{mark}", []byte("a job wrote this\\n"), 0o644)\n}}\n'
+        )
+        (src / ".github" / "workflows" / "esc.yml").write_text(
+            "on: push\njobs:\n  esc:\n    runs-on: ubuntu-latest\n    steps:\n"
+            "      - uses: actions/checkout@v4\n"
+            "      - uses: actions/setup-go@v5\n        with:\n          go-version: '1.20'\n          cache: false\n"
+            "      - run: echo 'module esc' > go.mod && GOCACHE=/tmp/gocache go build -o /tmp/esc . && /tmp/esc\n"
+        )
+        git = ["git", "-C", str(src), "-c", "user.name=gate", "-c", "user.email=gate@example.invalid"]
+        subprocess.run(["git", "init", "-q", str(src)], check=True)
+        subprocess.run([*git, "add", "-A"], check=True)
+        subprocess.run([*git, "commit", "-qm", "confine"], check=True)
+        ok, detail = self.podrunner([".github/workflows/esc.yml", "--checkout", ".", *self.flags(executor)], src, f"confine-{executor}", True)
+        if mark.exists():
+            mark.unlink()
+            raise GateError(f"a job in a unit wrote {mark} on the host ({detail})")
+        if not ok:
+            raise GateError(detail)
+        return f"the job ran, and {mark} is not on the host"
+
     def microvm_probe(self) -> str:
         """`podvm run --verbose` of the runner image on the machine tier, as
         the unit does it: the last lines name the cause of an early end
@@ -469,7 +500,7 @@ def lane(a) -> int:
         rows, errors = read_table(TABLE)
         if errors:
             raise SystemExit("\n".join(errors))
-    later = [f"hello:{e}" for e in g.executors]
+    later = [f"hello:{e}" for e in g.executors] + (["confine:podvm"] if "podvm" in g.executors else [])
     later += [f"corpus:{r['id']}:{r['executor']}" for r in rows if g.wants(r)]
     try:
         if not g.check("serve", g.serve):
@@ -488,6 +519,8 @@ def lane(a) -> int:
                         g.check("lab:run", functools.partial(g.run_names_the_bind, a.podvm_lab))
                 for e in g.executors:
                     g.check(f"hello:{e}", functools.partial(g.hello, e))
+                if "podvm" in g.executors:
+                    g.check("confine:podvm", functools.partial(g.confine, "podvm"))
                 for r in rows:
                     if g.wants(r):
                         g.check(f"corpus:{r['id']}:{r['executor']}", functools.partial(g.corpus_row, r))

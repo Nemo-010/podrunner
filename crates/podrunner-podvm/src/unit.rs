@@ -266,6 +266,14 @@ impl UnitDriver for PodvmUnit {
         env.insert(TAG_VAR.into(), tag.clone());
         // The .NET runner dies at start under a small RLIMIT_FSIZE with W^X on.
         env.insert("DOTNET_EnableWriteXorExecute".into(), "0".into());
+        // On the namespace rung of a user with no root, the payload is uid 0
+        // of a user namespace, and the runner refuses root without this
+        // (podvm 0.2.0-beta.25, T-301).
+        env.insert("RUNNER_ALLOW_RUNASROOT".into(), "1".into());
+        // Root there maps one uid only: a chown of tar fails with EINVAL, and
+        // npm 6 runs its scripts as the unmapped `nobody` (T-301).
+        env.insert("TAR_OPTIONS".into(), "--no-same-owner".into());
+        env.insert("npm_config_unsafe_perm".into(), "true".into());
         // The lesser of the kind and the offer (T-198); podvm holds no CPU limit.
         let held = podrunner_unit::limits::Limits { cpus: None, ..self.limits.lesser(&spec.limits) };
         args.extend(limits::ulimit_args(&held, &mut env));
@@ -292,7 +300,10 @@ impl UnitDriver for PodvmUnit {
             // A rung (or an older podvm) that refuses the name: start again
             // with no name, and say so.
             Err(e) if e.detail.contains("hostname") => {
-                eprintln!("podrunner: {}: {e}: the unit starts with the host name of the host", spec.unit);
+                // The namespace rung of podvm 0.2.0-beta.25 has no UTS
+                // namespace (T-301): the start goes on, and this says so.
+                let why = e.detail.lines().next().unwrap_or_default();
+                eprintln!("podrunner: {}: the unit has the host name of the host: {why}", spec.unit);
                 let argv: Vec<&str> = labels::no_hostname(&argv, &name);
                 self.podvm_held(&store, &argv, Some(&tag), egress.as_deref())?;
             }

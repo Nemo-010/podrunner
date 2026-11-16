@@ -3907,6 +3907,9 @@ The record of each release names the QA run and its findings: `grep -n 'adversar
 
 State (2026-11-16): the first QA, two agents on `12cb64e` on this sandbox (`--runner-dir` only; no image of podvm, no installer before the release), found 2 P1, 11 P2 and 7 groups of P3: T-265 to T-284. The release of `v0.1.0-beta.7` waits for them and for a second QA. 2026-11-16: the second QA (two new agents, new users, the release build of `f5d1de7` with the version `0.1.0-beta.7`) found 9 P2 and many P3: T-287 to T-298; each P2 is fixed. The third QA runs on `0305f3c`.
 
+State (2026-11-16, round 3): two agents with a fresh context, as `qa1` and `qa2` with no root, on the release files of `12a1300` (user-gate 43816078517) with podvm `0.2.0-beta.24`, behind a proxy that intercepts TLS, no KVM. Agent A: T-300 to T-308 (P1: T-300, T-302) and T-260. Agent B: T-309 to T-316 (P1: T-309), and B-03 is T-302. The lead session: T-301 and T-317 (podvm `0.2.0-beta.25`). The release waits for each P1 and P2 of them.
+
+
 # T-247: The notes of a release name the level of the proof of each claim
 
 **Source:** the owner, 2026-11-15: "why did podrunner not survive a contact with real users"
@@ -5362,7 +5365,7 @@ State (2026-11-16): the fake broker sends `actions.runner.usenode24bydefault` (`
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -5380,6 +5383,9 @@ Take podvm `0.2.0-beta.25` or later, which runs `run -d` of a user with no root 
 
 The new row of `scripts/user-gate.py` passes in each lane; `cargo test -p podrunner-podvm`.
 
+State (2026-11-16): podvm `0.2.0-beta.25` is pinned (`ede07ea`) and its unit starts again (T-301). `scripts/user-gate.py` has the check `confine:podvm`: a job builds a Go 1.20 program that writes into the home of the lab user, and the file must not come on the host. Proven on a constrained host as a user (the job of the agent, as `qa1`): no file with beta.25; the file with beta.24. The proof in CI is the next user-path gate.
+
+
 # T-301: With podvm 0.2.0-beta.25 the runner of a podvm unit ends with no result
 
 **Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent A, as the user `qa1` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
@@ -5387,7 +5393,7 @@ The new row of `scripts/user-gate.py` passes in each lane; `cargo test -p podrun
 **Milestone:** later
 **Priority:** P1
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5404,6 +5410,11 @@ Read the output of the unit (`podvm logs`) after the start with no `--hostname`;
 ## Prove
 
 `podrunner run hello.yml --podvm` passes as a user with no root with podvm `0.2.0-beta.25`; runner-image.yml green on the pin.
+
+## Done
+
+2026-11-16: the cause, from the logs of the unit: on the namespace rung the payload is uid 0, and the runner refuses root (`Must not run interactively with sudo`). A podvm unit sets `RUNNER_ALLOW_RUNASROOT=1`, and `TAR_OPTIONS=--no-same-owner` and `npm_config_unsafe_perm=true` for the same root (T-317 asks podvm for the user of the image). The start with no `--hostname` prints one plain line. Proven on a constrained host as a user: as `qa1` with podvm `0.2.0-beta.25`, `hello.yml` passes, and the job of T-300 passes with no file on the host. CI: the next runner-image run.
+
 
 # T-302: The egress hold of the installer refuses each run where user namespaces exist
 
@@ -5584,3 +5595,228 @@ Fix each one; a finding that the code cannot change goes into the documents.
 ## Prove
 
 `cargo test -p podrunner -p podrunner-local`
+
+# T-309: A podvm unit reports ok for a failing test suite of npm 6
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent B, as the user `qa2` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`sindresorhus/escape-string-regexp` at `a7f7dabaf336bda98d2166848af15d9168b10bcf` (`main.yml`, `npm test` = `xo && ava && tsd`, Node 14 and 12, npm 6): on podvm each cell is `ok`, and nothing comes after `> xo && ava && tsd`. On `--runner-dir`: `3 tests passed`, 240 lines of tsd errors, `failure`. In the unit, `node node_modules/ava/cli.js --version` gives `3.15.0` from a shell and nothing (exit 0) under npm 6.
+
+## Premise
+
+Finding B-01 of agent B. The lead session reproduced it with podvm `0.2.0-beta.25` and the variables of T-301 (both cells `ok`, no test output). Measured in the unit: a script of npm 6 (`node -e "console.log(42); process.exit(3)"`) gives its output and exit 3; `pwd`, `pwd -P`, `process.cwd()`, `PWD` and `INIT_CWD` give one path; `ava --version` called directly works.
+
+## Approach
+
+Find what makes a node child of npm 6 end with no output in the unit: the environment of npm (`npm run env`) against the shell, `strace -f` of `npm test` in the unit, and the `import-local` and `resolve-cwd` of xo and ava. Fix the unit, or write a COORD issue to podvm.
+
+## Prove
+
+`podrunner run .github/workflows/main.yml --checkout .` of that project on podvm gives `failure` for each cell, as on `--runner-dir`.
+
+# T-310: The live log of a step comes only when the step ends
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent B, as the user `qa2` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A step that prints `tick` six times at 10 s gives all six lines at its end, on both executors and with `--json`. `docs/cli.md` says that each line goes to stderr while the job runs. A long step looks hung.
+
+## Premise
+
+Finding B-02 of agent B; A11 and A12 of agent A (the order of the lines).
+
+## Approach
+
+Read how the broker gets the lines of a step (the web console feed of the runner against the log blobs at the end of a step); print each line when the broker gets it, in the order of the runner.
+
+## Prove
+
+`cargo test -p podrunner-local --test runner -- --ignored`: a step with a pause between two lines gives the first line before the step ends.
+
+# T-311: container: and docker:// steps on podvm are planned and then refused
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent B, as the user `qa2` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+On podvm, `--dry-run` gives `planned` and `doctor --run` gives `ok` for a job with `container:` or a `docker://` step; the run then fails: `the job needs containers, and this unit kind has no container hooks`, with no fix. `docs/cli.md` says such steps run through the container hooks of the unit; `doctor --config` with `[unit.podvm]` shows `container none`.
+
+## Premise
+
+Finding B-04 of agent B.
+
+## Approach
+
+The dry run and `doctor --run` refuse such a job as the run does, with the fix (`--microvm --engine`); the documents say which kind has container hooks.
+
+## Prove
+
+`cargo test -p podrunner --test local`: the dry run of a `container:` job on podvm is refused with the fix.
+
+# T-312: A SIGKILL during a podvm job leaves the unit and its files
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent B, as the user `qa2` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A SIGKILL (or a third SIGINT) during a podvm job leaves the unit running and 2.4 GB in `/tmp/podrunner-run-units-PID`; the next `run` and `doctor` neither name nor remove them. One Ctrl-C during the start of a unit takes 28 to 46 s to end the run, with no message.
+
+## Premise
+
+Finding B-05 of agent B; T-294 does it for `--runner-dir`.
+
+## Approach
+
+Each run writes its unit directory and process group where the next run finds it (as T-294); the next run ends a stale unit with the label `podrunner.unit` and removes its directory, and says so. At the first signal, print a line that the unit is being stopped.
+
+## Prove
+
+`cargo test -p podrunner --test local`: a stale unit directory of a dead run is removed by the next run.
+
+# T-313: A failed --export is silent
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent B, as the user `qa2` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`--export DIR` to a directory of mode 500, to a file or to `/proc/nope` gives exit 0 and no message, on both executors. `docs/cli.md` says `DIR/JOB`; the path is `DIR/JOB.N`.
+
+## Premise
+
+Finding B-06 of agent B.
+
+## Approach
+
+A failed export fails the run with the path and the cause, before the jobs where it can (a check of `DIR`); the documents give `DIR/JOB.N`.
+
+## Prove
+
+`cargo test -p podrunner-local --lib`: an export to a path that cannot be written gives an error.
+
+# T-314: A relative trusted path is read from the current directory
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent B, as the user `qa2` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With `trusted = ["."]` in the `run.toml` of the user, a project's `.podrunner/run.toml` is taken when run from that project and refused from `~`. `docs/cli.md` says a relative path is read from the directory of the file. `"~/proj"` is not expanded and trusts nothing, with no message.
+
+## Premise
+
+Finding B-07 of agent B.
+
+## Approach
+
+Read a relative path of `trusted` from the directory of the file; expand `~/`; name an entry that trusts nothing.
+
+## Prove
+
+`cargo test -p podrunner --lib`: `trusted = ["."]` names the directory of the file.
+
+# T-315: The runner images have no sudo and lack tools of ubuntu-latest
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent B, as the user `qa2` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`sudo apt-get install -y cowsay` fails with `sudo: command not found` in each image; the base image has no `make`, `python3`, `cargo`, `docker` or `yarn`, the larger one no `cargo`, `yarn`, `docker` or `sudo`. The unit user has no passwd entry (`I have no name!`) and `HOME=/root`. No document lists the gaps.
+
+## Premise
+
+Finding B-08 and B-37 of agent B, A24 of agent A.
+
+## Approach
+
+Add `sudo` to the images (a rule for the user of the unit), or document that a step of `sudo` fails; list the tools of each image against ubuntu-latest in `docs/local-mode.md`.
+
+## Prove
+
+`python3 -I scripts/user-gate.py`: a job that runs `sudo true` passes on podvm, or the documents list the gap.
+
+# T-316: The P3 findings of the third QA, agent B
+
+**Source:** the third adversarial QA of the release files of `12a1300` (podvm `0.2.0-beta.24`), agent B, as the user `qa2` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+B-09 `help check` prints a garbled line. B-10 the usage output is too large. B-11 `run --help` and `docs/cli.md` differ. B-12 the live lines are not in time order. B-13 exit codes do not match `docs/cli.md` (78 for a missing file of a flag, 69 for `--microvm` with no `/dev/kvm`). B-14 refusals that do not name their flag or file, and values of `run.toml` not named as such. B-15 `--image runner:latest` is not refused. B-16 `--incus` prints the hold line of a microvm guest. B-17 `--dry-run` passes a missing `--runner-dir` or `--incus`. B-18 early refusals leave `/tmp/podrunner-run-tree-PID`. B-19 `doctor --run` misses known faults (proxy variables on podvm, no `bin/Runner.Worker`, an unreadable `run.toml` and a fix that loops). B-20 the intermittent `egress: job podrunner-run-fetch ... failed at connect`. B-21 the order of `--list` of a directory. B-22 `--validate` passes `uses:` with no `@REF` and an unknown job key. B-23 a missing action gives a git prompt error. B-24 the fix `--ref` for an event that `on:` does not take. B-25 `github.event.schedule` with `--event schedule`, the PR number of `--event-path`, a bad `--ref` and an empty `--actor`. B-26 the exit codes of `--watch` and `--schedule` at a signal. B-27 `--rerun` and artifacts; the line about `--log-dir DIR`. B-28 the web view lists no artifacts. B-29 `--web` with `--dry-run` waits; a wrong fix for a bind. B-30 `--break-on-failure` writes its pause step twice. B-31 container refusals on `--runner-dir` name the wrong cause and suggest `--podvm`. B-32 `--no-cache` makes `actions/cache` retry for 60 s. B-33 an unwritable `--log-dir` with exit 0. B-34 a corrupt store gives no fix. B-35 the installer takes a runner directory with a missing file. B-36 `--prefix` rewrites the one `run.toml`. B-38 `--github-token-env ghp_abc=1` echoes the value. B-39 control verbs (`stop --wait` with no serve, `drain` output, the mode of `journal.jsonl`, two texts of one error). B-40 `source-conformance -- podrunner fake-source` fails 7 of 12 tests. B-41 `--dry-run --json` gives `success`. B-42 `actions/checkout` with no `--checkout` (T-203). B-43 the lock file of a dry run in the tree. B-44 the cancel of a concurrency group and `if: success()` for a job that `--job` leaves out.
+
+## Premise
+
+The report of agent B (the commands and outputs are in it).
+
+## Approach
+
+Fix each one; a finding that the code cannot change goes into the documents.
+
+## Prove
+
+`cargo test -p podrunner -p podrunner-local`
+
+# T-317: On the namespace rung of podvm the job runs as root of a one-uid namespace
+
+**Source:** the lead session, measured during T-301 (2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With podvm `0.2.0-beta.25`, `run -d` of a user with no root takes the namespace rung: the payload is uid 0 of a user namespace that maps one uid. The runner refuses root (`Must not run interactively with sudo`); tar of `actions/setup-node` fails at each chown (`Cannot change ownership to uid 1001: Invalid argument`); npm 6 runs its scripts as `nobody`, which is not mapped; `--hostname` is refused (no UTS namespace), so the unit has the host name of the host (T-182).
+
+## Premise
+
+Measured by the lead session as `qa1` and `qa2` on the QA host with podvm `0.2.0-beta.25`. podrunner sets `RUNNER_ALLOW_RUNASROOT=1`, `TAR_OPTIONS=--no-same-owner` and `npm_config_unsafe_perm=true` in a podvm unit (T-301), and starts again with no `--hostname`.
+
+## Approach
+
+Ask podvm (a COORD issue) to map the uid of the caller to the user of the image (`runner`, 1001) on the namespace rung, and to give a UTS namespace for `--hostname`; then remove the three variables.
+
+## Prove
+
+`cargo test -p podrunner-podvm`; a job on podvm runs as `runner`, and `hostname` gives `podrunner-u-1`.
