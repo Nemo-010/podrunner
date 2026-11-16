@@ -106,33 +106,39 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   T-277, T-290 and T-298 hold the P3 that are open. The notes
   `docs/releases/v0.1.0-beta.7.md` list them, with the level of proof.
 - Round 3 ran (2026-11-16) on the release files of `12a1300` (T-246):
-  agent A gave T-300 to T-308, agent B T-309 to T-316. The release
-  waits for each P1 and P2: T-300 (partial: podvm beta.25 and the gate
-  check `confine:podvm`), T-303 to T-307, T-309 (P1: a failing test suite
-  of npm 6 is `ok` in a podvm unit; cause not found yet), T-310 to T-315,
-  T-317 (the job runs as root of a one-uid namespace on podvm beta.25:
-  a COORD issue to podvm), and T-260. T-301 and T-302 are done. A round
-  4 runs on the files of the commit that fixes them.
+  agent A gave T-300 to T-308, agent B T-309 to T-316; the lead session
+  T-301 and T-317. Done since: T-301, T-302, T-303, T-305, T-306, T-307,
+  T-310, T-311, T-312, T-313, T-314. Open P1 and P2 that block the
+  release: T-309 (P1, blocked on COORD-071 #197: podvm's memo on
+  descriptor 17 empties the reads of npm 6's children), T-300 (P1,
+  partial: the loader family is no boundary for a static binary; waits
+  for podvm's binds of `run -d`, PodUtils/podvm#442), T-317 (blocked on
+  COORD-070 #196), T-304 (not reproduced), T-315 and T-260 (partial).
+  A round 4 runs on the files of the commit that holds them.
 - The kit of the QA: `/srv/qa-kit` (the files of a user-gate run, podvm
   from its release, the documents, `env.sh` with the proxy and CA of the
-  host); the users `qa1` and `qa2`. The reports are in T-308 and T-316,
-  and in the entries; the session copies are gone with the machine.
-- The last runs: gate 43819358691 green on `6527879`; level2 43816073382
-  and runner-image 43816073298 green on `12a1300`. User-path gate
-  43816078517 on `12a1300`: each row passes or is a known xfail, except
-  express-lint on podvm, which passed in two lanes and failed in three
-  (T-262); that row is `flaky` now. T-255 and T-299 are done (proven in
-  that run). Dispatch the gate, level2 and user-gate again on the commit
-  of the release.
-- #194 is closed. Dispatch the gate, level2 and the user-path gate
-  (`-f version=0.1.0-beta.7 -f images_run=43789352527`) on each new
-  `main` with `actions_run_trigger`.
-- podvm `v0.2.0-beta.25` is pinned (T-261, T-291): the rows of uv and ruff
-  on podvm are `ok`, the row of Node 26 on podvm is `flaky` (T-262). Run
-  `runner-image.yml`, then the user-path gate with that run as
-  `images_run` (`images/` changed). Send the message of the probe of
-  `hello:microvm` to podvm in a new COORD issue (PodUtils/podvm#444).
-- Then T-264 (podcrates `v0.59.0`: the issue sync, pod-lab, the chroot
+  host); the users `qa1` and `qa2` with no root. The reports are in the
+  entries (T-308 and T-316 hold the P3s).
+- podvm `v0.2.0-beta.25` is pinned (`ede07ea`). On this host (user
+  namespaces) `run -d` of a unit takes the namespace rung, where the job
+  runs as root of a one-uid namespace (T-317; podrunner sets
+  `RUNNER_ALLOW_RUNASROOT`, `TAR_OPTIONS`, `npm_config_unsafe_perm`). In
+  the CI lanes the units ran on the loader family (Go finds no GOROOT; uv
+  and ruff get EACCES): the rows of uv and ruff on podvm are `xfail`
+  again (T-261).
+- The last runs: user-gate 43834454578 on `a5079e6` (images of
+  runner-image 43828189959, podvm beta.25): `confine:podvm`, `lab:check`,
+  and the rows of uv and ruff on podvm failed; each is fixed in the gate
+  script or the corpus since (`634e591`). `images/` changed at `7d62176`
+  (sudo, T-315): runner-image 43839111223 runs on it. When it is green,
+  dispatch user-gate with `-f version=0.1.0-beta.7 -f
+  images_run=RUN_ID`. runner-image, level2 and the gate of the release
+  commit run again before a release.
+- Each push that changes the crates starts `runner-image.yml` (about 2
+  hours, no concurrency group): cancel the runs of older commits with
+  `actions_run_trigger` (`cancel_workflow_run`) when a newer one covers
+  them.
+- Then T-264 (podcrates `v0.61.0`: the issue sync, pod-lab, the chroot
   row of T-283), after the release.
 - The LIVE-2 report (GitHub #75, 2026-11-15) ran W1, W3 (20 of 20) and
   W4 on the podvm kind with a fixed sidecar, and W6 held. Its defects are
@@ -186,7 +192,7 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
 
 | Who | What | Entries |
 | --- | --- | --- |
-| podvm | `run -d --hostname` (#115) | T-182 |
+| podvm | `run -d --hostname` (#115, fixed on podvm `main`), the user of the image and binds of `run -d` (#196), the memo on descriptor 17 (#197), the machine tier of a user with no root (#198) | T-182, T-300, T-309, T-317, T-291 |
 | LIVE-1 and LIVE-2 | the report of GitHub #75, and a new run on the next beta | T-032, T-033, T-040 |
 | podcrates | `pod-unit`, `pod-release` (none planned for v1) | T-043 |
 | actions/runner | a release with `Microsoft.AspNetCore.WebUtilities` 8.0.34 or later | T-082 |
@@ -197,8 +203,9 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   CI plan that podrunner owns. Their bodies have the current state
   (2026-11-15); T-001 holds them.
 - COORD issues open: #110 (COORD-050, to podvm); #111 (COORD-051, to
-  podvm); #189 (COORD-066) and #193 (COORD-068) and #195 (COORD-069) to podvm (T-261, T-262,
-  T-291); #191 (COORD-067, to podcrates, T-283). No podcrates release notice is open; podrunner takes
+  podvm); #189 (COORD-066), #193 (COORD-068), #195 (COORD-069), #196 (COORD-070),
+  #197 (COORD-071) and #198 (COORD-072) to podvm (T-261, T-262, T-291,
+  T-309, T-317); #191 (COORD-067, to podcrates, T-283). No podcrates release notice is open; podrunner takes
   podcrates `v0.52.0`.
 - GitHub #9, #32, #33, #40: wait for the live gates (#74, #75). GitHub
   #43 waits for podcrates.
