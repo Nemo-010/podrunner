@@ -191,6 +191,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #189 | COORD-066: three jobs fail in a podvm unit and pass on a runner directory: persist of a temporary file EACCES, Node package config (to podvm) | open (podvm answered on PodUtils/podvm#439: raw syscalls and io_uring on the loader family; the fix is a bind of a volume on the namespace rung) | T-261, T-262 |
 | #190 | [gh action] requested | open (the gate, runner-image, level2 and the user-path gate on `a8e7ee9`; no release: T-246 is not done) | T-243, T-261, T-262, T-263 |
 | #191 | COORD-067: pod-hostprobe: a mount and a chroot probe in a user namespace with an ID map (to podcrates) | open (PodUtils/podcrates#201: the mount row is in v0.52.0, shown now; the chroot row comes in the next tag) | T-283 |
+| #192 | [gh action] requested | open (the gate, runner-image, level2 and the user-path gate with the lane proxy-only on `45ef3c3`; no release: a second QA comes first) | T-246, T-265, T-284 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |
