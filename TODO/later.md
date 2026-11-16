@@ -5455,7 +5455,7 @@ The local mode asks the driver for the `seccomp` backend also where `netns` hold
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5472,6 +5472,11 @@ An executor on the command line replaces the executor of `run.toml`; the other k
 ## Prove
 
 `cargo test -p podrunner --test local`: a run with `run.toml` and `--runner-dir` uses the runner directory.
+
+## Done
+
+2026-11-16: `run_config::executor_of_command_line`: an executor flag of the command line drops the executor flags of the files, and `--runner-dir` also their `images`, `image`, `podnet` and `engine`; `docs/cli.md` says so. Unit test: `an_executor_of_the_command_line_replaces_the_one_of_the_files`.
+
 
 # T-304: The checkout of the tree answers 404 to later jobs of a run
 
@@ -5737,7 +5742,7 @@ A failed export fails the run with the path and the cause, before the jobs where
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5754,6 +5759,11 @@ Read a relative path of `trusted` from the directory of the file; expand `~/`; n
 ## Prove
 
 `cargo test -p podrunner --lib`: `trusted = ["."]` names the directory of the file.
+
+## Done
+
+2026-11-16: `run_config::trusted_path`: a relative path of `trusted` is read from the directory of the file of the user, and `~/DIR` from the home; `docs/cli.md` says so. Unit test: `a_trusted_path_is_read_from_the_directory_of_the_file`.
+
 
 # T-315: The runner images have no sudo and lack tools of ubuntu-latest
 
@@ -5833,3 +5843,5 @@ Ask podvm (a COORD issue) to map the uid of the caller to the user of the image 
 ## Blocker
 
 2026-11-16: COORD-070 (GitHub #196) asks podvm to map the uid of the caller to the user of the image on the namespace rung, and for a UTS namespace there.
+
+State (2026-11-16): podvm answered (PodUtils/podvm#448, COORD-155): `--hostname` of `run -d` is fixed on podvm `main` (its next release); the user of the image waits for the binds of pod-enter.

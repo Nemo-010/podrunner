@@ -1,6 +1,7 @@
 //! The configuration files of `podrunner run` (T-143). Each key of a file
 //! is a flag of `run` with no `--`; the flags of the files go before those
-//! of the command line, so a flag of the command line wins. The order: the
+//! of the command line, so a flag of the command line wins, and an executor
+//! of the command line replaces the executor of the files (T-303). The order: the
 //! file of the user (`$XDG_CONFIG_HOME/podrunner/run.toml`, or
 //! `~/.config/podrunner/run.toml`), then the file of the project
 //! (`.podrunner/run.toml` in `--checkout DIR`, or in the current
@@ -287,9 +288,10 @@ pub fn expand(args: &[String]) -> Result<Vec<String>, String> {
             let name = file.display().to_string();
             let table: toml::Table = toml::from_str(&text).map_err(|e| format!("{name}: {e}"))?;
             let canon = |p: &Path| p.canonicalize().unwrap_or_else(|_| p.to_path_buf());
+            let place = |p: &str| trusted_path(p, &dir, home.as_deref());
             trusted = match table.get("trusted") {
                 Some(toml::Value::Array(list)) => {
-                    list.iter().filter_map(toml::Value::as_str).any(|p| canon(Path::new(p)) == canon(&project))
+                    list.iter().filter_map(toml::Value::as_str).any(|p| canon(&place(p)) == canon(&project))
                 }
                 Some(_) => return Err(format!("{name}: `trusted` is a list of directories")),
                 None => false,
@@ -307,6 +309,7 @@ pub fn expand(args: &[String]) -> Result<Vec<String>, String> {
     for n in notes {
         eprintln!("podrunner: {n}");
     }
+    let flags = executor_of_command_line(flags, args);
     // The workflow FILE stays first.
     let mut out = Vec::with_capacity(flags.len() + args.len());
     let (file, rest) = match args.split_first() {
@@ -317,6 +320,39 @@ pub fn expand(args: &[String]) -> Result<Vec<String>, String> {
     out.extend(flags);
     out.extend(rest.iter().cloned());
     Ok(out)
+}
+
+/// A directory of `trusted`: a relative path is read from the directory of
+/// the file, and `~/` is the home (T-314).
+fn trusted_path(p: &str, dir: &Path, home: Option<&Path>) -> PathBuf {
+    match (p.strip_prefix("~/"), home) {
+        (Some(rest), Some(h)) => h.join(rest),
+        _ => dir.join(p),
+    }
+}
+
+/// The executor flags; each one takes a value.
+const EXECUTOR: &[&str] = &["--runner-dir", "--podvm", "--microvm", "--incus"];
+
+/// An executor of the command line replaces the executor of the files
+/// (T-303): the files lose their executor flags, and with `--runner-dir`
+/// also the keys of a unit kind.
+fn executor_of_command_line(flags: Vec<String>, args: &[String]) -> Vec<String> {
+    let given = |f: &str| args.iter().any(|a| a == f);
+    if !EXECUTOR.iter().any(|f| given(f)) {
+        return flags;
+    }
+    let unit_keys: &[&str] = if given("--runner-dir") { &["--images", "--image", "--podnet", "--engine"] } else { &[] };
+    let mut out = Vec::with_capacity(flags.len());
+    let mut it = flags.into_iter();
+    while let Some(f) = it.next() {
+        if EXECUTOR.contains(&f.as_str()) || unit_keys.contains(&f.as_str()) {
+            it.next();
+            continue;
+        }
+        out.push(f);
+    }
+    out
 }
 
 #[cfg(test)]

@@ -114,3 +114,25 @@ fn actrc_of_a_project_keeps_its_files_in_the_project() {
     assert!(actrc("--var-file /etc/x\n", ".actrc", Some(p), false, &mut Vec::new()).is_err());
     assert!(actrc("--env-file ../o.env\n", ".actrc", Some(p), true, &mut Vec::new()).is_ok(), "a trusted project may");
 }
+
+/// T-303: an executor of the command line replaces the one of the files.
+#[test]
+fn an_executor_of_the_command_line_replaces_the_one_of_the_files() {
+    let file =
+        s(&["--podvm", "/b/podvm", "--images", "/i", "--image", "r@sha256:00", "--quiet", "--allow", "x.example"]);
+    let got = executor_of_command_line(file.clone(), &s(&["w.yml", "--runner-dir", "/r"]));
+    assert_eq!(got, s(&["--quiet", "--allow", "x.example"]));
+    let got = executor_of_command_line(file.clone(), &s(&["w.yml", "--microvm", "/m"]));
+    assert_eq!(got, s(&["--images", "/i", "--image", "r@sha256:00", "--quiet", "--allow", "x.example"]));
+    assert_eq!(executor_of_command_line(file.clone(), &s(&["w.yml", "--quiet"])), file, "no executor: the file stays");
+}
+
+/// T-314: `trusted` reads a relative path from the directory of the file.
+#[test]
+fn a_trusted_path_is_read_from_the_directory_of_the_file() {
+    let dir = Path::new("/home/u/.config/podrunner");
+    assert_eq!(trusted_path(".", dir, None), dir.join("."));
+    assert_eq!(trusted_path("proj", dir, None), dir.join("proj"));
+    assert_eq!(trusted_path("~/proj", dir, Some(Path::new("/home/u"))), Path::new("/home/u/proj"));
+    assert_eq!(trusted_path("/abs", dir, None), Path::new("/abs"));
+}

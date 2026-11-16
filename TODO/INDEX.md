@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**314 entries: 35 open, 22 partial, 17 blocked, 240 done.**
+**314 entries: 33 open, 22 partial, 17 blocked, 242 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 10 | 3 | 53 | 67 |
-| P2 | 25 | 8 | 10 | 107 | 150 |
+| P2 | 23 | 8 | 10 | 109 | 150 |
 | P3 | 9 | 4 | 4 | 80 | 97 |
-| **All** | 35 | 22 | 17 | 240 | 314 |
+| **All** | 33 | 22 | 17 | 242 | 314 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -347,7 +347,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-300](later.md) | P1 | M | later | defect | partial | A job in a podvm unit writes into the home of the user on the host |
 | [T-301](later.md) | P1 | S | later | defect | done | With podvm 0.2.0-beta.25 the runner of a podvm unit ends with no result |
 | [T-302](later.md) | P1 | S | later | defect | done | The egress hold of the installer refuses each run where user namespaces exist |
-| [T-303](later.md) | P2 | S | later | defect | open | An executor flag does not replace the executor of run.toml |
+| [T-303](later.md) | P2 | S | later | defect | done | An executor flag does not replace the executor of run.toml |
 | [T-304](later.md) | P2 | S | later | defect | open | The checkout of the tree answers 404 to later jobs of a run |
 | [T-305](later.md) | P2 | S | later | defect | open | actions/setup-python v7 fails with the made-up token |
 | [T-306](later.md) | P2 | S | later | defect | open | On --runner-dir, a Python of setup-python cannot load libpython |
@@ -358,7 +358,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-311](later.md) | P2 | S | later | defect | open | container: and docker:// steps on podvm are planned and then refused |
 | [T-312](later.md) | P2 | S | later | defect | open | A SIGKILL during a podvm job leaves the unit and its files |
 | [T-313](later.md) | P2 | S | later | defect | open | A failed --export is silent |
-| [T-314](later.md) | P2 | S | later | defect | open | A relative trusted path is read from the current directory |
+| [T-314](later.md) | P2 | S | later | defect | done | A relative trusted path is read from the current directory |
 | [T-315](later.md) | P2 | S | later | defect | open | The runner images have no sudo and lack tools of ubuntu-latest |
 | [T-316](later.md) | P3 | M | later | defect | open | The P3 findings of the third QA, agent B |
 | [T-317](later.md) | P2 | S | later | defect | blocked | On the namespace rung of podvm the job runs as root of a one-uid namespace |
