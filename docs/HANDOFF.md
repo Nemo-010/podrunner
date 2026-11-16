@@ -112,18 +112,13 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   binary, podvm, the official runner and the documents, as users with no
   root. The reports of rounds 1 and 2 were on the old machine only; each
   finding of them is an entry.
-- The last runs: gate 43795116133 and level2 43795119948 green on
-  `a4b41b9`; runner-image 43789352527 green on `45ef3c3` (`images/` has not
-  changed since: `user-gate.yml` takes it with `-f images_run=43789352527`).
-  User-path gate 43795123788 on `a4b41b9` red: express-node22 on
-  `--runner-dir` times out in CI (T-255: the `send` module of Node refuses
-  the `.local` in the path of the workspace; fixed, the next gate run
-  proves it);
-  express-lint on podvm passed in one lane (T-262, flaky until podvm
-  releases its fix); rq-lint on `--runner-dir` in the new lane
-  `proxy-only` (T-299: the `fetch` of a Node action ignored the proxy;
-  fixed, the next gate run proves it). The lanes plain, small-tmp, userns-off and
-  inherited-fds and bind-denied pass each other row.
+- The last runs: gate 43819358691 green on `6527879`; level2 43816073382
+  and runner-image 43816073298 green on `12a1300`. User-path gate
+  43816078517 on `12a1300`: each row passes or is a known xfail, except
+  express-lint on podvm, which passed in two lanes and failed in three
+  (T-262); that row is `flaky` now. T-255 and T-299 are done (proven in
+  that run). Dispatch the gate, level2 and user-gate again on the commit
+  of the release.
 - #194 is closed. Dispatch the gate, level2 and the user-path gate
   (`-f version=0.1.0-beta.7 -f images_run=43789352527`) on each new
   `main` with `actions_run_trigger`.

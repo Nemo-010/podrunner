@@ -13,8 +13,9 @@
 #   github    the result of the job on github.com at the commit
 #   executor  podvm (the run.toml of the installer), runner-dir or microvm
 #   lanes     the lanes that run the row (a,b), or * for each lane
-#   expect    ok, or xfail when podrunner fails the job by design (the note
-#             names the entry)
+#   expect    ok; xfail when podrunner fails the job for a known cause;
+#             flaky when it fails some runs for a known cause (the note of
+#             an xfail or a flaky row names the entry)
 #   flags     more flags of run, separated by a space, or -
 #   note      why, or -
 #
@@ -33,7 +34,7 @@ rg-docs	BurntSushi/ripgrep	178cc027e283fd965cb72d0a7395b219eada170c	.github/work
 rg-docs	BurntSushi/ripgrep	178cc027e283fd965cb72d0a7395b219eada170c	.github/workflows/ci.yml	docs	-	success	runner-dir	*	ok	-	-
 click-py313	pallets/click	e38188e9e205005d5af5f9e59df51904c984586a	.github/workflows/tests.yaml	tests	python=3.13	success	podvm	*	xfail	-	in a podvm unit the persist of a temporary file of uv gets EACCES (T-261)
 click-py313	pallets/click	e38188e9e205005d5af5f9e59df51904c984586a	.github/workflows/tests.yaml	tests	python=3.13	success	runner-dir	*	ok	-	-
-express-lint	expressjs/express	43fca52d28a422c8be48fd489cbd4f2d6152bab6	.github/workflows/ci.yml	lint	-	success	podvm	*	xfail	-	Node 26 reads an invalid package.json in a podvm unit, also with UV_USE_IO_URING=0 (T-262, GitHub #193)
+express-lint	expressjs/express	43fca52d28a422c8be48fd489cbd4f2d6152bab6	.github/workflows/ci.yml	lint	-	success	podvm	*	flaky	-	Node 26 sometimes reads an invalid package.json in a podvm unit, also with UV_USE_IO_URING=0 (T-262, GitHub #193)
 express-lint	expressjs/express	43fca52d28a422c8be48fd489cbd4f2d6152bab6	.github/workflows/ci.yml	lint	-	success	runner-dir	*	ok	-	-
 express-node22	expressjs/express	43fca52d28a422c8be48fd489cbd4f2d6152bab6	.github/workflows/ci.yml	test	os=ubuntu-latest;node-version=22	success	podvm	*	ok	-	upload-artifact v7 through the broker of the run
 express-node22	expressjs/express	43fca52d28a422c8be48fd489cbd4f2d6152bab6	.github/workflows/ci.yml	test	os=ubuntu-latest;node-version=22	success	runner-dir	*	ok	-	the work directory has no name with a dot, as send of Node refuses it (T-255)

@@ -87,10 +87,10 @@ def read_table(path: pathlib.Path) -> tuple[list[dict], list[str]]:
             errors.append(f"{where}: no executor {r['executor']!r}")
         if r["github"] != "success":
             errors.append(f"{where}: the corpus takes jobs that pass on github.com, not {r['github']!r}")
-        if r["expect"] not in ("ok", "xfail"):
-            errors.append(f"{where}: expect is ok or xfail, not {r['expect']!r}")
-        if r["expect"] == "xfail" and not re.search(r"\bT-\d{3,}\b", r["note"]):
-            errors.append(f"{where}: an xfail row names the entry of its cause in the note")
+        if r["expect"] not in ("ok", "xfail", "flaky"):
+            errors.append(f"{where}: expect is ok, xfail or flaky, not {r['expect']!r}")
+        if r["expect"] in ("xfail", "flaky") and not re.search(r"\bT-\d{3,}\b", r["note"]):
+            errors.append(f"{where}: an {r['expect']} row names the entry of its cause in the note")
         if r["matrix"] != "-" and not all(re.fullmatch(r"[\w-]+=\S+", kv) for kv in r["matrix"].split(";")):
             errors.append(f"{where}: the matrix is not KEY=VALUE;KEY=VALUE")
         if (r["id"], r["executor"]) in seen:
@@ -446,6 +446,10 @@ class Lane:
             if not ok:
                 raise GateError(f"github.com: success; {detail}")
             return "ok, as on github.com"
+        # A flaky row fails some runs for a known cause (its entry): either
+        # result holds, and the table shows which one came.
+        if r["expect"] == "flaky":
+            return "pass, a flaky row" if ok else ("xfail", f"flaky: {r['note']} ({detail})")
         if ok:
             raise GateError("the job passes now (an xfail row): set expect to ok in scripts/corpus/user-gate.tsv")
         return "xfail", f"{r['note']} ({detail})"

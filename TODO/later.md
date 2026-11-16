@@ -3934,7 +3934,7 @@ Each claim of the notes names its level: CI on GitHub-hosted runners, a lane of 
 
 ## Done
 
-2026-11-16: `scripts/check-notes.sh` refuses notes with no section "What is proven in CI", "What is proven on a constrained host as a user" or "What is not proven", or with an empty "What is not proven". `release.yml` checks the notes of the version; the gate and `scripts/agent/check.sh` check the newest notes. Measured: the notes of beta.7 pass; the notes of beta.6 (no section of a user host) and a file with an empty "What is not proven" fail. Proven in CI: the next gate run.
+2026-11-16: `scripts/check-notes.sh` refuses notes with no section "What is proven in CI", "What is proven on a constrained host as a user" or "What is not proven", or with an empty "What is not proven". `release.yml` checks the notes of the version; the gate and `scripts/agent/check.sh` check the newest notes. Measured: the notes of beta.7 pass; the notes of beta.6 (no section of a user host) and a file with an empty "What is not proven" fail. Proven in CI: gate 43819358691 on `6527879` (the step "The levels of proof of the notes").
 
 # T-248: The help and the manual of podrunner from the shared crate of PodUtils
 
@@ -4170,7 +4170,7 @@ The call of 2026-11-15, after a first change: an empty `github.token` made `acti
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -4193,6 +4193,11 @@ State (2026-11-16): with the job environment of T-265 and T-266 (the `PATH`, the
 State (2026-11-16, later): user-gate 43795123788 on `a4b41b9`: the row still times out (exit 124) in each lane in CI, so the row is an xfail again. The difference between CI and the sandbox is not known: read `logs/express-node22-runner-dir` of the artifact of a lane (the tests of sendfile and the hang).
 
 State (2026-11-16, the cause): the log of the lane `proxy-only` of run 43795123788: 1230 passing, 60 failing (each a test of `res.download` and `res.sendFile`), then the run waits until the cancel at 2700 s. In the gate, the runner directory of the installer is `~/.local/share/podrunner/runner/2.338.2`, so the workspace is under `.local`. The `send` module of Node refuses an absolute path with a name that starts with `.` (404, `dotfiles: ignore`); measured on the sandbox with `send@1`: 404 for `a/.local/b/f.txt`, 200 for `c/b/f.txt`. The runner directory of the sandbox had no such name. The fix: when the path of the runner directory has such a name, the work folder of the runner is `BASE/podrunner-work/NAME-HASH` (`work::host_work`; `start_runner_in` writes it into `.runner`). Proven on the sandbox with the runner 2.338.2 in `h/.local/share/podrunner/runner/2.338.2`: `GITHUB_WORKSPACE` is `h/podrunner-work/2.338.2-9f2cc63a/workflow/workflow`. The corpus row is `ok` again; the proof is the next run of the user-path gate.
+
+## Done
+
+2026-11-16, `12a1300`: the work directory of `--runner-dir` has no name that starts with `.` (`work::host_work`). Proven in CI: user-gate 43816078517 on `12a1300`: `corpus:express-node22:runner-dir` passes in each of the five lanes (plain, small-tmp, userns-off, inherited-fds, proxy-only).
+
 
 # T-256: The checks of a session do not run the suites that need the official runner
 
@@ -4282,6 +4287,9 @@ The row `express-lint` on `podvm` passes in each lane of two runs of the user-pa
 ## Blocker
 
 2026-11-16: user-gate 43787604846 on `12cb64e` (with `UV_USE_IO_URING=0`): the job fails in three lanes of four, at the first read of a `package.json` (of npm in the tool cache) by the module loader of Node 26; `UV_USE_IO_URING=0` is not the fix. The row is an xfail again; waits for podvm (COORD-068, GitHub #193). podvm (PodUtils/podvm#442): the cause is the loader family of #439; the fix (a volume as a bind mount on the namespace rung for a foreground `run`) is on podvm `main` (`1298b66a`) and comes in its next release; no variable closes it on beta.24. user-gate 43795123788 on `a4b41b9`: the row passed in the lane `inherited-fds` and failed in the other four, so an xfail of it can fail the gate as "passes now"; until podvm releases the fix, a run of the gate can need a second attempt.
+
+State (2026-11-16): user-gate 43816078517 on `12a1300`: `corpus:express-lint:podvm` passed in the lanes inherited-fds and proxy-only and failed in plain, small-tmp and userns-off. The row is `flaky` now (`scripts/user-gate.py`: a flaky row takes either result, and its note names the entry); it goes to `ok` with the podvm release that carries the fix.
+
 
 # T-263: The installer keeps a directory that the group can write
 
@@ -5314,7 +5322,7 @@ Fix each one; the report of the QA lists the commands.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -5333,3 +5341,7 @@ Read the log of the step that failed (ruff, or the setup of Python or of uv thro
 `python3 -I scripts/user-gate.py`: the row `rq-lint` on `runner-dir` passes in the lane `proxy-only`.
 
 State (2026-11-16): the fake broker sends `actions.runner.usenode24bydefault` (`message.rs`), so a `node20` action runs on Node 24 as on GitHub. A job on a runner directory and a unit with the proxy of the host get `NODE_USE_ENV_PROXY=1` when a proxy variable is set and the user did not set it (`exec/host.rs`, `node_proxy`; `exec/proxy.rs`). Unit tests: `cargo test -p podrunner-local --lib`. On the sandbox with the runner 2.338.2, a local `node20` action prints `node=v24.22.1 envproxy=1` (the sandbox has a direct route too, so it does not show the refusal). The proof is the next run of the user-path gate.
+
+## Done
+
+2026-11-16, `f2d7b66`: `actions.runner.usenode24bydefault` in the job message and `NODE_USE_ENV_PROXY=1` with a proxy. Proven in CI: user-gate 43816078517 on `12a1300`: `corpus:rq-lint:runner-dir` passes in the lane `proxy-only` (and in the four other lanes).

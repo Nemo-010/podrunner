@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**296 entries: 22 open, 23 partial, 15 blocked, 236 done.**
+**296 entries: 22 open, 21 partial, 15 blocked, 238 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 51 | 63 |
-| P2 | 14 | 10 | 9 | 105 | 138 |
+| P2 | 14 | 8 | 9 | 107 | 138 |
 | P3 | 7 | 4 | 4 | 80 | 95 |
-| **All** | 22 | 23 | 15 | 236 | 296 |
+| **All** | 22 | 21 | 15 | 238 | 296 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -302,7 +302,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-252](later.md) | P2 | S | later | chore | open | No workflow is linted before it runs |
 | [T-253](later.md) | P1 | S | later | defect | done | The faults of the first run of the user-path gate |
 | [T-254](later.md) | P1 | S | later | defect | done | The made-up `github.token` fails each action that calls the API of a real forge |
-| [T-255](later.md) | P2 | S | later | defect | partial | On `--runner-dir`, the tests of express miss headers and hang |
+| [T-255](later.md) | P2 | S | later | defect | done | On `--runner-dir`, the tests of express miss headers and hang |
 | [T-256](later.md) | P1 | S | later | defect | done | The checks of a session do not run the suites that need the official runner |
 | [T-260](later.md) | P2 | S | later | defect | open | An expression in the image of a service or a job container fails the job |
 | [T-261](later.md) | P2 | S | later | defect | blocked | In a podvm unit, the persist of a temporary file gets EACCES |
@@ -343,4 +343,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-296](later.md) | P2 | S | later | defect | done | The lines of the results come at the end, and a SIGHUP loses them |
 | [T-297](later.md) | P2 | S | later | defect | done | `--microvm` does not check its image and `/dev/kvm` before the run |
 | [T-298](later.md) | P3 | M | later | defect | open | The P3 findings of the second QA, agent B |
-| [T-299](later.md) | P2 | S | later | defect | partial | In the lane proxy-only, the lint of rq on `--runner-dir` fails |
+| [T-299](later.md) | P2 | S | later | defect | done | In the lane proxy-only, the lint of rq on `--runner-dir` fails |
