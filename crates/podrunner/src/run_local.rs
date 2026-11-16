@@ -350,7 +350,7 @@ pub fn run(args: &[String]) -> Out {
     // The pauses wait for Enter on the terminal (T-150); a dry run has none.
     if !a.breaks.is_empty()
         && !a.dry_run
-        && let Err(e) = pause::watch()
+        && let Err(e) = pause::watch(a.runner_dir.is_none() || a.podvm.is_some() || a.guest.is_some())
     {
         let _ = std::fs::remove_dir_all(&scratch);
         return fail(Class::Usage, e);

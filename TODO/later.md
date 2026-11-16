@@ -4759,7 +4759,7 @@ Keep each passed cell; check the cron and refuse a cycle; give the cron text in 
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -4776,6 +4776,10 @@ The text of `--break` on `--runner-dir` names the work directory; refuse the pai
 ## Prove
 
 `cargo test -p podrunner`: A test of the text and of the pair.
+
+## Done
+
+2026-11-16: `crates/podrunner/src/run_local/pause.rs` (`watch(unit)`): on `--runner-dir` the pause names the runner and offers no shell; Enter goes on, `s` opens a shell only in a unit, and each other text is refused and the job waits. `--keep-failed` is another name of `--break-on-failure`, as `docs/cli.md` now says, so the pair is one flag.
 
 # T-281: A runner directory with a space, and the growth of `_diag`
 

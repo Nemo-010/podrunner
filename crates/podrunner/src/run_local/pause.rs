@@ -135,26 +135,34 @@ impl Executor for Paused {
 
 /// Name each paused job on stderr, and release it when the user presses
 /// Enter; a signal releases each one. It runs until the process ends.
-pub(super) fn watch() -> Result<(), String> {
+/// `unit`: the jobs run in units, where a shell can enter; on a runner
+/// directory there is no unit (T-280).
+pub(super) fn watch(unit: bool) -> Result<(), String> {
     if !std::io::stdin().is_terminal() {
         return Err("--break and --break-on-failure need a terminal: podrunner waits for Enter".into());
     }
-    std::thread::spawn(|| {
+    std::thread::spawn(move || {
         loop {
             if podrunner_local::cancel::requested() {
                 hold::release_all();
             }
             if let Some(job) = hold::waiting().into_iter().next() {
                 loop {
-                    eprintln!(
-                        "podrunner: {job} is paused; its unit keeps running. Press Enter to go on, or type s and Enter for a shell in its unit."
-                    );
+                    match unit {
+                        true => eprintln!(
+                            "podrunner: {job} is paused; its unit keeps running. Press Enter to go on, or type s and Enter for a shell in its unit."
+                        ),
+                        false => eprintln!(
+                            "podrunner: {job} is paused; its runner keeps running in the runner directory. Press Enter to go on."
+                        ),
+                    }
                     let mut line = String::new();
                     let _ = std::io::stdin().lock().read_line(&mut line);
-                    if line.trim() != "s" {
-                        break;
+                    match line.trim() {
+                        "" => break,
+                        "s" if unit => enter(&job),
+                        other => eprintln!("podrunner: {other:?} is not an answer; the job waits"),
                     }
-                    enter(&job);
                 }
                 hold::release(&job);
             }
