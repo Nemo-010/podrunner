@@ -56,7 +56,7 @@ pub(super) fn run_dir(args: &[String], a: &Args) -> Out {
             match context::takes(a, &facts, &w) {
                 Ok(true) => {}
                 Ok(false) => {
-                    out.stdout.push_str(&format!("--- {name}: `on:` does not take the event {:?}\n", a.event));
+                    super::emit(&mut out.stdout, &format!("--- {name}: `on:` does not take the event {:?}\n", a.event));
                     continue;
                 }
                 Err(e) => {
@@ -68,8 +68,9 @@ pub(super) fn run_dir(args: &[String], a: &Args) -> Out {
         }
         let mut one = args.to_vec();
         one[at] = file.display().to_string();
+        super::emit(&mut out.stdout, &format!("--- {name}\n"));
         let o = run(&one);
-        out.stdout.push_str(&format!("--- {name}\n{}", o.stdout));
+        out.stdout.push_str(&o.stdout);
         out.stderr.push_str(&o.stderr);
         out.code = out.code.max(o.code);
     }

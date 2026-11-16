@@ -129,6 +129,22 @@ pub fn doctor(args: &[String]) -> Out {
     Out { code, stdout: doctor::text(&checks), stderr: String::new() }
 }
 
+/// Write each result line to stdout when its job ends, not in the `Out` of
+/// the run: the binary sets it; a test reads the lines in `Out` (T-296).
+pub static STREAM: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Add `text` to `out`, or with [`STREAM`] write it to stdout at once.
+fn emit(out: &mut String, text: &str) {
+    if STREAM.load(std::sync::atomic::Ordering::SeqCst) {
+        use std::io::Write;
+        let mut o = std::io::stdout().lock();
+        let _ = o.write_all(text.as_bytes());
+        let _ = o.flush();
+    } else {
+        out.push_str(text);
+    }
+}
+
 /// Run `podrunner run ARGS`.
 pub fn run(args: &[String]) -> Out {
     let a = match parse(args) {
@@ -375,11 +391,11 @@ pub fn run(args: &[String]) -> Out {
             w.line(l);
         }
         if as_json {
-            return stdout.push_str(&logs::line_json(l));
+            return emit(&mut stdout, &logs::line_json(l));
         }
         let text = line(l);
         // A dry run runs no job: a job that would start is `planned`.
-        stdout.push_str(&if dry && text.starts_with("ok ") { text.replacen("ok      ", "planned ", 1) } else { text })
+        emit(&mut stdout, &if dry && text.starts_with("ok ") { text.replacen("ok      ", "planned ", 1) } else { text })
     };
     let state = std::env::temp_dir().join(format!("podrunner-run-units-{}", std::process::id()));
     let oidc = match routes::issuer(&a) {
@@ -475,6 +491,15 @@ pub fn run(args: &[String]) -> Out {
             // The live lines gave each log once; with -q, the logs come at
             // the end (T-289).
             match a.quiet {
+                // With --json, each line of the dump is a JSON object (T-296).
+                true if a.json => {
+                    for (job, log) in &logs {
+                        for l in log.lines() {
+                            let o = serde_json::json!({ "event": "log", "job": job.to_string(), "line": l });
+                            stderr.push_str(&format!("{o}\n"));
+                        }
+                    }
+                }
                 true => {
                     for (job, log) in &logs {
                         stderr.push_str(&format!("--- log of {job}\n{log}\n"));

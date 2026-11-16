@@ -13,6 +13,8 @@ fn main() -> ExitCode {
         let code = pod_hostprobe::run_child(name, &mut std::io::stdout());
         return ExitCode::from(u8::try_from(code).unwrap_or(2));
     }
+    // The binary writes each line of a local run when its job ends (T-296).
+    podrunner::run_local::STREAM.store(true, std::sync::atomic::Ordering::SeqCst);
     let out = podrunner::cli::run(&args);
     let _ = std::io::stdout().write_all(out.stdout.as_bytes());
     let _ = std::io::stderr().write_all(out.stderr.as_bytes());

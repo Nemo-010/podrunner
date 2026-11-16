@@ -5221,7 +5221,7 @@ A cell that the filter of a rerun leaves out keeps its end of the state (`kept`)
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5238,6 +5238,10 @@ Write each result line when its job ends, and flush it; with `--json`, the dump 
 ## Prove
 
 `cargo test -p podrunner`
+
+## Done
+
+2026-11-16: `crates/podrunner/src/run_local.rs` (`STREAM`, `emit`, set by `main.rs`): each result line goes to stdout, flushed, when its job ends; `many.rs` writes the header of a workflow before its lines; with `--json` and `-q`, the dump of a failed run is one JSON object for each line. Proven on this sandbox: a SIGHUP with stdout and stderr in files gives `cancelled a`, `cancelled b` and "a signal cancelled the run".
 
 # T-297: `--microvm` does not check its image and `/dev/kvm` before the run
 
