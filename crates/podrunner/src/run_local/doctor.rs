@@ -43,7 +43,11 @@ fn free_disk(dir: &Path) -> Result<String, String> {
     // SAFETY: statvfs writes into a zeroed struct that this function owns.
     let mut s: libc::statvfs = unsafe { std::mem::zeroed() };
     if unsafe { libc::statvfs(c.as_ptr(), &mut s) } != 0 {
-        return Err(format!("{}: statvfs failed", dir.display()));
+        return Err(format!(
+            "{}: {}; fix: set TMPDIR to a directory that exists and that you can write",
+            dir.display(),
+            std::io::Error::last_os_error()
+        ));
     }
     let free = s.f_bavail as u64 * s.f_frsize as u64;
     // Below 1 GiB, in MiB: "0 GiB" reads as no space at all (T-218).
@@ -88,7 +92,10 @@ pub(super) fn hold(a: &Args) -> String {
 /// The runner reads each directory above its root, up to `/` (T-213).
 fn parents_readable(dir: &Path) -> Result<String, String> {
     let dir = std::path::absolute(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
-    for p in dir.ancestors().skip(1) {
+    // From the root down: the first directory that cannot be read is the
+    // cause, not a directory under it (T-277).
+    let parents: Vec<&Path> = dir.ancestors().skip(1).collect();
+    for p in parents.into_iter().rev() {
         std::fs::read_dir(p).map_err(|e| {
             format!(
                 "{}: {e}; fix: the runner reads each directory above its root: give it a read of {}, or put the runner directory where each parent can be read",

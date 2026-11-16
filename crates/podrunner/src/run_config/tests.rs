@@ -93,3 +93,14 @@ fn a_link_out_of_the_project_is_refused() {
     assert!(flags_of("env-file = \"out\"\n", "f", &project, true, true).is_ok(), "a trusted project may");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// `jobs` and `web` are keys of the file of the user; a flag that is not a
+/// key is named (T-277).
+#[test]
+fn jobs_and_web_are_keys_of_the_user_file() {
+    let base = std::path::Path::new("/p");
+    assert_eq!(flags_of("jobs = 2\n", "f", base, false, true).unwrap(), ["--jobs", "2"]);
+    assert_eq!(flags_of("web = \"127.0.0.1:0\"\n", "f", base, false, true).unwrap(), ["--web", "127.0.0.1:0"]);
+    assert!(flags_of("web = \"127.0.0.1:0\"\n", "f", base, true, false).is_err(), "not of a project");
+    assert!(flags_of("watch = true\n", "f", base, false, true).unwrap_err().contains("but for list"));
+}

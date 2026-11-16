@@ -248,6 +248,18 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     if a.with_git && a.no_git {
         return Err("--with-git and --no-git exclude each other".into());
     }
+    // The values of the `github` context have the forms of GitHub (T-277).
+    let name = |p: &str| !p.is_empty() && p.chars().all(|c| c.is_ascii_alphanumeric() || "-_.".contains(c));
+    if let Some(r) = &a.repository
+        && !r.split_once('/').is_some_and(|(o, n)| name(o) && name(n))
+    {
+        return Err(format!("--repository {r}: not OWNER/REPO"));
+    }
+    if let Some(s) = &a.sha
+        && !((s.len() == 40 || s.len() == 64) && s.chars().all(|c| c.is_ascii_hexdigit()))
+    {
+        return Err(format!("--sha {s}: not a commit (40 or 64 hex digits)"));
+    }
     // Each prints its own view: one at a time, as the usage gives (T-218).
     if [a.list, a.graph, a.validate, a.dry_run].iter().filter(|x| **x).count() > 1 {
         return Err("--list, --graph, --validate and --dry-run exclude each other".into());

@@ -4678,7 +4678,7 @@ Leave the files that podrunner reads as configuration (`.secrets`, `.vars`, `.en
 **Milestone:** later
 **Priority:** P3
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -4695,6 +4695,8 @@ Fix each text and each check; a test for each.
 ## Prove
 
 `cargo test -p podrunner`: A test for each case of the list.
+
+State (2026-11-16): done: a directory as `--secret-file` is "not a file"; a `--web` port in use names another port or 0; the fix of a missing image names the store (`PODVM_STORE=STORE podvm load -i`); `doctor` names the first parent from the root that cannot be read; a missing `TMPDIR` names its fix; a miss of `--offline` names a run with no `--offline` or the `--actions DIR` of a run that fetched it; a YAML error has no "the actions:"; `--checkout DIR` names its flag; `--repository` must be OWNER/REPO and `--sha` 40 or 64 hex digits; a `--remote` that the tree does not have fails; the refusal of the event names `--ref`; `run.toml` of the user takes `jobs`, `web` and `toolcache`, and the refusal names the flags that are not keys. Tests `the_values_of_the_github_context_are_checked`, `jobs_and_web_are_keys_of_the_user_file`. Open: a `--matrix` value or a `--platform` label that no cell or job uses, an `--approve` of no environment (the cells come during the run); a retry of `git ls-remote` after an HTTP 503; `run` names the parent that cannot be read, as `doctor` does; the line of the hold before the refusal of `--runner-dir`; on `--runner-dir`, the refusal of containers before the check of a digest (A7).
 
 # T-278: The output, the exit codes and the help disagree with the documents
 

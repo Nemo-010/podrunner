@@ -75,12 +75,20 @@ const HOST: &[&str] = &[
     "ref",
     "sha",
     "event-path",
+    "jobs",
+    "web",
+    "toolcache",
 ];
+
+/// The flags of run that are not keys: each one asks for one run of its
+/// own (a view, a loop, a rerun) (T-277).
+const NOT_KEYS: &str = "list, graph, validate, dry-run, watch, schedule, rerun, failed, refresh, no-config, break, break-on-failure, keep-failed, changed-since";
 
 /// The keys whose value is a path: a relative path is read from the
 /// directory of the project (the project file) or of the file (the user
 /// file).
 const PATHS: &[&str] = &[
+    "toolcache",
     "runner-dir",
     "podvm",
     "microvm",
@@ -146,7 +154,9 @@ fn flags_of(text: &str, name: &str, base: &Path, project: bool, trusted: bool) -
         }
         let safe = SAFE.contains(&key.as_str());
         if !safe && !HOST.contains(&key.as_str()) {
-            return Err(format!("{name}: `{key}` is not a key of run (each key is a flag of run with no --)"));
+            return Err(format!(
+                "{name}: `{key}` is not a key of run (each key is a flag of run with no --, but for {NOT_KEYS})"
+            ));
         }
         if project && !safe && !trusted {
             return Err(format!(

@@ -43,6 +43,14 @@ pub(super) fn repository_of(url: &str) -> Option<String> {
     Some(format!("{owner}/{repo}"))
 }
 
+/// A `--remote NAME` that the tree does not have (T-277).
+pub(super) fn missing_remote(a: &Args) -> Option<String> {
+    let name = a.remote.as_deref()?;
+    let cwd = std::env::current_dir().unwrap_or_else(|_| ".".into());
+    let dir = a.checkout.as_deref().unwrap_or(&cwd);
+    git(dir, &["remote", "get-url", name]).is_none().then(|| format!("--remote {name}: the tree has no such remote"))
+}
+
 /// The facts of the tree, then the flags over them.
 pub(super) fn facts(a: &Args) -> Facts {
     let cwd = std::env::current_dir().unwrap_or_else(|_| ".".into());

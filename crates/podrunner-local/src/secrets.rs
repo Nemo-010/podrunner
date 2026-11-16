@@ -69,6 +69,9 @@ fn parse_with(text: &str, check_name: impl Fn(&str) -> Result<(), String>) -> Re
 /// The secrets of a secret file: its mode must be 0600 or less.
 pub fn read_file(path: &Path) -> Result<Vec<(String, String)>, String> {
     let meta = std::fs::metadata(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    if !meta.is_file() {
+        return Err(format!("{}: not a file; a secret file has one NAME=VALUE on each line", path.display()));
+    }
     let mode = meta.permissions().mode() & 0o777;
     if mode & 0o077 != 0 {
         return Err(format!("{}: mode {mode:04o}: a secret file needs mode 0600 (chmod 600)", path.display()));

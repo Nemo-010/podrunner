@@ -212,3 +212,15 @@ fn a_foreign_label_fails_with_no_platform() {
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
+
+/// T-277: `--repository` and `--sha` have the forms of GitHub.
+#[test]
+fn the_values_of_the_github_context_are_checked() {
+    let base = ["w.yml", "--runner-dir", "/r"];
+    let with = |more: &[&str]| parse(&args(&[&base[..], more].concat()));
+    assert!(with(&["--repository", "bad"]).unwrap_err().contains("not OWNER/REPO"));
+    assert!(with(&["--repository", "o/r/x"]).is_err());
+    assert!(with(&["--repository", "o-1/r.x"]).is_ok());
+    assert!(with(&["--sha", "zz"]).unwrap_err().contains("not a commit"));
+    assert!(with(&["--sha", &"a".repeat(40)]).is_ok());
+}

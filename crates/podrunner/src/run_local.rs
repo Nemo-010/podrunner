@@ -147,6 +147,9 @@ pub fn run(args: &[String]) -> Out {
         Ok(x) => x,
         Err(e) => return fail(Class::Config, e),
     };
+    if let Some(e) = context::missing_remote(&a) {
+        return fail(Class::Usage, e);
+    }
     let mut facts = context::facts(&a);
     let parsed = pod_actions_workflow::parse(&text).ok();
     if let Some(p) = &parsed
@@ -164,7 +167,7 @@ pub fn run(args: &[String]) -> Out {
             Ok(false) => {
                 let events = context::events(&p.workflow.on);
                 let msg = format!(
-                    "{}: `on:` ({events:?}) does not take the event {:?} of {} after its filters; --force-event runs it",
+                    "{}: `on:` ({events:?}) does not take the event {:?} of {} after its filters; --ref REF gives another ref, and --force-event runs it",
                     a.file.display(),
                     a.event,
                     facts.git_ref
@@ -208,6 +211,16 @@ pub fn run(args: &[String]) -> Out {
     let (store, pins, note) = match actions::pin(&a, &text, mode, &facts.repository, image_source) {
         Ok(Some(p)) => (p.dir.or_else(|| a.actions.clone()), p.commits, p.note),
         Ok(None) => (a.actions.clone(), Default::default(), String::new()),
+        Err(e) if e.contains("offline mode fetches nothing") => {
+            return fail(
+                Class::Config,
+                format!(
+                    "{}: the actions: {e}; fix: run once with no --offline, or give the --actions DIR of a run that fetched it",
+                    a.file.display()
+                ),
+            );
+        }
+        Err(e) if e.contains("YAML") => return fail(Class::Config, format!("{}: {e}", a.file.display())),
         Err(e) => return fail(Class::Config, format!("{}: the actions: {e}", a.file.display())),
     };
     let base = Base { github, vars: object(&vars), inputs: typed, ..Base::default() };
@@ -294,7 +307,7 @@ pub fn run(args: &[String]) -> Out {
                 }
                 Some(t)
             }
-            Err(e) => return fail(Class::Config, e),
+            Err(e) => return fail(Class::Config, format!("--checkout {}: {e}", dir.display())),
         },
     };
     // The artifacts stay in the state of the run, so that a rerun job reads
