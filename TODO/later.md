@@ -5661,7 +5661,7 @@ State (2026-11-16): the cause, measured in a unit of podvm `0.2.0-beta.25`: podv
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -5678,6 +5678,11 @@ Read how the broker gets the lines of a step (the web console feed of the runner
 ## Prove
 
 `cargo test -p podrunner-local --test runner -- --ignored`: a step with a pause between two lines gives the first line before the step ends.
+
+## Done
+
+2026-11-16: the cause: in the flow of the results service, the runner sends the lines of a running step only over a websocket at `FeedStreamUrl` of the endpoint, which the fake broker did not give (`JobServerQueue`, `ResultsServer` of the runner 2.338.2). The broker now gives `FeedStreamUrl` when it is on the loopback and takes the websocket (`podrunner-broker-fake/src/feed.rs`); each message goes to the live output at once, and the blob of a step that the feed gave is not printed again. A guest of `--microvm` and `--incus` reaches the broker through its front, which takes no websocket, so its lines still come at the end of each step. Unit tests: `feed::tests`. Proven on a constrained host as a user (`qa2`): a step that prints `tick` four times at 8 s gives each line 8 s apart, on `--runner-dir` and on podvm; `check.sh` with the runner suites passes.
+
 
 # T-311: container: and docker:// steps on podvm are planned and then refused
 

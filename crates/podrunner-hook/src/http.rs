@@ -20,6 +20,8 @@ pub struct Request {
     /// The `Range` header: the cache of the fake broker serves a part of a
     /// blob.
     pub range: Option<String>,
+    /// The `Sec-WebSocket-Key` header: the live feed of the fake broker.
+    pub ws_key: Option<String>,
 }
 
 /// Why a request is refused: the status and a short reason.
@@ -58,6 +60,7 @@ pub fn read_request_with(r: &mut impl BufRead, max: usize) -> Result<Request, Ht
     }
     let mut length: Option<usize> = None;
     let mut range = None;
+    let mut ws_key = None;
     for i in 0.. {
         let h = line(r)?;
         if h.is_empty() {
@@ -76,6 +79,7 @@ pub fn read_request_with(r: &mut impl BufRead, max: usize) -> Result<Request, Ht
             }
             "transfer-encoding" => return Err(HttpError(501, "no chunked body")),
             "range" => range = Some(value.trim().to_string()),
+            "sec-websocket-key" => ws_key = Some(value.trim().to_string()),
             _ => {}
         }
     }
@@ -85,7 +89,7 @@ pub fn read_request_with(r: &mut impl BufRead, max: usize) -> Result<Request, Ht
     }
     let mut body = vec![0; length];
     r.read_exact(&mut body).map_err(|_| HttpError(400, "the body is short"))?;
-    Ok(Request { method: method.into(), path: path.into(), body, range })
+    Ok(Request { method: method.into(), path: path.into(), body, range, ws_key })
 }
 
 /// Write one response, with extra headers, and close.

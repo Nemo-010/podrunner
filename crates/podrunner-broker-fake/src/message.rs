@@ -103,6 +103,11 @@ fn b64(v: &Value) -> String {
 /// (T-140).
 fn endpoint_data(base: &str, job: &Job) -> Value {
     let mut d = json!({ "ServerId": guid(5), "ServerName": "podrunner-broker-fake", "ResultsServiceUrl": base });
+    // The live feed of the runner (T-310), on the loopback only: a guest
+    // reaches the broker through a front that takes no websocket.
+    if let Some(rest) = base.strip_prefix("http://127.0.0.1:") {
+        d["FeedStreamUrl"] = json!(format!("ws://127.0.0.1:{}{}", rest.trim_end_matches('/'), crate::feed::PATH));
+    }
     if job.id_token.is_some() {
         d["GenerateIdTokenUrl"] =
             json!(format!("{}{}?api-version=2.0", base.trim_end_matches('/'), crate::oidc::TOKEN_PATH));

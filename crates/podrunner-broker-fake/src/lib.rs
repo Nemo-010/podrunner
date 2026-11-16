@@ -10,6 +10,7 @@ pub mod actions;
 pub mod artifacts;
 pub mod cache;
 pub mod corpus;
+pub mod feed;
 pub mod files;
 pub mod hold;
 pub mod message;
@@ -47,6 +48,10 @@ struct State {
     blobs: std::collections::BTreeMap<String, Vec<u8>>,
     /// How much of each blob [`Broker::take_new`] gave (T-134).
     read: std::collections::BTreeMap<String, usize>,
+    /// The lines of the live feed not given yet, and each step that the
+    /// feed gave lines of: its blob is not given again (T-310).
+    fed: Vec<String>,
+    fed_steps: std::collections::BTreeSet<String>,
     /// The bodies of `WorkflowStepsUpdate`, in order.
     step_updates: Vec<Value>,
     queue: VecDeque<(u64, Job)>,
@@ -240,11 +245,19 @@ impl Broker {
         let mut out = Vec::new();
         // The step logs only: the log of the whole job repeats each line
         // (T-282).
+        if !st.fed.is_empty() {
+            let mut text = std::mem::take(&mut st.fed).join("\n");
+            text.push('\n');
+            out.push(("feed".to_string(), text));
+        }
         let names: Vec<String> = st.blobs.keys().filter(|k| k.starts_with("step-")).cloned().collect();
         for name in names {
             let len = st.blobs[&name].len();
             let from = st.read.get(&name).copied().unwrap_or(0).min(len);
-            if from < len {
+            let fed = name.strip_prefix("step-").is_some_and(|id| st.fed_steps.contains(&id.to_ascii_lowercase()));
+            if fed {
+                st.read.insert(name, len);
+            } else if from < len {
                 out.push((name.clone(), String::from_utf8_lossy(&st.blobs[&name][from..]).replace('\u{feff}', "")));
                 st.read.insert(name, len);
             }
@@ -334,6 +347,16 @@ fn serve<C: Conn>(conn: C, state: &Mutex<State>, base: &str) {
     }
     let path = req.path.split('?').next().unwrap_or("").to_string();
     state.lock().expect("the broker").seen.push(format!("{} {path}{form}", req.method));
+    if let (true, Some(key)) = (req.method == "GET" && path == feed::PATH, &req.ws_key) {
+        if feed::handshake(&mut w, key).is_ok() {
+            feed::read_messages(&mut w, |step, lines| {
+                let mut st = state.lock().expect("the broker");
+                st.fed_steps.insert(step.to_string());
+                st.fed.extend(lines);
+            });
+        }
+        return;
+    }
     let images = state.lock().expect("the broker").mirror.clone();
     if let Some((status, out, headers)) = images.and_then(|m| m.route(&req.method, &path)) {
         let _ = mirror::write(&mut w, &req.method, status, &headers, &out);
