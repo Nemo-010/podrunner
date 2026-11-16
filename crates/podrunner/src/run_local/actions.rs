@@ -69,7 +69,7 @@ pub(super) fn pin(
         }
     }
     let tags = match images {
-        Some(_) => workflow_images(&workflow).map_err(s)?,
+        Some(_) => workflow_images(&run_jobs(&workflow, &a.jobs)).map_err(s)?,
         None => Vec::new(),
     };
     if uses.is_empty() && trees.is_empty() && tags.is_empty() {
@@ -127,4 +127,70 @@ pub(super) fn pin(
         note = format!("podrunner: {name} pins {} references\n", r.lock.pins.len() + r.lock.images.len());
     }
     Ok(Some(Pinned { dir, commits: r.commits, note }))
+}
+
+/// The workflow with the jobs whose images the run pulls (T-260): the jobs
+/// of `--job` and each job that they need (each job with no `--job`), less
+/// each job whose `container:` or service image is an expression, which is
+/// named here and fails at its start, as its image is in no store.
+fn run_jobs(w: &pod_actions_workflow::Workflow, selected: &[String]) -> pod_actions_workflow::Workflow {
+    let mut keep: std::collections::BTreeSet<String> = match selected.is_empty() {
+        true => w.jobs.iter().map(|j| j.id.clone()).collect(),
+        false => selected.iter().cloned().collect(),
+    };
+    loop {
+        let more: Vec<String> = w
+            .jobs
+            .iter()
+            .filter(|j| keep.contains(&j.id))
+            .flat_map(|j| j.needs.clone())
+            .filter(|n| !keep.contains(n))
+            .collect();
+        if more.is_empty() {
+            break;
+        }
+        keep.extend(more);
+    }
+    use pod_actions_workflow::yaml::{Kind, Node};
+    // The image of a `container:` or of a service: the string, or `image:`.
+    let image = |n: &Node| match &n.kind {
+        Kind::String(s) => Some(s.clone()),
+        Kind::Map(_) => n.get("image").and_then(|i| match &i.kind {
+            Kind::String(s) => Some(s.clone()),
+            _ => None,
+        }),
+        _ => None,
+    };
+    let mut out = w.clone();
+    out.jobs.retain(|j| {
+        let services = match j.services.as_ref().map(|s| &s.kind) {
+            Some(Kind::Map(m)) => m.iter().filter_map(|(_, s)| image(s)).collect(),
+            _ => Vec::new(),
+        };
+        let expr = j.container.as_ref().and_then(image).into_iter().chain(services).any(|i| i.contains("${{"));
+        if keep.contains(&j.id) && expr {
+            eprintln!("podrunner: job {}: an image of it is an expression, which no store holds: the job fails at its start (T-260)", j.id);
+        }
+        keep.contains(&j.id) && !expr
+    });
+    out
+}
+
+#[cfg(test)]
+mod run_jobs_tests {
+    /// T-260: a job with an image of an expression is left out of the pull,
+    /// the others stay; an expression in `env:` of a service is no image.
+    #[test]
+    fn a_job_with_an_image_of_an_expression_is_left_out() {
+        let text = "on: push\njobs:\n  lint:\n    runs-on: ubuntu-latest\n    steps: [{run: 'true'}]\n  \
+            db:\n    runs-on: ubuntu-latest\n    needs: lint\n    strategy: {matrix: {v: [1, 2]}}\n    \
+            services:\n      pg: {image: 'postgres:${{ matrix.v }}'}\n    steps: [{run: 'true'}]\n  \
+            other:\n    runs-on: ubuntu-latest\n    services:\n      pg:\n        image: postgres:16\n        \
+            env: {P: '${{ secrets.P }}'}\n    steps: [{run: 'true'}]\n";
+        let w = pod_actions_workflow::parse(text).unwrap().workflow;
+        let ids = |w: &pod_actions_workflow::Workflow| w.jobs.iter().map(|j| j.id.clone()).collect::<Vec<_>>();
+        assert_eq!(ids(&super::run_jobs(&w, &[])), ["lint", "other"]);
+        assert_eq!(ids(&super::run_jobs(&w, &["lint".to_string()])), ["lint"]);
+        assert_eq!(ids(&super::run_jobs(&w, &["db".to_string()])), ["lint"], "db needs lint");
+    }
 }

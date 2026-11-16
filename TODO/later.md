@@ -4032,7 +4032,7 @@ Take the workflow and the check of podcrates when they are out; give it the map 
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -4051,6 +4051,8 @@ Evaluate the image of each cell with the contexts that GitHub allows there, befo
 A test of `crates/podrunner-local`: a service image `valkey/valkey:${{ matrix.v }}` gives `valkey/valkey:9.0` for the cell `v=9.0` in the collect of the images; `podrunner run ... --dry-run` of the corpus row `rq-valkey` (`scripts/corpus/user-gate.tsv`) plans the cell on `--podvm`.
 
 State (2026-11-16): the third QA, agent A (finding A4): on `--podvm`, the image `ghcr.io/...:${{ matrix.postgres }}` of a service refuses the whole run before any job, exit 78, also with `--job lint`, and `--validate` says `valid` (brianc/node-postgres at `2a5850fb`). Each job with no such image must run, and the refusal must name its cell.
+
+State (2026-11-16, partial): the run pulls only the images of the jobs that run (`--job` and their needs), and leaves out a job whose `container:` or service image is an expression, with a line; that job fails at its start, and each other job runs (`run_local/actions.rs`, `run_jobs`; test `a_job_with_an_image_of_an_expression_is_left_out`). Next: give such an image for each cell of the matrix (the values of `matrix`), pull each one, and give the runner the digest of its cell.
 
 
 # T-251: The gate and the host of an agent run shellcheck of other versions
