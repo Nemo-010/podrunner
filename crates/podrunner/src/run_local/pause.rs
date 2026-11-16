@@ -2,7 +2,7 @@
 //! step STEP (its number from 1, or its `id`) of the job JOB; with
 //! `--break-on-failure`, a step after each step pauses after the first one
 //! that fails. The pause step asks the broker of its job
-//! (`github.api_url`) each second until the user releases the job: podrunner
+//! (`github.podrunner_broker`) each second until the user releases the job: podrunner
 //! names the paused job on stderr and goes on when the user presses Enter.
 //! The unit keeps running, with its egress hold, while it waits; the user
 //! can enter it with a shell (`UnitDriver::enter`, the podvm kind).
@@ -61,7 +61,7 @@ pub(super) fn check(b: &Breaks, w: &pod_actions_workflow::Workflow) -> Result<()
 
 /// The pause step of the cell `cell`, run when `condition` holds.
 fn pause_step(cell: &str, n: usize, condition: &str, what: &str) -> Value {
-    let url = format!("${{{{ github.api_url }}}}{}{cell}", hold::PATH.trim_start_matches('/'));
+    let url = format!("${{{{ github.podrunner_broker }}}}{}{cell}", hold::PATH.trim_start_matches('/'));
     let script = format!(
         "echo \"podrunner: a pause {what}; press Enter in podrunner to go on\"\n\
          until curl -fsS -o /dev/null \"{url}\" 2>/dev/null || wget -q -O /dev/null \"{url}\" 2>/dev/null; do sleep 1; done"
@@ -221,7 +221,7 @@ mod tests {
         assert_eq!(s.len(), 6);
         assert_eq!(s[1].1, "failure()");
         let script = m.overrides["steps"][1]["inputs"]["map"][0]["Value"].to_string();
-        assert!(script.contains("github.api_url") && script.contains("_podrunner/hold/build.0"), "{script}");
+        assert!(script.contains("github.podrunner_broker") && script.contains("_podrunner/hold/build.0"), "{script}");
         assert!(parse("build:2").is_ok() && parse("build").is_err() && parse(":2").is_err());
     }
 }

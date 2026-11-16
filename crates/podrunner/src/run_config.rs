@@ -196,7 +196,13 @@ fn flags_of(text: &str, name: &str, base: &Path, project: bool, trusted: bool) -
 
 /// The flags of an `.actrc`: those that podrunner takes, and a note for each
 /// other one.
-fn actrc(text: &str, name: &str, project: bool, trusted: bool, notes: &mut Vec<String>) -> Vec<String> {
+fn actrc(
+    text: &str,
+    name: &str,
+    project: Option<&Path>,
+    trusted: bool,
+    notes: &mut Vec<String>,
+) -> Result<Vec<String>, String> {
     let mut out = Vec::new();
     let words: Vec<String> = text
         .lines()
@@ -220,14 +226,38 @@ fn actrc(text: &str, name: &str, project: bool, trusted: bool, notes: &mut Vec<S
             (true, Some(v)) if key == "secret" && v.contains('=') => {
                 notes.push(format!("{name}: -s NAME=VALUE: podrunner takes no value of a secret from a file of flags"));
             }
-            (true, Some(_)) if project && host && !trusted => {
+            (true, Some(_)) if project.is_some() && host && !trusted => {
                 notes.push(format!("{name}: --{key} reaches the host; it is not used for an untrusted project"));
             }
+            // A file of an untrusted project stays in the project, as in
+            // run.toml (T-292).
+            (true, Some(v)) if PATHS.contains(&key.as_str()) && !trusted => match project {
+                Some(base) => out.extend([
+                    format!("--{key}"),
+                    path_value(&key, &v, base, true).map_err(|e| format!("{name}: {e}"))?,
+                ]),
+                None => out.extend([format!("--{key}"), v]),
+            },
             (true, Some(v)) => out.extend([format!("--{key}"), v]),
             _ => notes.push(format!("{name}: {w} is not a flag of podrunner run; it is not used")),
         }
     }
-    out
+    Ok(out)
+}
+
+/// The text of the file `rel` of the project, if it is there. A file that
+/// cannot be read fails the run, and an untrusted project cannot name a
+/// file out of it through a link (T-292).
+fn project_file(project: &Path, rel: &str, trusted: bool) -> Result<Option<String>, String> {
+    let file = project.join(rel);
+    if std::fs::symlink_metadata(&file).is_err() {
+        return Ok(None);
+    }
+    let real = file.canonicalize().map_err(|e| format!("{}: {e}", file.display()))?;
+    if !trusted && !project.canonicalize().is_ok_and(|root| real.starts_with(root)) {
+        return Err(format!("{}: a symbolic link leads out of the project", file.display()));
+    }
+    std::fs::read_to_string(&file).map(Some).map_err(|e| format!("{}: {e}", file.display()))
 }
 
 /// The flags of the files, then `args`; `--no-config` reads no file.
@@ -249,7 +279,7 @@ pub fn expand(args: &[String]) -> Result<Vec<String>, String> {
     if let Some(home) = &home
         && let Ok(text) = std::fs::read_to_string(home.join(".actrc"))
     {
-        flags.extend(actrc(&text, "~/.actrc", false, true, &mut notes));
+        flags.extend(actrc(&text, "~/.actrc", None, true, &mut notes)?);
     }
     if let Some(dir) = user_dir().map(|d| d.join("podrunner")) {
         let file = dir.join("run.toml");
@@ -267,11 +297,11 @@ pub fn expand(args: &[String]) -> Result<Vec<String>, String> {
             flags.extend(flags_of(&text, &name, &dir, false, true)?);
         }
     }
-    if let Ok(text) = std::fs::read_to_string(project.join(".actrc")) {
-        flags.extend(actrc(&text, ".actrc", true, trusted, &mut notes));
+    if let Some(text) = project_file(&project, ".actrc", trusted)? {
+        flags.extend(actrc(&text, ".actrc", Some(&project), trusted, &mut notes)?);
     }
     let file = project.join(".podrunner/run.toml");
-    if let Ok(text) = std::fs::read_to_string(&file) {
+    if let Some(text) = project_file(&project, ".podrunner/run.toml", trusted)? {
         flags.extend(flags_of(&text, &file.display().to_string(), &project, true, trusted)?);
     }
     for n in notes {

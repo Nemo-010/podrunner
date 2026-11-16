@@ -210,7 +210,10 @@ pub fn job_message(base: &str, request: u64, job: &Job) -> Value {
         "contextData": { "github": { "t": 2, "d": [
             s("repository", "example-org/app"), s("workflow", "podrunner"), s("job", &job.name),
             s("run_id", &request.to_string()), s("event_name", "push"),
-            s("server_url", "https://github.com"), s("api_url", base),
+            // A job reaches the API of GitHub as on GitHub; the scripts of
+            // podrunner reach this broker by `podrunner_broker` (T-293).
+            s("server_url", "https://github.com"), s("api_url", "https://api.github.com"),
+            s("graphql_url", "https://api.github.com/graphql"), s("podrunner_broker", base),
         ] } },
         "steps": steps,
         // GitHub masks each secret of a job; the password of the registry
@@ -224,8 +227,8 @@ pub fn job_message(base: &str, request: u64, job: &Job) -> Value {
                 for (name, v) in extra {
                     match (name.as_str(), data.get_mut(name)) {
                         // The entries of `github` join the canned ones, one
-                        // key at a time: `api_url` and `job` of this broker
-                        // stay (T-114).
+                        // key at a time: `podrunner_broker` and `job` of
+                        // this broker stay (T-114).
                         ("github", Some(canned)) => merge_dictionary(canned, v),
                         _ => {
                             data.insert(name.clone(), v.clone());
@@ -318,6 +321,7 @@ mod tests {
         let d = m["contextData"]["github"]["d"].as_array().unwrap();
         let get = |k: &str| d.iter().find(|e| e["k"] == k).map(|e| e["v"].clone());
         assert_eq!(get("event_name"), Some(json!("pull_request")), "the run gives its event (T-114)");
-        assert_eq!(get("api_url"), Some(json!("http://b/")), "the api_url of the broker stays");
+        assert_eq!(get("podrunner_broker"), Some(json!("http://b/")), "the broker stays");
+        assert_eq!(get("api_url"), Some(json!("https://api.github.com")), "the API of GitHub, as on GitHub");
     }
 }

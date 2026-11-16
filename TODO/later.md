@@ -5097,3 +5097,186 @@ podvm names what the machine tier needs from a user with no root (COORD-068, Git
 ## Blocker
 
 2026-11-16: podvm (PodUtils/podvm#442) did not reproduce it as uid 1000 under TCG; its guess, a guest memory of 512 MiB, does not hold (podrunner gives `--podvm-mem 4G`). The gate now runs `podvm run --verbose` of the image on the machine tier when `hello:microvm` fails (`scripts/user-gate.py`, `microvm_probe`), for the last line of the emulator; podvm `main` prints that line with no `--verbose` in its next release. Waits for that line.
+
+# T-292: A project file reads a file out of the project through `.actrc` or a link
+
+**Source:** the second adversarial QA of `f5d1de7`, agent B, findings F3, F10 and F11 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+A project `.actrc` gave `--env-file`, `--var-file` and `--input-file` paths out of the project (`../`, absolute, links) to the run with no word, and a private value reached a job (F3); an unreadable `.podrunner/run.toml` was skipped with no word (F10); a project `run.toml` that is a link out of the project was read, and the parse error showed its first line (F11).
+
+## Premise
+
+The report of the second QA, agent B (a user with no root on this sandbox).
+
+## Approach
+
+The path keys of a project `.actrc` take the rule of `run.toml` (`path_value`); a project file is read through `project_file`, which refuses a link out of an untrusted project and fails on a file that cannot be read.
+
+## Prove
+
+`cargo test -p podrunner --lib run_config`
+
+## Done
+
+2026-11-16: `crates/podrunner/src/run_config.rs` (`actrc` with the project, `project_file`); test `actrc_of_a_project_keeps_its_files_in_the_project`.
+
+# T-293: `github.api_url` of a job names the fake broker
+
+**Source:** the second adversarial QA of `f5d1de7`, agent B, finding F2 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** done
+
+## Problem
+
+A job had `GITHUB_API_URL` and `github.api_url` of the fake broker and no `GITHUB_GRAPHQL_URL`, so octokit (`actions/github-script`) called the broker ("no route: GET //repos/...") and not GitHub.
+
+## Premise
+
+Finding F2 of the report of the second QA.
+
+## Approach
+
+The `github` context of a job has `api_url` `https://api.github.com` and `graphql_url` `https://api.github.com/graphql`, as on GitHub; the scripts of podrunner (the stand-in of `actions/checkout`, the pause of `--break`) reach the broker by `github.podrunner_broker`.
+
+## Prove
+
+`cargo test -p podrunner-broker-fake`
+
+## Done
+
+2026-11-16: `crates/podrunner-broker-fake/src/message.rs`, `crates/podrunner-local/src/message.rs`, `crates/podrunner/src/run_local/pause.rs`. Proven on this sandbox: on `--runner-dir`, `actions/checkout@v4` passes and a step sees `GITHUB_API_URL=https://api.github.com` and `GITHUB_GRAPHQL_URL=https://api.github.com/graphql`.
+
+# T-294: A runner that a SIGKILL of podrunner leaves breaks the runner directory
+
+**Source:** the second adversarial QA of `f5d1de7`, agent B, finding F1 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A SIGKILL of podrunner (or a third signal) leaves the runner and its processes; the lock of T-274 goes with podrunner, so the next run starts, and each job fails with "`_diag/blocks/...` already exists". `doctor --run` gives `ok`.
+
+## Premise
+
+Finding F1 of the report of the second QA.
+
+## Approach
+
+The runner gets `PR_SET_PDEATHSIG` (SIGKILL) at its start, so it ends with podrunner; a run clears `_diag/blocks` with `_diag/pages`; `doctor --run` names a runner process that holds the runner directory.
+
+## Prove
+
+`cargo test -p podrunner-local`
+
+# T-295: A rerun with a matrix filter rewrites a failed cell as skipped
+
+**Source:** the second adversarial QA of `f5d1de7`, agent B, finding F4 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`--rerun DIR --failed --matrix K=V` with a filter that leaves out the failed cell writes that cell into `state.json` as `skipped`, and exits 0; the failure is lost for each later rerun.
+
+## Premise
+
+Finding F4 of the report of the second QA.
+
+## Approach
+
+A cell that the filter of a rerun leaves out keeps its end of the state (`kept`), and is not written as `skipped`.
+
+## Prove
+
+`cargo test -p podrunner-local`
+
+# T-296: The lines of the results come at the end, and a SIGHUP loses them
+
+**Source:** the second adversarial QA of `f5d1de7`, agent B, findings F5, F6 and F13 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The result lines of stdout (also with `--json`) are written when the run ends; a SIGHUP with the output in a file or a pipe loses them and the `cancelled` lines (F5, F6). With `--json`, a failed run writes "--- log of" dumps that are not JSON on stderr (F13).
+
+## Premise
+
+Findings F5, F6 and F13 of the report of the second QA.
+
+## Approach
+
+Write each result line when its job ends, and flush it; with `--json`, the dump of a log is one JSON object for each line.
+
+## Prove
+
+`cargo test -p podrunner`
+
+# T-297: `--microvm` does not check its image and `/dev/kvm` before the run
+
+**Source:** the second adversarial QA of `f5d1de7`, agent B, finding F7 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`--microvm` skips the check that the image is in the store and that `/dev/kvm` opens, which `--podvm` makes; the unit then asks Docker Hub for the image (against "a unit never pulls"), and the error is `exit Some(Code(125))`.
+
+## Premise
+
+Finding F7 of the report of the second QA.
+
+## Approach
+
+The check of T-272 (`image_in_store`) for `--microvm` and `--incus` too, and a check of `/dev/kvm` for `--microvm`, with the fix; `doctor --run` the same.
+
+## Prove
+
+`cargo test -p podrunner`
+
+# T-298: The P3 findings of the second QA, agent B
+
+**Source:** the second adversarial QA of `f5d1de7`, agent B, findings F8, F9, F12, F14 to F18 (T-246, 2026-11-16)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+A link to a runner directory with a space passes (F8); a workflow file is read with no size limit, and a FIFO hangs (F9); a `--log-dir` that cannot be written loses the logs with exit 0 (F12); with no `-q`, the console of the runner prints with no prefix (F14); exit codes and messages of a missing file of a flag (F15); several wrong causes or fixes (F16); each usage error prints the whole usage on one line (F17); small gaps: `--matrix` of a matrix of calls, `workflow_dispatch` with no `inputs:`, two runs on one `--state`, `_diag` keeps 22, the exit of `--watch` and `--schedule` at a signal, `~` in `trusted` (F18).
+
+## Premise
+
+The report of the second QA, agent B.
+
+## Approach
+
+Fix each one; the report of the QA lists the commands.
+
+## Prove
+
+`cargo test -p podrunner -p podrunner-local`

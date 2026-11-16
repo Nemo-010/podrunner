@@ -44,16 +44,16 @@ fn a_file_gives_flags_and_a_project_file_reaches_no_host_resource() {
 fn the_flags_of_an_actrc_that_podrunner_takes() {
     let mut notes = Vec::new();
     let text = "# act\n-P ubuntu-latest=node:16\n--var A=1\n--env=B=2\n-s TOKEN\n-s K=V\n--secret-file .secrets\n";
-    let got = actrc(text, ".actrc", true, false, &mut notes);
+    let got = actrc(text, ".actrc", Some(std::path::Path::new("/p")), false, &mut notes).unwrap();
     // A secret reads the environment of the host: not for an untrusted project.
     assert_eq!(got, s(&["--var", "A=1", "--env", "B=2"]));
     assert_eq!(notes.len(), 4, "{notes:?}");
     assert!(notes[0].contains("-P is not a flag"), "{notes:?}");
     assert!(notes[1].contains("--secret reaches the host") && notes[2].contains("NAME=VALUE"), "{notes:?}");
     assert!(notes[3].contains("--secret-file reaches the host"), "{notes:?}");
-    let got = actrc("-s TOKEN\n", ".actrc", true, true, &mut Vec::new());
+    let got = actrc("-s TOKEN\n", ".actrc", Some(std::path::Path::new("/p")), true, &mut Vec::new()).unwrap();
     assert_eq!(got, s(&["--secret", "TOKEN"]), "a trusted project");
-    let got = actrc("--secret-file .secrets\n", "~/.actrc", false, true, &mut Vec::new());
+    let got = actrc("--secret-file .secrets\n", "~/.actrc", None, true, &mut Vec::new()).unwrap();
     assert_eq!(got, s(&["--secret-file", ".secrets"]));
 }
 
@@ -103,4 +103,14 @@ fn jobs_and_web_are_keys_of_the_user_file() {
     assert_eq!(flags_of("web = \"127.0.0.1:0\"\n", "f", base, false, true).unwrap(), ["--web", "127.0.0.1:0"]);
     assert!(flags_of("web = \"127.0.0.1:0\"\n", "f", base, true, false).is_err(), "not of a project");
     assert!(flags_of("watch = true\n", "f", base, false, true).unwrap_err().contains("but for list"));
+}
+
+/// T-292: a file of `.actrc` of an untrusted project stays in the project.
+#[test]
+fn actrc_of_a_project_keeps_its_files_in_the_project() {
+    let p = std::path::Path::new("/p");
+    let e = actrc("--env-file ../outside.env\n", ".actrc", Some(p), false, &mut Vec::new()).unwrap_err();
+    assert!(e.contains("stay in the project"), "{e}");
+    assert!(actrc("--var-file /etc/x\n", ".actrc", Some(p), false, &mut Vec::new()).is_err());
+    assert!(actrc("--env-file ../o.env\n", ".actrc", Some(p), true, &mut Vec::new()).is_ok(), "a trusted project may");
 }

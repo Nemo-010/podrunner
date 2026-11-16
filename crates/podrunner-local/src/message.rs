@@ -186,7 +186,7 @@ struct RunDefaults<'a> {
 
 /// One step as the runner reads it: a script action.
 /// The stand-in of `actions/checkout` in the local mode (T-092): the
-/// tarball of the local tree from the fake broker (`github.api_url` names
+/// tarball of the local tree from the fake broker (`github.podrunner_broker` names
 /// it) into the workspace, or into `path` in it. No `tar -C` and no
 /// `tar -z`: in a podvm unit GNU `tar -C DIR` failed to open an existing
 /// DIR (T-093).
@@ -201,7 +201,7 @@ fn checkout_script(path: &str, other: Option<(&str, &str)>) -> String {
         }
     };
     format!(
-        "set -eu\nmkdir -p \"{dest}\"\ncd \"{dest}\"\ncurl -fsSL \"${{{{ github.api_url }}}}{route}\" | gzip -dc | tar -xf -{strip}"
+        "set -eu\nmkdir -p \"{dest}\"\ncd \"{dest}\"\ncurl -fsSL \"${{{{ github.podrunner_broker }}}}{route}\" | gzip -dc | tar -xf -{strip}"
     )
 }
 
@@ -344,7 +344,7 @@ fn step(
 
 /// The job of the fake broker for `cell` of `workflow`. `github`, `vars`
 /// and `inputs` are the contexts of the run; the entries of `github` join
-/// the canned ones of the broker, so `api_url` of the broker stays.
+/// the canned ones of the broker, so `podrunner_broker` of the broker stays.
 pub fn broker_job(
     workflow: &pod_actions_workflow::Workflow,
     cell: &Cell,

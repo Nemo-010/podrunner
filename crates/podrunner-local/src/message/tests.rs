@@ -146,7 +146,7 @@ fn actions_checkout_is_the_stand_in_of_the_local_tree() {
     assert_eq!(steps[0]["reference"]["type"], "script");
     assert_eq!(steps[0]["contextName"], "__actions_checkout");
     let script = steps[0]["inputs"]["map"][0]["Value"]["expr"].as_str().unwrap();
-    assert!(script.contains("{0}_checkout.tar.gz") && script.contains("(github.api_url)"), "{script}");
+    assert!(script.contains("{0}_checkout.tar.gz") && script.contains("(github.podrunner_broker)"), "{script}");
     assert!(script.contains("cd \"$GITHUB_WORKSPACE\"") && script.contains("gzip -dc | tar -xf -"), "{script}");
     assert!(!script.contains(" -C ") && !script.contains("-xz"), "{script}");
     assert_eq!(steps[1]["contextName"], "__actions_checkout_2");
@@ -190,7 +190,7 @@ fn a_pinned_container_services_and_a_docker_step_go_into_the_message() {
 }
 
 /// T-114: each step reads the `github` context of the run, and the broker
-/// keeps its `api_url`.
+/// keeps its `podrunner_broker`.
 #[test]
 fn the_steps_read_the_github_context_of_the_run() {
     let github = XValue::from_json("{\"event_name\":\"pull_request\",\"repository\":\"local/workflow\"}").unwrap();
@@ -203,7 +203,7 @@ fn the_steps_read_the_github_context_of_the_run() {
     let get = |k: &str| d.iter().find(|e| e["k"] == k).map(|e| e["v"].clone());
     assert_eq!(get("event_name"), Some(json!("pull_request")));
     assert_eq!(get("repository"), Some(json!("local/workflow")));
-    assert_eq!(get("api_url"), Some(json!("http://127.0.0.1:1/")), "the broker keeps its api_url");
+    assert_eq!(get("podrunner_broker"), Some(json!("http://127.0.0.1:1/")), "the broker keeps its URL");
 }
 
 #[test]
