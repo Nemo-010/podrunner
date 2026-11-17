@@ -16,12 +16,14 @@ ARG RUNNER_SHA256
 ARG TARGETARCH
 
 # The runtime of the .NET runner (ICU, OpenSSL) and the tools of a step;
-# iptables (nft) for a container engine in a guest (T-103).
+# iptables (nft) for a container engine in a guest (T-103). A podvm job
+# cannot install a package (no sudo there): make, python3 and libatomic1
+# (the Node of setup-node from 26 on) come in the base image (T-324).
 # EXTRA_PACKAGES: the larger image (T-129) adds the packages of
 # images/runner/full.txt, the common tools of `ubuntu-latest`.
 ARG EXTRA_PACKAGES=""
 RUN apt-get update \
- && apt-get install -y --no-install-recommends bash ca-certificates curl git iptables jq libicu74 libssl3t64 sudo tar gzip unzip zstd $EXTRA_PACKAGES \
+ && apt-get install -y --no-install-recommends bash ca-certificates curl git iptables jq libatomic1 libicu74 libssl3t64 make python3 sudo tar gzip unzip zstd $EXTRA_PACKAGES \
  && rm -rf /var/lib/apt/lists/*
 
 # `sudo` with no password, as on ubuntu-latest (T-315). apt runs as root:

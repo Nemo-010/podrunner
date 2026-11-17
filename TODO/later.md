@@ -6153,6 +6153,8 @@ Add `make`, `libatomic1` and `python3` to the base image (`images/runner/Dockerf
 
 A runner-image run; the corpus row of a project that needs `make`.
 
+State (2026-11-17): `make`, `python3` and `libatomic1` are in the base image (`images/runner/Dockerfile`), the step "The tools of the base image in a podvm unit" of `runner-image.yml` checks them, and `docs/local-mode.md` lists them. Next: a green `runner-image.yml` run.
+
 # T-325: A podvm unit needs more scratch disk than doctor says; --jobs 2 fills the disk
 
 **Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)

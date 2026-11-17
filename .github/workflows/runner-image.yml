@@ -294,6 +294,14 @@ jobs:
           grep -qx 'ok      tagged' "$RUNNER_TEMP/tags.txt"
           grep -q '^docker://busybox:1.37.0-musl sha256:' "$RUNNER_TEMP/tags/podrunner-actions.lock"
           grep -qx 'ok      static' "$RUNNER_TEMP/tags.txt"
+      # T-324: the base image has make, python3 and libatomic1, which a
+      # podvm job cannot install.
+      - name: The tools of the base image in a podvm unit
+        if: ${{ !cancelled() }}
+        run: |
+          set -eu
+          PODVM_STORE="$PODRUNNER_PODVM_IMAGES" "$PODRUNNER_PODVM" run --rm "$PODRUNNER_RUNNER_IMAGE" \
+            /bin/sh -c 'make --version | head -1 && python3 --version && ls /usr/lib/*/libatomic.so.1'
       # T-232: GNU tar in a podvm unit extracts a link before its target and
       # a dangling link (PodUtils/podvm#423, podvm 0.2.0-beta.24).
       - name: The links of tar in a podvm unit
