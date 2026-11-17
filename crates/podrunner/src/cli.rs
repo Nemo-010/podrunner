@@ -240,7 +240,7 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
             o.only(&["--config", "--seed-file"])?;
             let config = o.need("--config")?;
             let text = std::fs::read_to_string(&config)
-                .map_err(|e| err(Class::Config, format!("the configuration {}: {}", config.display(), e.kind())))?;
+                .map_err(|e| err(Class::Config, format!("the configuration {}: {e}", config.display())))?;
             let pins = podrunner_slots::pins::of_file(&text).map_err(|e| err(Class::Config, e))?;
             let seed = podrunner_slots::pins::read_seed(&o.need("--seed-file")?).map_err(|e| err(Class::Config, e))?;
             let (signer, signature) = podrunner_slots::pins::sign(&pins, &seed);

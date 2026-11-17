@@ -66,8 +66,8 @@ pub(crate) fn audit_verify(rest: &[String]) -> Result<Out, Out> {
         }
         Some(_) => return Err(err(Class::Usage, "--anchor is SEQ:HASH, the hash in 64 hex digits")),
     };
-    let text = std::fs::read(&file)
-        .map_err(|e| err(Class::NotFound, format!("the audit file {}: {}", file.display(), e.kind())))?;
+    let text =
+        std::fs::read(&file).map_err(|e| err(Class::NotFound, format!("the audit file {}: {e}", file.display())))?;
     match podrunner_slots::audit::verify(&text, anchor.as_ref().map(|(s, h)| (*s, h.as_str()))) {
         Ok(seq) => Ok(ok(format!("the chain holds: {seq} lines\n"))),
         Err(why) => Err(err(Class::Protocol, why)),

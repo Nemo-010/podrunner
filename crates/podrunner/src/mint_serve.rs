@@ -118,7 +118,7 @@ pub fn check_any(path: &Path) -> Result<&'static str, Failure> {
 /// key of the mint (T-171).
 pub fn check(config: &Path) -> Result<MintConfig, Failure> {
     let text = std::fs::read_to_string(config)
-        .map_err(|e| fail(Class::Config, format!("the configuration {}: {}", config.display(), e.kind())))?;
+        .map_err(|e| fail(Class::Config, format!("the configuration {}: {e}", config.display())))?;
     // A file of serve is not a file of the mint: say so, not a type error
     // at one of its keys (T-216).
     if text.parse::<toml::Table>().is_ok() && !is_mint_file(&text) {

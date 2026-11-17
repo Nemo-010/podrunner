@@ -202,7 +202,7 @@ pub fn plan(cfg: &Config) -> Result<(), Failure> {
 /// Read and check the configuration at `path`: what `check` prints.
 pub fn check(path: &Path) -> Result<Config, Failure> {
     let text = std::fs::read_to_string(path)
-        .map_err(|e| fail(Class::Config, format!("the configuration {}: {}", path.display(), e.kind())))?;
+        .map_err(|e| fail(Class::Config, format!("the configuration {}: {e}", path.display())))?;
     let cfg = Config::parse(&text).map_err(|e| fail(Class::Config, e))?;
     plan(&cfg)?;
     Ok(cfg)
@@ -407,8 +407,10 @@ pub fn socket_of(state: &Path) -> PathBuf {
 /// replay of the journal destroys the open units, so it must never run
 /// beside a live `serve`.
 pub fn run(config: &Path, state: &Path, socket: &Path) -> Result<(), Failure> {
-    let _lock = crate::lock::StateLock::take(state)?;
+    // A configuration that cannot be used fails before the state directory
+    // is made (T-339 item 19).
     let cfg = check(config)?;
+    let _lock = crate::lock::StateLock::take(state)?;
     let slots = build(cfg, state)?;
     if slots.no_tier_served() {
         eprintln!("podrunner: no-tier-served: no unit kind meets the floor of a source");

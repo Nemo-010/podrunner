@@ -201,3 +201,10 @@ fn a_failure_before_the_start_has_its_log_in_the_log_dir() {
     assert!(end.contains(&dir.display().to_string()), "{end}");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-339 item 17: two executors with no store name the clash, not the store.
+#[test]
+fn two_executors_name_the_clash_first() {
+    let e = parse(&args(&["w.yml", "--podvm", "/p", "--runner-dir", "/r"])).unwrap_err();
+    assert!(e.contains("two executors"), "{e}");
+}

@@ -424,6 +424,12 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     }
     // The executor: name the flag that is missing or that clashes (T-207).
     let store = a.images.is_some();
+    // Two executors and no route: that clash first (T-339 item 17).
+    if kind && a.runner_dir.is_some() && a.platforms.is_empty() {
+        return Err(format!(
+            "--runner-dir and {kind_flag} are two executors: give one, or map labels to each with --platform"
+        ));
+    }
     if kind && !store {
         return Err(format!("{kind_flag} needs --images STORE"));
     }

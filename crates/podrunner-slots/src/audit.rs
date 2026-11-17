@@ -152,12 +152,15 @@ pub fn verify(text: &[u8], anchor: Option<(u64, &str)>) -> Result<u64, String> {
     }
     let (mut prev, mut next, mut torn) = (ZERO.to_string(), 1u64, false);
     let mut anchored = anchor.is_none();
+    // A file with text and no line of the chain is not an audit file.
+    let mut any = text.is_empty();
     for raw in text.split(|b| *b == b'\n').filter(|l| !l.is_empty()) {
         let Ok(v) = serde_json::from_slice::<Value>(raw) else {
             torn = true;
             continue;
         };
         let seq = v["seq"].as_u64().ok_or("a line with no seq")?;
+        any = true;
         if torn && v["audit"] != "resume" {
             return Err(format!("a torn line before seq {seq}"));
         }
@@ -174,6 +177,9 @@ pub fn verify(text: &[u8], anchor: Option<(u64, &str)>) -> Result<u64, String> {
             anchored = true;
         }
         (next, torn) = (seq + 1, false);
+    }
+    if !any {
+        return Err("not an audit file: no line is a line of the chain (JSON with seq and prev)".into());
     }
     if torn {
         return Err("a torn line at the end".into());
@@ -258,6 +264,7 @@ mod tests {
         text.extend_from_slice(b"{\"seq\":6,\"pr");
         std::fs::write(d.join("audit.jsonl"), &text).unwrap();
         assert_eq!(verify(&text, None), Err("a torn line at the end".into()));
+        assert!(verify(b"a line of text\n", None).unwrap_err().starts_with("not an audit file"), "T-339 item 19");
         let mut a = Audit::open(&d).unwrap();
         a.write(entry(7, "after"));
         let text = std::fs::read(d.join("audit.jsonl")).unwrap();
