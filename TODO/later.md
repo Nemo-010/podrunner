@@ -7520,7 +7520,7 @@ Add a lane `proxy-only-dns` (or options of `proxy-only.sh`): no working resolver
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -7537,3 +7537,5 @@ Add error-path checks to the user gate, each with three demands: the run ends wi
 ## Prove
 
 The user gate has a check for each case, and each holds on `main`.
+
+In the code (2026-11-17): the check `errors` of the user gate (`error_paths`) runs a dead proxy for an action fetch (each lane with `runner-dir`), a missing `--toolcache` and an image that is not in the store (each lane with podvm). Each case must end within 120 s, with exit 78, and a last line with its words. A case that does not hold is an xfail with its detail, until it holds. Open: a proxy that answers 502, no resolver (T-371), no route to an allowed host (T-355); then the xfail becomes a failure.

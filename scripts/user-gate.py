@@ -34,6 +34,7 @@ import subprocess
 import sys
 import tarfile
 import threading
+import time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TABLE = ROOT / "scripts" / "corpus" / "user-gate.tsv"
@@ -452,6 +453,48 @@ class Lane:
             raise GateError(f"a job under --podnet --allow github.com: {detail}")
         return "under --podnet, the job reached github.com and not example.com"
 
+    def error_paths(self):
+        """T-372: runs whose way out or input fails. Each must end within a
+        limit, with the documented exit code, and with a line that names the
+        cause and a fix. A measure until each case holds: a case that does
+        not hold is named in an xfail."""
+        src = self.work / "errors"
+        shutil.rmtree(src, ignore_errors=True)
+        (src / ".github" / "workflows").mkdir(parents=True)
+        (src / ".github" / "workflows" / "fetch.yml").write_text(
+            "on: push\njobs:\n  f:\n    runs-on: ubuntu-latest\n    steps:\n"
+            "      - uses: actions/upload-artifact@v4\n        with: {name: a, path: fetch.yml}\n"
+        )
+        (src / ".github" / "workflows" / "plain.yml").write_text(
+            "on: push\njobs:\n  p:\n    runs-on: ubuntu-latest\n    steps: [{run: 'true'}]\n"
+        )
+        dead = "http://127.0.0.1:9"
+        zero = "runner@sha256:" + "0" * 64
+        cases = [
+            # (name, argv, extra environment, exit code, words of the last line)
+            ("dead-proxy", [".github/workflows/fetch.yml", *self.flags("runner-dir"), "--actions", self.work / "errors-actions"],
+             {"HTTPS_PROXY": dead, "https_proxy": dead, "HTTP_PROXY": dead, "http_proxy": dead}, 78, ["proxy", "--local-repository"]),
+        ]
+        if "podvm" in self.executors:
+            cases += [
+                ("no-toolcache", [".github/workflows/plain.yml", "--toolcache", self.work / "no-such-toolcache"], {}, 78, ["--toolcache", "mkdir -p"]),
+                ("no-image", [".github/workflows/plain.yml", "--image", zero], {}, 78, ["store"]),
+            ]
+        failed = []
+        for name, args, extra, code, words in cases:
+            env = self.env(self.home, **extra)
+            started = time.monotonic()
+            rc, _ = self.run(["podrunner", "run", *args], env, src, f"error-{name}", timeout=180)
+            took = time.monotonic() - started
+            err = (self.out / "logs" / f"error-{name}.err").read_text(errors="replace")
+            last = ([line for line in err.splitlines() if line.startswith("podrunner:")] or [""])[-1]
+            missing = [w for w in words if w not in last]
+            if rc != code or took > 120 or missing:
+                failed.append(f"{name}: exit {rc} (want {code}), {took:.0f} s, the last line {last[:160]!r} lacks {missing}")
+        if failed:
+            return "xfail", "T-372: " + " | ".join(failed)
+        return f"{len(cases)} error paths end in time, with their code and a fix"
+
     def rung(self):
         """A measure for podvm (PodUtils/podvm#466, #470): the rung and the
         mode of a detached unit of the runner image with a volume, as a
@@ -605,7 +648,7 @@ def lane(a) -> int:
         rows, errors = read_table(TABLE)
         if errors:
             raise SystemExit("\n".join(errors))
-    later = [f"hello:{e}" for e in g.executors] + (["rung:podvm", "confine:podvm", "pids:podvm", "hold:podvm"] if "podvm" in g.executors else [])
+    later = [f"hello:{e}" for e in g.executors] + (["errors"] if "runner-dir" in g.executors else []) + (["rung:podvm", "confine:podvm", "pids:podvm", "hold:podvm"] if "podvm" in g.executors else [])
     later += [f"corpus:{r['id']}:{r['executor']}" for r in rows if g.wants(r)]
     try:
         if not g.check("serve", g.serve):
@@ -625,6 +668,8 @@ def lane(a) -> int:
                         g.check("lab:vnet", functools.partial(g.run_on_the_vnet, a.podvm_lab))
                 for e in g.executors:
                     g.check(f"hello:{e}", functools.partial(g.hello, e))
+                if "runner-dir" in g.executors:
+                    g.check("errors", g.error_paths)
                 if "podvm" in g.executors:
                     g.check("rung:podvm", g.rung)
                     g.check("confine:podvm", functools.partial(g.confine, "podvm"))
