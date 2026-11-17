@@ -153,8 +153,24 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   44043008110 on `291f702`, with only documents and the record after
   it). The online quick start from the release URL passed as `qa6` (no
   root, a proxy that intercepts TLS): the installer, `--version` and
-  `hello.yml` ok. Next: the P3 groups T-331 and T-339 (and T-308, T-316,
-  T-323), then T-264 (podcrates `v0.68.0`, COORD-129).
+  `hello.yml` ok.
+- The milestones and the acceptance of githome and cfb are NOT reached.
+  M-C (#32), M-D (#33) and L3 (#40) wait for the live gates LIVE-1 (#74)
+  and LIVE-2 (#75); the bodies name `v0.1.0-beta.7` (2026-11-17) and the
+  last comment of #75 names what to report (T-192, T-179 on H0, the
+  20-job run of cfb A-X-01). githome (#66: 8 of 12; G-14 and G-12
+  partial) waits for its pair run on beta.7: COORD-054 (#151), amended.
+  cfb (#65: 1 of 2) waits for the 20-job run (W3 of #75). Read each
+  report the day it comes, and file each defect as an entry.
+- Do not idle while those wait: take the work order. Done after the
+  release: T-233 (the egress module takes the proxy of the environment),
+  T-237, T-239, T-234 and T-238 (by earlier work); partial: T-221 (`cpus`
+  on podvm in a delegated cgroup; the measure in `runner-image.yml`),
+  T-242 (the tar cache of the user), T-183 (the held self-test test),
+  T-179 (`hold:podvm` of the user-path gate; the lane userns-off is H0),
+  T-220 (podnet beta.14 is out; step 3 is a design question). Then the
+  P3 groups T-331, T-339, T-308, T-316, T-323, and T-264 (podcrates
+  `v0.68.0`, COORD-129).
 - The fourth QA: agent B found T-318 to T-323 and T-203 (each P1 and P2
   done). Agent A (user
   `qa3`) stopped before its report: it gave no findings. The adversarial
