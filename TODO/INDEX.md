@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**336 entries: 29 open, 21 partial, 13 blocked, 273 done.**
+**336 entries: 28 open, 21 partial, 13 blocked, 274 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 16 | 8 | 7 | 135 | 166 |
+| P2 | 15 | 8 | 7 | 136 | 166 |
 | P3 | 12 | 4 | 4 | 81 | 101 |
-| **All** | 29 | 21 | 13 | 273 | 336 |
+| **All** | 28 | 21 | 13 | 274 | 336 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -382,5 +382,5 @@ acceptance, later The crate dependencies later than v1.
 | [T-335](later.md) | P2 | S | later | defect | done | --state DIR with --artifacts DIR2 keeps no artifact, and --rerun fails |
 | [T-336](later.md) | P2 | S | later | defect | done | actions/checkout outside a git tree with no --checkout fails with a curl 404 |
 | [T-337](later.md) | P2 | S | later | defect | done | From a subdirectory of a git tree, the checkout holds only that subdirectory |
-| [T-338](later.md) | P2 | S | later | defect | open | --no-cache makes each actions/cache step retry for about a minute |
+| [T-338](later.md) | P2 | S | later | defect | done | --no-cache makes each actions/cache step retry for about a minute |
 | [T-339](later.md) | P3 | M | later | defect | open | The P3 findings of the fifth QA, agent 2 |

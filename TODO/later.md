@@ -6529,7 +6529,7 @@ The default checkout of T-203 takes the top of the git tree (`git rev-parse --sh
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6546,6 +6546,10 @@ With `--no-cache`, the broker answers the CacheService as a miss (no entry; a sa
 ## Prove
 
 `cargo test -p podrunner-broker-fake`; the run as a user.
+
+## Done
+
+2026-11-17: with `--no-cache` the broker answers the CacheService (`cache::off`): each lookup is a miss and each save is refused with `the cache of this run is off (--no-cache)`; no retry, no line of a missing route. Proven on a constrained host as a user (`qa5`, podvm): an `actions/cache@v4` job ends `ok` in 27 s with `Cache not found` and the refusal, and no `Attempt` line.
 
 # T-339: The P3 findings of the fifth QA, agent 2
 

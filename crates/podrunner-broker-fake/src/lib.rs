@@ -369,7 +369,10 @@ fn serve<C: Conn>(conn: C, state: &Mutex<State>, base: &str) {
         let st = state.lock().expect("the broker");
         (st.actions.clone(), st.pins.clone(), st.tree.clone(), st.artifacts.clone(), st.cache.clone())
     };
-    let cached = cache.and_then(|c| c.route(&req.method, &req.path, &req.body, req.range.as_deref(), base));
+    let cached = match cache {
+        Some(c) => c.route(&req.method, &req.path, &req.body, req.range.as_deref(), base),
+        None => cache::off(&req.method, &req.path),
+    };
     if let Some((status, out, mut headers)) = cached {
         headers.push(("Content-Type", "application/json".to_string()));
         let _ = write_response(&mut w, status, &headers, &out);
