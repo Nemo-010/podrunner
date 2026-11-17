@@ -231,7 +231,7 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
             && let Ok(info) = std::process::Command::new(&b).args(["system", "info"]).output()
             && let Some(r) = rung(&String::from_utf8_lossy(&info.stdout))
         {
-            out.push(check("rung", Ok(rung_text(&r))));
+            out.push(check("rung", Ok(rung_text(&r, &String::from_utf8_lossy(&info.stdout)))));
         }
         // A job with containers needs the hooks of podvm (T-311).
         if a.guest.is_none()
@@ -300,11 +300,22 @@ fn rung(info: &str) -> Option<String> {
     info.lines().find_map(|l| l.trim().strip_prefix("rung")).and_then(|r| r.split_whitespace().next()).map(String::from)
 }
 
+/// The first podvm whose units of the namespace rung have a PID namespace
+/// (T-318).
+const PIDS_FROM: &str = "0.2.0-beta.30";
+
 /// The line of the rung: a warning where a unit is no boundary for a
-/// static binary (T-300).
-fn rung_text(rung: &str) -> String {
+/// static binary (T-300), or for the processes of the user (T-318). `info`
+/// is the output of `podvm info`, whose first line names the version.
+fn rung_text(rung: &str, info: &str) -> String {
+    use podrunner_podvm::probe::Version;
+    let version = info.split_whitespace().nth(1).and_then(Version::parse);
+    let pids = version.is_some_and(|v| Version::parse(PIDS_FROM).is_some_and(|low| v >= low));
     match rung {
-        "namespace" => "namespace: each unit has a mount namespace of its own".into(),
+        "namespace" if pids => "namespace: each unit has a mount namespace and a PID namespace of its own".into(),
+        "namespace" => format!(
+            "namespace: each unit has a mount namespace of its own; a job sees and can signal the processes of your user (T-318): take podvm {PIDS_FROM} or later"
+        ),
         r => format!(
             "{r}: a static binary of a job can reach the files of your user on this host (T-300); run untrusted jobs with --microvm"
         ),
@@ -325,8 +336,10 @@ mod rung_tests {
         let info =
             "podvm 0.2.0-beta.27\n  rung          namespace   (--strict would pass)\n  platform      linux/amd64\n";
         assert_eq!(super::rung(info).as_deref(), Some("namespace"));
-        assert!(super::rung_text("userland").contains("--microvm"));
-        assert!(!super::rung_text("namespace").contains("--microvm"));
+        assert!(super::rung_text("userland", info).contains("--microvm"));
+        assert!(super::rung_text("namespace", info).contains("take podvm 0.2.0-beta.30"), "T-318");
+        let info30 = info.replace("beta.27", "beta.30");
+        assert!(super::rung_text("namespace", &info30).contains("a PID namespace of its own"));
         assert_eq!(super::rung("no such line"), None);
     }
 }

@@ -32,9 +32,11 @@
 # machine tier (T-291, PodUtils/podvm#444); beta.26 the memo on descriptor
 # 17 checked before each use (T-309, PodUtils/podvm#450) and `--hostname`
 # of `run -d` on the namespace rung (T-182, PodUtils/podvm#448); beta.27
-# the payload of `run -d` as the `USER` of the image on that rung (T-317).
-version = "0.2.0-beta.27"
+# the payload of `run -d` as the `USER` of the image on that rung (T-317);
+# beta.30 a PID namespace and a `/proc` of its own for `run -d` on that
+# rung (T-318, PodUtils/podvm#458).
+version = "0.2.0-beta.30"
 
 [sha256]
-x86_64 = "6ace0aebf5da7019dd215605dfbfa3e958dea5884c64a5b3b4ded06ab0bf1ae0"
-aarch64 = "9b164b99e971f1b85b76e6285afe9dc5f9e577600dc49a6498397dbfdfc645f3"
+x86_64 = "04d1d56e352e1eb001a3423b06b6ee510d5494754dbb3baa205fb3813001335a"
+aarch64 = "7e1d3b178c2642dacdb2b1bee267fa71617d755bd77baca0336a65d0781c6976"

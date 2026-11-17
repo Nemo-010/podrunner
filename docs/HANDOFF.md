@@ -139,11 +139,12 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   B-13, B-18; the line `Fixed:` of each entry). The runner-image run of
   `31bee8e` is 43983244604; a release commit needs its own gate, level2,
   runner-image and user-gate again.
-- The owner (2026-11-17, `docs/decisions.md`): wait for the podvm beta
-  that PodUtils/podvm#458 names (its `state:` line), pin it, close T-318,
-  run two new QA agents, fix their P1 and P2, then request the release.
-- The fourth QA: agent B found T-318 to T-323 and T-203 (each P2 and the
-  P1 T-319 done; T-318 blocked on podvm, COORD #200). Agent A (user
+- The owner (2026-11-17, `docs/decisions.md`): podvm `v0.2.0-beta.30`
+  is pinned and T-318 is done. Next: green gate, level2, runner-image and
+  user-gate on the commit, then two new QA agents on its release files, a
+  fix of their P1 and P2, then the release request.
+- The fourth QA: agent B found T-318 to T-323 and T-203 (each P1 and P2
+  done). Agent A (user
   `qa3`) stopped before its report: it gave no findings. The adversarial
   QA of the release is agent B only until a new agent A runs.
 - Each push that changes the crates starts `runner-image.yml` (about 2

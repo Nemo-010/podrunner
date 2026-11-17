@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**320 entries: 23 open, 21 partial, 14 blocked, 262 done.**
+**320 entries: 23 open, 21 partial, 13 blocked, 263 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 1 | 9 | 3 | 56 | 69 |
+| P1 | 1 | 9 | 2 | 57 | 69 |
 | P2 | 12 | 8 | 7 | 126 | 153 |
 | P3 | 10 | 4 | 4 | 80 | 98 |
-| **All** | 23 | 21 | 14 | 262 | 320 |
+| **All** | 23 | 21 | 13 | 263 | 320 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -362,7 +362,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-315](later.md) | P2 | S | later | defect | done | The runner images have no sudo and lack tools of ubuntu-latest |
 | [T-316](later.md) | P3 | M | later | defect | open | The P3 findings of the third QA, agent B |
 | [T-317](later.md) | P2 | S | later | defect | done | On the namespace rung of podvm the job runs as root of a one-uid namespace |
-| [T-318](later.md) | P1 | M | later | defect | blocked | A podvm unit shares the processes of the host: a job can kill processes of the user |
+| [T-318](later.md) | P1 | M | later | defect | done | A podvm unit shares the processes of the host: a job can kill processes of the user |
 | [T-319](later.md) | P1 | S | later | defect | done | The egress hold of the local mode lets a job out through a proxy on the loopback |
 | [T-320](later.md) | P2 | S | later | defect | done | Under the egress hold a Node action does not take the CA of the host |
 | [T-321](later.md) | P2 | S | later | defect | done | doctor --run does not check the paths of many flags |

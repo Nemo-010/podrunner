@@ -395,6 +395,37 @@ class Lane:
         # check holds on the file, and names the result of the job.
         return f"{mark} is not on the host (the job: {'ok' if ok else detail})"
 
+    def pids(self, executor: str):
+        """A step must not see or signal a process of the user on the host
+        (the fourth QA, finding F1, T-318). Only the namespace rung of
+        podvm 0.2.0-beta.30 or later gives a unit a PID namespace: on
+        another rung the check is an xfail that names the rung."""
+        src = self.work / "pids"
+        shutil.rmtree(src, ignore_errors=True)
+        (src / ".github" / "workflows").mkdir(parents=True)
+        (src / ".github" / "workflows" / "pids.yml").write_text(
+            "on: push\njobs:\n  pids:\n    runs-on: ubuntu-latest\n    steps:\n"
+            "      - run: if kill -0 \"$HOSTPID\" 2>/dev/null; then echo \"host pid: seen\"; else echo \"host pid: not seen\"; fi\n"
+        )
+        host = subprocess.Popen(["sleep", "600"], start_new_session=True)
+        try:
+            wf = [".github/workflows/pids.yml", "--env", f"HOSTPID={host.pid}", *self.flags(executor)]
+            ok, detail = self.podrunner(wf, src, f"pids-{executor}", True)
+        finally:
+            host.kill()
+            host.wait()
+        logs = "".join(j.read_text(errors="replace") for j in (self.out / "logs" / f"pids-{executor}").glob("*/job.log"))
+        if not ok or ("host pid: seen" not in logs and "host pid: not seen" not in logs):
+            raise GateError(f"the job did not say what it sees ({detail})")
+        doctor = (self.out / "logs" / f"pids-{executor}-doctor.out").read_text(errors="replace")
+        m = re.search(r"rung: (\S+?):", doctor)
+        rung = m.group(1) if m else "unknown"
+        if "host pid: not seen" in logs:
+            return f"a step does not see a process of the host (rung {rung})"
+        if rung == "namespace":
+            raise GateError("a step on the namespace rung sees a process of the host (T-318)")
+        return "xfail", f"rung {rung}: a unit has no PID namespace there; a step sees the processes of the user"
+
     def microvm_probe(self) -> str:
         """`podvm run --verbose` of the runner image on the machine tier, as
         the unit does it: the last lines name the cause of an early end
@@ -510,7 +541,7 @@ def lane(a) -> int:
         rows, errors = read_table(TABLE)
         if errors:
             raise SystemExit("\n".join(errors))
-    later = [f"hello:{e}" for e in g.executors] + (["confine:podvm"] if "podvm" in g.executors else [])
+    later = [f"hello:{e}" for e in g.executors] + (["confine:podvm", "pids:podvm"] if "podvm" in g.executors else [])
     later += [f"corpus:{r['id']}:{r['executor']}" for r in rows if g.wants(r)]
     try:
         if not g.check("serve", g.serve):
@@ -531,6 +562,7 @@ def lane(a) -> int:
                     g.check(f"hello:{e}", functools.partial(g.hello, e))
                 if "podvm" in g.executors:
                     g.check("confine:podvm", functools.partial(g.confine, "podvm"))
+                    g.check("pids:podvm", functools.partial(g.pids, "podvm"))
                 for r in rows:
                     if g.wants(r):
                         g.check(f"corpus:{r['id']}:{r['executor']}", functools.partial(g.corpus_row, r))

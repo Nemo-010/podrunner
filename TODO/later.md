@@ -5946,7 +5946,7 @@ State (2026-11-16): podvm answered (PodUtils/podvm#448, COORD-155): `--hostname`
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** blocked
+**Status:** done
 
 ## Problem
 
@@ -5966,12 +5966,15 @@ Write a COORD issue to podvm: a PID namespace (and a `/proc` of it) on the names
 
 State (2026-11-16): the documents (`docs/local-mode.md`, "What a podvm unit holds", the notes) say that a podvm unit has no process namespace and name `--microvm`. Next: a COORD issue to podvm for a PID namespace on the namespace rung.
 
-## Blocker
+History of the blocker:
 
 2026-11-16: COORD-074 (GitHub #200) asks podvm for a PID namespace on the namespace rung. podvm answered (PodUtils/podvm#458, COORD-165): a PID namespace for `run -d` needs pod-enter first (podvm's COORD-164 to podcrates).
 
 2026-11-17: podcrates `v0.65.0` has `Plan::pid_namespace` of pod-enter (PodUtils/podcrates#215, COORD-125). The entry waits for the podvm release that sets it for `run -d`. podvm measured it (a job sees only its unit) but `run -d` does not return with it on; podvm took `v0.65.0` with the option off and waits for COORD-167 (PodUtils/podvm#460). podvm names the beta on PodUtils/podvm#458. 2026-11-17: podcrates `v0.66.0` fixes the init (PodUtils/podcrates#216, COORD-126); podvm took it in `b1fa48f` (PodUtils/podvm#461): a namespace run of `podvm-supervise` has a PID namespace, `run -d` returns, a host pid is not there; PodUtils/podvm@T-1930 is done for its next tag (newest release: `v0.2.0-beta.29`, before the fix). Next: that tag, then the pin.
 
+## Done
+
+2026-11-17: podvm `v0.2.0-beta.30` is pinned (`images/podvm.toml`, the installer). On the namespace rung a unit of `run -d` has a PID namespace and a `/proc` of its own. `doctor --run` names a podvm below `0.2.0-beta.30` on that rung. The user-path gate has the check `pids:podvm` (an xfail off the namespace rung, with the rung). `docs/local-mode.md` and the notes say what each rung holds. Proven on a constrained host as a user (`qa5`, no root, a proxy that intercepts TLS): a step saw 9 processes (pid 1 the init of podvm) and `kill -0` of a `sleep` of the user on the host failed; with podvm `0.2.0-beta.27` the same step saw 98 processes and the signal reached the `sleep`.
 
 # T-319: The egress hold of the local mode lets a job out through a proxy on the loopback
 

@@ -48,7 +48,13 @@ cat > "$a/podrunner-$arch-unknown-linux-musl" <<'EOF'
 case "$1 ${2:-}" in
     "doctor --run") echo "ok   workflow: $3" ;;
     "doctor ") echo "kvm: no"; echo "probe unshare(CLONE_NEWUSER): ok"; echo "missing: --config: no unit kind" ;;
-    "run "*) echo "ok      hello" ;;
+    "run "*)
+        # A job log in --log-dir, as a run writes it (the check pids:podvm
+        # of the gate reads it).
+        ld=; prev=
+        for x in "$@"; do [ "$prev" != --log-dir ] || ld=$x; prev=$x; done
+        [ -z "$ld" ] || { mkdir -p "$ld/job.0" && echo "host pid: not seen" > "$ld/job.0/job.log"; }
+        echo "ok      hello" ;;
     *) echo "podrunner 9.9.9-test" ;;
 esac
 EOF

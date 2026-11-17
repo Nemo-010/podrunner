@@ -77,12 +77,14 @@ image does not work there (T-317).
 
 A podvm unit is a boundary for files only on the namespace rung of podvm:
 a mount namespace of its own, where the job sees only the image and its
-work directory. A podvm unit has no process namespace of its own: a job
-sees the processes of the host and can send a signal to each process of
-your user (T-318). Where podvm cannot take that rung (a host with no user
-namespace, or with user namespaces that AppArmor restricts, as on Ubuntu
-24.04), podvm runs the unit on a userland rung, and a static binary of a
-job (Go up to 1.20, for example) can reach the files of your user.
+work directory. On that rung a unit also has a PID namespace and a
+`/proc` of its own (podvm `0.2.0-beta.30` or later): a job sees only the
+processes of its unit (T-318). Where podvm cannot take that rung (a host
+with no user namespace, or with user namespaces that AppArmor restricts,
+as on Ubuntu 24.04), podvm runs the unit on a userland rung: a static
+binary of a job (Go up to 1.20, for example) can reach the files of your
+user, and a job sees the processes of the host and can send a signal to
+each process of your user.
 `podrunner doctor --run` names the rung of the host. Run jobs that you do
 not trust with `--microvm` (a guest under KVM, no root needed), or on a
 host where the rung is `namespace` (T-300).
