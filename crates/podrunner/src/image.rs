@@ -47,12 +47,44 @@ pub fn verify(tarball: &Path, arch: &str) -> Result<String, String> {
     let want = pin.sha256.get(arch).ok_or_else(|| format!("no pin for the architecture {arch:?}"))?;
     let have = sha256_file(tarball).map_err(|e| format!("the tarball: {}", e.kind()))?;
     if &have != want {
+        // The file that the pin names, and the way to check an image of a
+        // release (T-344).
+        let name = runner_file(arch, &pin.version);
+        let image = match is_image(tarball) {
+            true => {
+                "; this file is a runner image (an OCI layout): check it with `sha256sum -c` and its .sha256 file of the release"
+            }
+            false => "",
+        };
         return Err(format!(
-            "the tarball is not the runner {} of {arch}: its SHA-256 differs from the pin",
+            "the tarball is not the runner {} of {arch} ({name}, SHA-256 {want}): its SHA-256 is {have}{image}",
             pin.version
         ));
     }
     Ok(format!("actions/runner {} {arch}: the SHA-256 matches the pin\n", pin.version))
+}
+
+/// The file name of the official runner tarball that the pin names.
+pub fn runner_file(arch: &str, version: &str) -> String {
+    let a = match arch {
+        "x86_64" => "x64",
+        "aarch64" => "arm64",
+        other => other,
+    };
+    format!("actions-runner-linux-{a}-{version}.tar.gz")
+}
+
+/// Whether `path` is a tar of an OCI layout (`oci-layout` or `index.json`
+/// in a header of its first MiB).
+fn is_image(path: &Path) -> bool {
+    let mut head = Vec::new();
+    let read = std::fs::File::open(path).and_then(|f| f.take(1 << 20).read_to_end(&mut head));
+    read.is_ok()
+        && head.chunks(512).any(|b| {
+            b.len() == 512
+                && &b[257..262] == b"ustar"
+                && (b.starts_with(b"oci-layout\0") || b.starts_with(b"index.json\0"))
+        })
 }
 
 #[cfg(test)]
@@ -73,8 +105,16 @@ mod tests {
         let f = std::env::temp_dir().join(format!("podrunner-image-{}", std::process::id()));
         std::fs::write(&f, b"abc").unwrap();
         assert_eq!(sha256_file(&f).unwrap(), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
-        assert!(verify(&f, "x86_64").unwrap_err().contains("differs"));
+        assert!(verify(&f, "x86_64").unwrap_err().contains("its SHA-256 is ba7816bf"));
         assert!(verify(&f, "riscv64").unwrap_err().contains("no pin"));
+        // T-344: the error names the file of the pin, and an OCI image.
+        let e = verify(&f, "x86_64").unwrap_err();
+        assert!(e.contains(&runner_file("x86_64", &runner_pin().version)) && !e.contains("OCI"), "{e}");
+        let mut tar = vec![0u8; 1024];
+        tar[..11].copy_from_slice(b"index.json\0");
+        tar[257..262].copy_from_slice(b"ustar");
+        std::fs::write(&f, &tar).unwrap();
+        assert!(verify(&f, "x86_64").unwrap_err().contains("runner image (an OCI layout)"));
         let _ = std::fs::remove_file(&f);
     }
 }

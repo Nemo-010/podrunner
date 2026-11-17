@@ -6737,7 +6737,7 @@ Parse the options of `doctor` in any order. With `--run`, `--json` gives one obj
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6755,6 +6755,10 @@ Quote each value as systemd needs (double quotes, escape `\\`, `"`, `%` and `$`)
 
 `cargo test -p podrunner`; Tests: a path with a space is quoted; `--binary ./x` and `--binary ''` exit 64.
 
+## Done
+
+2026-11-17: `print-unit` writes each value as one word of `ExecStart` (double quotes for a space or a quote; `%%`, `$$`), refuses a control character, and refuses a relative or empty `--binary` (exit 64); a missing `--config` was fixed by T-339. Proven in CI on GitHub-hosted runners by `cli::tests::print_unit_quotes_each_value`.
+
 # T-344: `image verify` refuses the runner image of the release, and the error does not name the file it takes
 
 **Source:** GitHub #207 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
@@ -6762,7 +6766,7 @@ Quote each value as systemd needs (double quotes, escape `\\`, `"`, `%` and `$`)
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6779,6 +6783,10 @@ The help and the mismatch error name the file that the command takes (`actions-r
 ## Prove
 
 `cargo test -p podrunner`; A test of the error text for an OCI tarball and for a bad runner tarball.
+
+## Done
+
+2026-11-17: the error of `image verify` names the file of the pin (`actions-runner-linux-ARCH-VERSION.tar.gz`), the SHA-256 of the pin and of the file, and says when the file is a runner image (an OCI layout) with the way to check it; the help and `cli.md` name the file. Proven in CI on GitHub-hosted runners by `image::tests::a_tarball_with_another_digest_is_refused`.
 
 # T-345: A dry run writes the artifact and cache directories, and skips the checks of some executor paths
 

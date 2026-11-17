@@ -34,7 +34,7 @@ pub const USAGE: &str = "usage: podrunner COMMAND [OPTION...]
   mint-serve --config FILE                          the remote mint (on a machine with no unit)
   fake-source [--script FILE]                       a fake source on stdio (for a test of a program source)
   source-conformance -- PROGRAM ARGS...             the source tests against a source program
-  image verify --tarball FILE --arch ARCH           check a runner tarball against its pin
+  image verify --tarball FILE --arch ARCH           check actions-runner-linux-*.tar.gz against its pin
   run (FILE | DIR) (--runner-dir DIR | (--podvm PATH [--podnet PATH] | --microvm PATH [--engine DIR] | --incus PATH)
       --images STORE --image NAME@sha256:HEX) [OPTION...]
                                                     run the jobs of a workflow; each option: podrunner run --help
@@ -191,7 +191,14 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
             if !config.is_file() {
                 return Err(err(Class::NotFound, format!("--config {}: no such file", config.display())));
             }
-            Ok(ok(print_unit(&binary, &config, &o.need("--state")?, watchdog)))
+            // `ExecStart` runs an absolute path (T-343).
+            if !binary.is_absolute() {
+                return Err(err(
+                    Class::Usage,
+                    format!("--binary {:?}: not an absolute path", binary.display().to_string()),
+                ));
+            }
+            print_unit(&binary, &config, &o.need("--state")?, watchdog).map(ok).map_err(|e| err(Class::Usage, e))
         }
         "audit" => match rest.split_first() {
             Some((sub, rest)) if sub == "verify" => audit_verify(rest),
@@ -244,9 +251,26 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
 }
 
 /// A systemd unit for `serve`. It names paths only: no token, no key.
-pub fn print_unit(binary: &Path, config: &Path, state: &Path, watchdog: Option<u32>) -> String {
+/// One word of `ExecStart`, as systemd reads it (T-343): a word with a
+/// space or a quote goes in double quotes, and `%` and `$` are doubled. A
+/// control character or a path that is not UTF-8 is refused.
+fn exec_word(flag: &str, p: &Path) -> Result<String, String> {
+    let s = p.to_str().ok_or_else(|| format!("{flag} {}: not UTF-8", p.display()))?;
+    if s.is_empty() || s.chars().any(char::is_control) {
+        return Err(format!("{flag} {s:?}: empty, or with a control character"));
+    }
+    let t = s.replace('%', "%%").replace('$', "$$");
+    match t.chars().any(|c| c.is_whitespace() || matches!(c, '"' | '\'' | '\\' | ';')) {
+        true => Ok(format!("\"{}\"", t.replace('\\', "\\\\").replace('"', "\\\""))),
+        false => Ok(t),
+    }
+}
+
+pub fn print_unit(binary: &Path, config: &Path, state: &Path, watchdog: Option<u32>) -> Result<String, String> {
     let watchdog = watchdog.map(|w| format!("WatchdogSec={w}\n")).unwrap_or_default();
-    format!(
+    let (binary, config, state) =
+        (exec_word("--binary", binary)?, exec_word("--config", config)?, exec_word("--state", state)?);
+    Ok(format!(
         "[Unit]
 Description=podrunner: CI jobs in one fresh unit for each job
 After=network-online.target
@@ -268,10 +292,8 @@ NoNewPrivileges=yes
 [Install]
 WantedBy=default.target
 ",
-        binary.display(),
-        config.display(),
-        state.display()
-    )
+        binary, config, state
+    ))
 }
 
 #[cfg(test)]
@@ -352,14 +374,33 @@ mod tests {
             Path::new("/etc/podrunner.toml"),
             Path::new("/var/lib/podrunner"),
             None,
-        );
+        )
+        .unwrap();
         assert!(unit.contains("Type=notify") && !unit.contains("WatchdogSec"));
         assert!(unit.contains(
             "ExecStart=/usr/local/bin/podrunner serve --config /etc/podrunner.toml --state /var/lib/podrunner"
         ));
         assert!(!unit.contains(canary) && !unit.to_lowercase().contains("token"));
-        let unit = print_unit(Path::new("/b"), Path::new("/c"), Path::new("/s"), Some(30));
+        let unit = print_unit(Path::new("/b"), Path::new("/c"), Path::new("/s"), Some(30)).unwrap();
         assert!(unit.contains("WatchdogSec=30\n"), "{unit}");
+    }
+
+    /// T-343: each value is one word of `ExecStart`; a relative or empty
+    /// binary and a control character are refused.
+    #[test]
+    fn print_unit_quotes_each_value() {
+        let unit = print_unit(Path::new("/b"), Path::new("/c d/r%.toml"), Path::new("/s\"q$"), None).unwrap();
+        assert!(unit.contains("ExecStart=/b serve --config \"/c d/r%%.toml\" --state \"/s\\\"q$$\"\n"), "{unit}");
+        assert!(print_unit(Path::new("/b"), Path::new("/c\nx"), Path::new("/s"), None).is_err());
+        let dir = std::env::temp_dir().join(format!("podrunner-print-unit-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("c.toml"), "").unwrap();
+        let c = dir.join("c.toml").display().to_string();
+        for b in ["./x", ""] {
+            let out = run(&["print-unit", "--config", &c, "--state", "/s", "--binary", b].map(String::from));
+            assert_eq!(out.code, 64, "{b:?}: {}", out.stderr);
+        }
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
