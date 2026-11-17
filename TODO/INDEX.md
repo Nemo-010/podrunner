@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**368 entries: 36 open, 24 partial, 10 blocked, 298 done.**
+**369 entries: 37 open, 24 partial, 10 blocked, 298 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 3 | 9 | 1 | 58 | 71 |
+| P1 | 4 | 9 | 1 | 58 | 72 |
 | P2 | 6 | 10 | 7 | 151 | 174 |
 | P3 | 27 | 5 | 2 | 89 | 123 |
-| **All** | 36 | 24 | 10 | 298 | 368 |
+| **All** | 37 | 24 | 10 | 298 | 369 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -416,3 +416,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-369](later.md) | P3 | S | later | defect | open | The installer names no command to add its binary directory to PATH |
 | [T-370](later.md) | P3 | S | later | defect | open | A run does not say which configuration files it read |
 | [T-371](later.md) | P1 | M | later | defect | open | The user gate has no lane of a host with DNS only through an authenticated proxy |
+| [T-372](later.md) | P1 | M | later | release | open | The user gate checks success paths only |

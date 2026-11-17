@@ -3938,6 +3938,8 @@ A table of each pair of the flags of `run`, with the answer that each pair must 
 
 `cargo test -p podrunner --lib the_flags_of_run_as_a_contract`.
 
+Also (2026-11-17, PodUtils/podnet#649, COORD-102 of podnet: its testers found 40 defects in one hour where no check looked): each flag that `USAGE`, `run --help` and `docs/cli.md` name is a flag of the parser, and the reverse; each example of `docs/cli.md` and `docs/local-mode.md` parses; each `--json` output of a command has one schema (`schemas/`). The user QA of beta.7 found the same class (#203 to #212, F9, F10).
+
 # T-246: An adversarial QA before each release
 
 **Source:** the owner, 2026-11-15: "why did podrunner not survive a contact with real users"
@@ -7502,3 +7504,28 @@ Add a lane `proxy-only-dns` (or options of `proxy-only.sh`): no working resolver
 ## Prove
 
 `cargo test -p podrunner`; The lane fails on `b752051` (F1) and passes after the fix.
+
+# T-372: The user gate checks success paths only
+
+**Source:** PodUtils/podnet#649 (COORD-102 of podnet, 2026-11-17): a gate that measured reach, not correctness; the user QA of beta.7 (F1, F4)
+**Category:** release
+**Milestone:** later
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+Each check of the user gate runs one path that must pass. No check makes a way out fail: a dead proxy, a proxy that refuses a CONNECT, a host with no resolver, a refused connect of a unit, a podvm that exits 125 at the start of a unit. The users found the defects of beta.7 on these paths (F1, F4, #212): a wrong cause in the error, a fix that does not work, a claim of a log that is not there.
+
+## Premise
+
+The lanes and the checks of `scripts/user-gate.py` and `.github/workflows/user-gate.yml`, read on 2026-11-17.
+
+## Approach
+
+Add error-path checks to the user gate, each with three demands: the run ends within a limit, the exit code is the documented one, and stderr has one line that names the cause and a fix that works. The cases: a proxy that is dead (`HTTPS_PROXY` to a closed port), a proxy that answers 502 to each CONNECT, no resolver (T-371), a `--podnet --allow HOST` job with no route to HOST (T-355), a missing `--toolcache` (T-356), a podvm that refuses the unit start (a missing image in the store). Report each with the level of proof (`AGENTS.md`, section 12).
+
+## Prove
+
+The user gate has a check for each case, and each holds on `main`.

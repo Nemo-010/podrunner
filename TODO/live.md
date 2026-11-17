@@ -1040,6 +1040,8 @@ State (2026-11-15): not reproduced here: the failing path is a connection of the
 
 State (2026-11-17): the user-path gate has the check `hold:podvm` (`scripts/user-gate.py`, `hold`): a job under `--podnet --allow github.com` reaches github.com through the seccomp hold of podnet and the egress module of podrunner, and not example.com; the lane `userns-off` is H0. Passed on a constrained host as a user (`qa5`, user namespaces, a proxy only): `allowed host: http 200`, `other host: refused`. `v0.1.0-beta.7` is named on GitHub #75 for the H0 run of LIVE-2, with the lines to report.
 
+State (2026-11-17): podnet records #142 as PodUtils/podnet@T-457 (PodUtils/podnet#649): most likely the hang of PodUtils/podnet#610, fixed in podnet `8a0b0f19`, in the next release of podnet. Next: take that release and run the lane `userns-off` (H0) again.
+
 # T-180: As PID 1 of a container, `serve` reaps no orphan: the zombies stop the supervisor
 
 **Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)
