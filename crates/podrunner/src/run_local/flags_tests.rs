@@ -366,3 +366,13 @@ fn the_views_print_json() {
     assert_eq!(first("--graph")["edges"], serde_json::json!([["a", "b"]]));
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-323 F13: a file that is not a workflow is named so.
+#[test]
+fn a_file_that_is_not_a_workflow_is_named() {
+    let (dir, w) = workflow("not-workflow", "just text\n");
+    let out = run(&args(&[&w, "--runner-dir", "/nonexistent", "--dry-run"]));
+    assert_eq!(out.code, 78, "{}", out.stderr);
+    assert!(out.stderr.contains(": not a workflow: ") && !out.stderr.contains("the actions"), "{}", out.stderr);
+    let _ = std::fs::remove_dir_all(&dir);
+}

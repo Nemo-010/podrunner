@@ -207,6 +207,10 @@ pub fn run(args: &[String]) -> Out {
         (_, true) => podrunner_local::store::Mode::Frozen,
         _ => podrunner_local::store::Mode::Online,
     };
+    // A file that is not a workflow, by its own text (T-323 F13).
+    if let Err(e) = pod_actions_workflow::parse(&text) {
+        return fail(Class::Config, format!("{}: not a workflow: {e}", a.file.display()));
+    }
     // The images of a unit kind come into its store by `podvm pull` (T-130).
     let binary = a.podvm.clone().or_else(|| a.guest.as_ref().map(|g| g.1.clone()));
     let pull = match (binary, &a.images) {
@@ -230,7 +234,6 @@ pub fn run(args: &[String]) -> Out {
                 ),
             );
         }
-        Err(e) if e.contains("YAML") => return fail(Class::Config, format!("{}: {e}", a.file.display())),
         Err(e) => return fail(Class::Config, format!("{}: the actions: {e}", a.file.display())),
     };
     let base = Base { github, vars: object(&vars), inputs: typed, ..Base::default() };
