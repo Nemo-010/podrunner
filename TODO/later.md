@@ -6210,7 +6210,7 @@ Find the call that fails (strace in a unit). A path of a raw system call that po
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6227,6 +6227,10 @@ Refuse each job that the host cannot run (no hooks; no KVM) before the pull of i
 ## Prove
 
 `cargo test -p podrunner`; the run as a user with `services:` and no KVM.
+
+## Done
+
+2026-11-17: the refusals of T-330 come before the pin: a run whose executor refuses containers pulls no image, and podvm leaves the images of `services:` out of its pull; `--microvm` checks `/dev/kvm` before the pin (`guest::early`). Proven on a constrained host as a user (`qa5`): a job with `services: postgres:14` on podvm was refused with no pull. The rest (a failed pull fails only the jobs of that image) is in T-331.
 
 # T-328: Under the egress hold, a refused host is not named with its fix
 
@@ -6285,7 +6289,7 @@ The hello run under `--podnet` as a user: no egress line.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6303,6 +6307,10 @@ One refusal that says what the host needs for `services:` and names `podrunner d
 
 `cargo test -p podrunner`.
 
+## Done
+
+2026-11-17: one refusal for each executor that cannot run containers (`run_local/containers.rs`): a runner directory, podvm with no hooks, `services:` on podvm, a guest with no `--engine`, `--incus`. It comes before the pin of the image, names `podrunner doctor --run` and what the host needs; the dry run and the run give the same text. Proven on a constrained host as a user (`qa5`, podvm with no hooks, and a runner directory in a dry run): `failure db: the job needs containers, and podvm gives no container hooks on this host (...)`, and the other job ran.
+
 # T-331: The P3 findings of the fifth QA, agent 1
 
 **Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
@@ -6314,7 +6322,7 @@ One refusal that says what the host needs for `services:` and names `podrunner d
 
 ## Problem
 
-F8 a `failed at connect (unavailable)` line where the fallback to the proxy works. F9 a missing `ci.yml` of the quick start gives `No such file or directory`, not the list of workflows; a folded `name: >` gives a blank line after `planned`; `--event nope` prints the usage; `--validate` points at the job, not at `needs:`; the runner console on `--runner-dir` prints `Connected to GitHub`. F10 `~/podrunner-work` stays after a run; a socket of podnet stayed after a `kill -9`.
+F8 a `failed at connect (unavailable)` line where the fallback to the proxy works. F9 a missing `ci.yml` of the quick start gives `No such file or directory`, not the list of workflows; a folded `name: >` gives a blank line after `planned`; `--event nope` prints the usage; `--validate` points at the job, not at `needs:`; the runner console on `--runner-dir` prints `Connected to GitHub`. F10 `~/podrunner-work` stays after a run; a socket of podnet stayed after a `kill -9`. From T-327: a failed pull of an image (a 429 of the registry) ends the run, also for the jobs that need no image.
 
 ## Premise
 

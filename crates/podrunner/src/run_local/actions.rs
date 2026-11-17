@@ -48,6 +48,7 @@ pub(super) fn pin(
     mode: Mode,
     self_repo: &str,
     images: Option<&dyn ImageSource>,
+    no_services: bool,
 ) -> Result<Option<Pinned>, String> {
     let (file, store) = (a.file.as_path(), a.actions.as_deref());
     // The errors of `pod-actions-store` as the text of a run.
@@ -70,7 +71,10 @@ pub(super) fn pin(
     }
     let tags = match images {
         Some(_) => {
-            let (w, more) = run_jobs(&workflow, &a.jobs);
+            // The executor refuses services: their images stay out (T-327).
+            let mut w = workflow.clone();
+            w.jobs.iter_mut().filter(|_| no_services).for_each(|j| j.services = None);
+            let (w, more) = run_jobs(&w, &a.jobs);
             let mut t = workflow_images(&w).map_err(s)?;
             t.extend(more);
             t.sort();

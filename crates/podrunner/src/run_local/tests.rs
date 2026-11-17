@@ -382,12 +382,12 @@ fn list_graph_validate_and_dry_run_run_no_job() {
     assert!(out.stdout.contains("stage 1: a\nstage 2: b\na -> b\n"), "{}", out.stdout);
     let out = run(&args(&[&w, "--validate"]));
     assert!(out.stdout.contains("warning:") && out.stdout.contains("unknown-key"), "{}", out.stdout);
-    // A dry run builds each message: the image by tag has no pin, with no unit
-    // kind to pull it, and its job fails before any unit starts.
+    // A dry run builds each message: a runner directory runs no container,
+    // and its job fails by that cause before its image (T-330).
     let out = run(&args(&[&w, "--dry-run", "--no-cache"]));
     assert_eq!(out.code, 1, "{}{}", out.stdout, out.stderr);
     assert!(out.stdout.contains("planned a\n"), "{}", out.stdout);
-    assert!(out.stdout.contains("failure b:") && out.stdout.contains("digest"), "{}", out.stdout);
+    assert!(out.stdout.contains("failure b:") && out.stdout.contains("a runner directory runs none"), "{}", out.stdout);
     let _ = std::fs::remove_dir_all(&dir);
 }
 

@@ -77,6 +77,13 @@ fn node_token(node: &Node) -> Result<Value, String> {
     }
 }
 
+/// A key of the pins of a run whose value refuses each job with containers
+/// (`container:`, `services:`, a `docker://` step), before the pin of its
+/// image: the executor of the run cannot run them (T-327, T-330).
+pub const REFUSE_CONTAINERS: &str = "podrunner:refuse-containers";
+/// A key of the pins of a run whose value refuses each job with `services:`.
+pub const REFUSE_SERVICES: &str = "podrunner:refuse-services";
+
 /// The image of a `container:` or of a service: a string, or `image:` of a
 /// mapping; it must be pinned.
 fn container_image(node: &Node, what: &str) -> Result<(), String> {
@@ -319,6 +326,9 @@ fn step(
             )
         }
         (Some(uses), None) => {
+            if let (true, Some(refusal)) = (uses.starts_with("docker://"), d.pins.get(REFUSE_CONTAINERS)) {
+                return Err(format!("line {line}: `uses: {uses}`: {refusal}"));
+            }
             let pinned_uses = match uses.strip_prefix("docker://") {
                 Some(image) => format!("docker://{}", pin_image(image, d.pins)),
                 None => uses.clone(),
@@ -389,6 +399,13 @@ pub fn broker_job(
     let job: &WorkflowJob = workflow.job(&cell.job).ok_or_else(|| format!("no job {}", cell.job))?;
     if let Some(uses) = &job.uses {
         return Err(format!("job {}: a reusable workflow (`uses: {uses}`) is not supported", job.id));
+    }
+    // A job that the executor cannot run is refused before its images.
+    if let (true, Some(refusal)) = (job.container.is_some() || job.services.is_some(), pins.get(REFUSE_CONTAINERS)) {
+        return Err(refusal.clone());
+    }
+    if let (true, Some(refusal)) = (job.services.is_some(), pins.get(REFUSE_SERVICES)) {
+        return Err(refusal.clone());
     }
     let mut containers = Map::new();
     if let Some(c) = &job.container {

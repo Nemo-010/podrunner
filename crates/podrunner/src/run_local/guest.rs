@@ -76,6 +76,22 @@ pub(super) fn mirror_pins(
     }
 }
 
+/// The checks of a run of `--microvm` before the pin and the pull of its
+/// images: `/dev/kvm` (T-297, T-327). A dry run starts no guest.
+pub(super) fn early(a: &Args) -> Result<(), Out> {
+    match !a.dry_run && a.guest.as_ref().is_some_and(|g| g.0) {
+        true => kvm().map_err(|e| fail(Class::Unavailable, e)),
+        false => Ok(()),
+    }
+}
+
+/// Whether podvm gives container hooks on this host (its probe, T-311). A
+/// probe that fails says nothing: the start of a job names its cause.
+pub(super) fn hooks(a: &Args) -> bool {
+    let probe = |b: &std::path::PathBuf| podrunner_podvm::Podvm { binary: b.clone() }.probe();
+    !a.podvm.as_ref().is_some_and(|b| probe(b).is_ok_and(|c| c.container != podrunner_schema::ContainerRoute::Hooks))
+}
+
 /// `/dev/kvm` opens for reading and writing: the machine tier needs it.
 pub(super) fn kvm() -> Result<(), String> {
     std::fs::OpenOptions::new().read(true).write(true).open("/dev/kvm").map(|_| ()).map_err(|e| {

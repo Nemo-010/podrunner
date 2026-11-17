@@ -8,6 +8,7 @@
 mod actions;
 mod args;
 mod concurrency;
+mod containers;
 mod context;
 mod doctor;
 mod guest;
@@ -211,18 +212,16 @@ pub fn run(args: &[String]) -> Out {
     if let Err(e) = pod_actions_workflow::parse(&text) {
         return fail(Class::Config, format!("{}: not a workflow: {e}", a.file.display()));
     }
-    // The images of a unit kind come into its store by `podvm pull` (T-130).
-    let binary = a.podvm.clone().or_else(|| a.guest.as_ref().map(|g| g.1.clone()));
-    let pull = match (binary, &a.images) {
-        (Some(binary), Some(store)) => Some(podrunner_local::images::PodvmPull {
-            binary,
-            store: store.clone(),
-            platform: if arch() == "aarch64" { "linux/arm64".into() } else { "linux/amd64".into() },
-        }),
-        _ => None,
-    };
+    let pull = containers::pull(&a);
+    // /dev/kvm, and the jobs that the executor cannot run, before a pull (T-327).
+    if let Err(o) = guest::early(&a) {
+        return o;
+    }
+    let refused = containers::refusals(&a, || guest::hooks(&a));
     let image_source = pull.as_ref().map(|p| p as &dyn podrunner_local::images::ImageSource);
-    let (store, pins, note) = match actions::pin(&a, &text, mode, &facts.repository, image_source) {
+    let image_source = image_source.filter(|_| !refused.contains_key(podrunner_local::message::REFUSE_CONTAINERS));
+    let no_services = refused.contains_key(podrunner_local::message::REFUSE_SERVICES);
+    let (store, mut pins, note) = match actions::pin(&a, &text, mode, &facts.repository, image_source, no_services) {
         Ok(Some(p)) => (p.dir.or_else(|| a.actions.clone()), p.commits, p.note),
         Ok(None) => (a.actions.clone(), Default::default(), String::new()),
         Err(e) if e.contains("offline mode fetches nothing") => {
@@ -236,6 +235,7 @@ pub fn run(args: &[String]) -> Out {
         }
         Err(e) => return fail(Class::Config, format!("{}: the actions: {e}", a.file.display())),
     };
+    pins.extend(refused);
     let base = Base { github, vars: object(&vars), inputs: typed, ..Base::default() };
     // The texts of the called workflows: the tree, and the store (T-131).
     let root = a.checkout.clone().unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| ".".into()));

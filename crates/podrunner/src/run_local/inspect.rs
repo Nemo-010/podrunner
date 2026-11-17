@@ -134,8 +134,8 @@ pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
 }
 
 /// The refusal of a job with containers where podvm gives no container
-/// hooks (T-311): `doctor --config` shows `container none` then.
-pub(super) const NO_HOOKS: &str = "the job needs containers, and podvm gives no container hooks on this host (`podrunner doctor --config` shows `container none`); run it with --microvm and --engine";
+/// hooks (T-311): `doctor --run` names the hooks of podvm.
+pub(super) const NO_HOOKS: &str = "the job needs containers, and podvm gives no container hooks on this host (`podrunner doctor --run` names it); run it with --microvm and --engine (a host with /dev/kvm)";
 
 /// The executor of a dry run: each job message is built, and no unit runs.
 /// On a runner directory only, a job with containers fails as its run

@@ -50,12 +50,7 @@ pub(super) fn build(
                     }
                 }
                 // The hooks of the run: podvm's probe says them (T-311).
-                let no_hooks = match (&a.podvm, &a.guest) {
-                    (Some(binary), None) => podrunner_podvm::Podvm { binary: binary.clone() }
-                        .probe()
-                        .is_ok_and(|c| c.container != podrunner_schema::ContainerRoute::Hooks),
-                    _ => false,
-                };
+                let no_hooks = a.podvm.is_some() && a.guest.is_none() && !super::guest::hooks(a);
                 Box::new(inspect::DryRun {
                     host,
                     podvm,
