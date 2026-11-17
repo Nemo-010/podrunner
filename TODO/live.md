@@ -1038,6 +1038,8 @@ The H0 step of `runner-image.yml`: a canned job of the official runner passes in
 
 State (2026-11-15): not reproduced here: the failing path is a connection of the runner to github.com through the egress module on the H0 host of the owner, and the local mode reaches only the fake broker. Each connection that the egress module fails (an audit line of `pod-broker` with a stage and a class) is now a line of the stderr of `serve`: `podrunner: egress: job UNIT HOST:PORT failed at STAGE (CLASS)` (`failure_text` of `crates/podrunner-egress/src/denials.rs`, `denials::tests::a_failed_connection_is_a_line_of_the_log`). Next: the H0 run of LIVE-2 on the next beta gives the stage of the failure; then the fix in podrunner, or a COORD issue to podnet or podcrates.
 
+State (2026-11-17): the user-path gate has the check `hold:podvm` (`scripts/user-gate.py`, `hold`): a job under `--podnet --allow github.com` reaches github.com through the seccomp hold of podnet and the egress module of podrunner, and not example.com; the lane `userns-off` is H0. Passed on a constrained host as a user (`qa5`, user namespaces, a proxy only): `allowed host: http 200`, `other host: refused`. `v0.1.0-beta.7` is named on GitHub #75 for the H0 run of LIVE-2, with the lines to report.
+
 # T-180: As PID 1 of a container, `serve` reaps no orphan: the zombies stop the supervisor
 
 **Source:** LIVE-2 report on GitHub #75 (2026-11-15, podrunner `v0.1.0-beta.5`)

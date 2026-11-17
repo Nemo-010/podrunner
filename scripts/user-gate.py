@@ -429,6 +429,29 @@ class Lane:
             raise GateError("a step on the namespace rung sees a process of the host (T-318)")
         return "xfail", f"rung {rung}: a unit has no PID namespace there; a step sees the processes of the user"
 
+    def hold(self):
+        """The egress hold of `run.toml` (its `podnet` and `allow` lines): a
+        step reaches an allowed host through the seccomp hold of podnet and
+        the egress module, and no other host. The lane userns-off is H0,
+        where the runner timed out on github.com in the live run (T-179)."""
+        src = self.work / "hold"
+        shutil.rmtree(src, ignore_errors=True)
+        (src / ".github" / "workflows").mkdir(parents=True)
+        (src / ".github" / "workflows" / "hold.yml").write_text(
+            "on: push\njobs:\n  hold:\n    runs-on: ubuntu-latest\n    steps:\n"
+            "      - run: |\n"
+            "          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 https://github.com/) || true\n"
+            "          echo \"allowed host: http $code\"\n"
+            "          case $code in 2??|3??) ;; *) exit 1 ;; esac\n"
+            "          if curl -sS -o /dev/null --max-time 15 https://example.com/; then echo 'other host: reached'; exit 1; fi\n"
+            "          echo 'other host: refused'\n"
+        )
+        hold = ["--podnet", str(self.data / "bin" / "podnet"), "--allow", "github.com"]
+        ok, detail = self.podrunner([".github/workflows/hold.yml", *self.flags("podvm"), *hold], src, "hold-podvm", True, timeout=900)
+        if not ok:
+            raise GateError(f"a job under --podnet --allow github.com: {detail}")
+        return "under --podnet, the job reached github.com and not example.com"
+
     def microvm_probe(self) -> str:
         """`podvm run --verbose` of the runner image on the machine tier, as
         the unit does it: the last lines name the cause of an early end
@@ -544,7 +567,7 @@ def lane(a) -> int:
         rows, errors = read_table(TABLE)
         if errors:
             raise SystemExit("\n".join(errors))
-    later = [f"hello:{e}" for e in g.executors] + (["confine:podvm", "pids:podvm"] if "podvm" in g.executors else [])
+    later = [f"hello:{e}" for e in g.executors] + (["confine:podvm", "pids:podvm", "hold:podvm"] if "podvm" in g.executors else [])
     later += [f"corpus:{r['id']}:{r['executor']}" for r in rows if g.wants(r)]
     try:
         if not g.check("serve", g.serve):
@@ -566,6 +589,7 @@ def lane(a) -> int:
                 if "podvm" in g.executors:
                     g.check("confine:podvm", functools.partial(g.confine, "podvm"))
                     g.check("pids:podvm", functools.partial(g.pids, "podvm"))
+                    g.check("hold:podvm", g.hold)
                 for r in rows:
                     if g.wants(r):
                         g.check(f"corpus:{r['id']}:{r['executor']}", functools.partial(g.corpus_row, r))
