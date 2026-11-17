@@ -143,9 +143,13 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   is pinned and T-318 is done. Green on `63d67a4`: gate 44011893532,
   level2 44011893602, runner-musl 44011893617, runner-image 44011893582;
   user-gate 44025228142 on `a238f8d` (scripts only after `63d67a4`).
-  The fifth QA runs on the files of that user-gate run (users `qa6`,
-  `qa7`, kit `/srv/qa-kit`). Next: entries for its findings, a fix of
-  each P1 and P2, the runs again on the release commit, then the request.
+  The fifth QA ran on the files of that user-gate run (users `qa6`,
+  `qa7`, kit `/srv/qa-kit`): no P1; the P2 T-324 to T-338 are done
+  (T-326 by a call: no compiler in the base image), except T-324, which
+  waits for its `runner-image.yml` run (44043008133 on `291f702`). P3:
+  T-331, T-339. Next: that run green, then gate, level2 and user-gate
+  (`-f images_run=44043008133`) on the release commit, then the request
+  of `release.yml`.
 - The fourth QA: agent B found T-318 to T-323 and T-203 (each P1 and P2
   done). Agent A (user
   `qa3`) stopped before its report: it gave no findings. The adversarial
