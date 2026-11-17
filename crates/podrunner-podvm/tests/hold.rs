@@ -170,3 +170,25 @@ fn a_held_podvm_unit_sends_each_connect_to_its_egress_socket() {
         cap.egress_hold
     );
 }
+
+/// T-183: the tree-kill self-test of a held driver passes, and no unit of
+/// the self-test stays: in the live run it failed under the hold and left
+/// its units after a stop.
+#[test]
+#[ignore]
+fn the_tree_kill_self_test_of_a_held_unit_passes() {
+    let state = std::env::temp_dir().join(format!("podrunner-hold-kill-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&state);
+    let podvm = Podvm { binary: PathBuf::from(env("PODRUNNER_PODVM")) };
+    let mut unit = PodvmUnit::new(podvm, &state.join("podvm"), Path::new(&env("PODRUNNER_PODVM_IMAGES")))
+        .unwrap()
+        .with_podnet(Path::new(&env("PODRUNNER_PODNET")))
+        .unwrap();
+    let id = UnitId::parse("u-999").unwrap();
+    assert!(unit.verify_tree_kill(&env("PODRUNNER_PODVM_IMAGE"), id.clone()).unwrap(), "the tree kill is not proven");
+    assert!(
+        unit.destroy(&id).is_err() || unit.destroy(&id).is_ok_and(|r| r.is_clean()),
+        "a unit of the self-test stays"
+    );
+    let _ = std::fs::remove_dir_all(&state);
+}
