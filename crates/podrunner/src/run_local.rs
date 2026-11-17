@@ -7,6 +7,7 @@
 
 mod actions;
 mod args;
+mod artifact_dir;
 mod concurrency;
 mod containers;
 mod context;
@@ -338,11 +339,7 @@ pub fn run(args: &[String]) -> Out {
     };
     // The artifacts stay in the state of the run, so that a rerun job reads
     // the artifact of a kept job; a rerun replaces what it uploads again.
-    let kept = a
-        .artifacts
-        .clone()
-        .or_else(|| state_dir.as_ref().map(|d| d.join("artifacts")))
-        .unwrap_or_else(|| scratch.join("artifacts"));
+    let kept = artifact_dir::dir(&a, state_dir.as_deref(), &scratch);
     let artifacts = match podrunner_local::artifacts::ArtifactStore::new(&kept, podrunner_local::artifacts::LIMIT) {
         Ok(s) if a.rerun.is_some() => std::sync::Arc::new(s.replacing()),
         Ok(s) => std::sync::Arc::new(s),

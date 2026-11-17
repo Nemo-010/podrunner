@@ -6409,7 +6409,7 @@ A dry run writes no state; its JSON gives `planned`.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6427,6 +6427,10 @@ A new run (no `--rerun`) replaces the artifacts of a name that it uploads again,
 
 `cargo test -p podrunner -p podrunner-local`
 
+## Done
+
+2026-11-17: a new run (no `--rerun`) removes the artifacts of an earlier run from its artifact directory first (`run_local/artifact_dir.rs`), by name on stderr; other files stay. Proven on a constrained host as a user (`qa5`, podvm): two runs of an upload of `dup` into one `--artifacts DIR` both end `ok`; the second says `the artifacts of an earlier run go: dup`.
+
 # T-335: --state DIR with --artifacts DIR2 keeps no artifact, and --rerun fails
 
 **Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 2, as the user `qa7` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
@@ -6434,7 +6438,7 @@ A new run (no `--rerun`) replaces the artifacts of a name that it uploads again,
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6451,6 +6455,10 @@ The state names the artifact directory of its run, and a rerun reads it; or `--s
 ## Prove
 
 `cargo test -p podrunner`
+
+## Done
+
+2026-11-17: `--state DIR` with `--artifacts DIR2` writes `DIR/artifacts-dir`, and `--rerun DIR` reads DIR2 from it. Proven on a constrained host as a user (`qa5`, podvm): a run with `--artifacts` and `--state` whose second job failed, then `--rerun --failed`: `kept up`, `ok down` (it downloaded the artifact).
 
 # T-336: actions/checkout outside a git tree with no --checkout fails with a curl 404
 
