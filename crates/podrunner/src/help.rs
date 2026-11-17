@@ -16,8 +16,10 @@ pub(crate) fn answer(cmd: &str, rest: &[String]) -> Option<Out> {
     match cmd {
         "version" => return Some(ok(crate::cli::version())),
         "help" => {
-            return Some(match rest.first() {
+            return Some(match rest.first().map(String::as_str) {
                 None => ok(USAGE.into()),
+                // `help --help` is the help of help (T-323 F8).
+                Some("--help" | "-h") => of("help").map(ok).unwrap_or_else(|| ok(USAGE.into())),
                 Some(c) => of(c)
                     .map(ok)
                     .unwrap_or_else(|| err(Class::Usage, format!("an unknown command {:?}\n{USAGE}", display(c)))),
@@ -39,7 +41,9 @@ fn of(cmd: &str) -> Option<String> {
     let mut inside = false;
     for line in USAGE.lines() {
         // A command starts two spaces in; its next lines start four or more.
-        if line.strip_prefix("  ").is_some_and(|l| l.split_whitespace().next() == Some(cmd)) {
+        // A next line can start with the word of a command (T-323 F7).
+        let start = line.strip_prefix("  ").filter(|l| !l.starts_with(' '));
+        if start.is_some_and(|l| l.split_whitespace().next() == Some(cmd)) {
             inside = true;
             // The usage on its line, its description under it (T-278).
             let l = line.trim_start();
@@ -106,6 +110,7 @@ mod tests {
             (&["doctor", "--help"], "usage: podrunner doctor"),
             (&["status", "-h"], "usage: podrunner status"),
             (&["help", "stop"], "stop --wait"),
+            (&["help", "--help"], "usage: podrunner help"),
             (&["version"], "podrunner "),
         ] {
             let o = run(&args(a));
@@ -113,5 +118,8 @@ mod tests {
             assert!(o.stdout.contains(want), "{a:?}: {}", o.stdout);
         }
         assert_eq!(run(&args(&["help", "nope"])).code, 64);
+        // A next line of another command is not the help of check (T-323 F7).
+        let o = run(&args(&["check", "--help"]));
+        assert!(!o.stdout.contains("audit.jsonl"), "{}", o.stdout);
     }
 }
