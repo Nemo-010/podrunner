@@ -6706,7 +6706,7 @@ Give `.secrets` the checks of `--secret-file` (a regular file, mode 0600 or narr
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6723,6 +6723,10 @@ Parse the options of `doctor` in any order. With `--run`, `--json` gives one obj
 ## Prove
 
 `cargo test -p podrunner`; Tests of both orders; the JSON form parses.
+
+## Done
+
+2026-11-17: `doctor --run` takes `--run` after another option, and with `--json` writes one object `{"ok","checks":[{"name","ok","text"}]}`, also for a refusal of its options (`doctor::view`). Proven in CI on GitHub-hosted runners by `tests/doctor.rs` (`doctor_run_checks_the_inputs_of_a_local_run`).
 
 # T-343: `print-unit` writes values in `ExecStart` with no quotes, and takes a relative or empty `--binary`
 
@@ -6835,7 +6839,7 @@ Read each local composite action (`./PATH/action.yml`) of each job, and pin its 
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6853,6 +6857,10 @@ Refuse `--watch` and `--schedule` with `--list`, `--graph`, `--validate` and `--
 
 `cargo test -p podrunner`; Tests of each pair and of the message.
 
+## Done
+
+2026-11-17: `--watch` and `--schedule` refuse `--list`, `--graph`, `--validate` and `--dry-run` (exit 64); `--schedule` of a workflow with no `on.schedule` says `the workflow has no on.schedule trigger`; an idle watch writes `watching TREE and FILE for a change`. Proven in CI on GitHub-hosted runners by `qa6_tests::a_loop_refuses_a_view_and_a_workflow_with_no_schedule`; the line of an idle watch is not run in a test.
+
 # T-348: `--validate --json` gives no JSON for a workflow that is not valid
 
 **Source:** GitHub #211 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
@@ -6860,7 +6868,7 @@ Refuse `--watch` and `--schedule` with `--list`, `--graph`, `--validate` and `--
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6877,6 +6885,10 @@ Write `{"file":...,"valid":false,"warnings":[],"error":"..."}` on stdout, and ke
 ## Prove
 
 `cargo test -p podrunner`; A test: a bad YAML file gives the object and exit 78.
+
+## Done
+
+2026-11-17: `--validate --json` writes `{"file","valid":false,"warnings":[],"error"}` on stdout for a file that is not valid, and the line on stderr. Proven in CI on GitHub-hosted runners by `qa6_tests::validate_json_names_a_file_that_is_not_valid`.
 
 # T-349: A failure before the start of a job names a log in `--log-dir` that is not there
 

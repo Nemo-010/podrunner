@@ -22,6 +22,16 @@ use crate::cli::Out;
 /// How often the tree is read, and how long a change must rest.
 const POLL: Duration = Duration::from_millis(500);
 
+/// Whether `on:` names the event `schedule`.
+fn has_schedule(on: &Node) -> bool {
+    match &on.kind {
+        Kind::Map(entries) => entries.iter().any(|(k, _)| k.name == "schedule"),
+        Kind::Seq(items) => items.iter().any(|i| matches!(&i.kind, Kind::String(s) if s == "schedule")),
+        Kind::String(s) => s == "schedule",
+        _ => false,
+    }
+}
+
 /// The crons of `on.schedule`.
 pub(super) fn crons(on: &Node) -> Result<Vec<Cron>, String> {
     Ok(cron_texts(on)?.into_iter().map(|(c, _)| c).collect())
@@ -86,6 +96,11 @@ pub fn repeat(args: &[String]) -> Out {
     if watch && schedule {
         return fail(Class::Usage, "--watch and --schedule exclude each other");
     }
+    // A view runs once: a loop of it would wait for ever (T-347).
+    if let Some(one) = args.iter().find(|a| ["--list", "--graph", "--validate", "--dry-run"].contains(&a.as_str())) {
+        let lp = if watch { "--watch" } else { "--schedule" };
+        return fail(Class::Usage, format!("{lp} and {one} exclude each other: {one} runs once"));
+    }
     let mut rest: Vec<String> = args.iter().filter(|a| *a != "--watch" && *a != "--schedule").cloned().collect();
     if schedule {
         rest.extend(["--event".into(), "schedule".into()]);
@@ -104,8 +119,18 @@ pub fn repeat(args: &[String]) -> Out {
     loop {
         if schedule {
             let text = std::fs::read_to_string(&file).map_err(|e| format!("{}: {e}", file.display()));
-            let next = text
-                .and_then(|t| pod_actions_workflow::parse(&t).map_err(|e| e.to_string()))
+            let parsed = text.and_then(|t| pod_actions_workflow::parse(&t).map_err(|e| e.to_string()));
+            // A workflow with no `on.schedule` is named as such (T-347).
+            if parsed.as_ref().is_ok_and(|p| !has_schedule(&p.workflow.on)) {
+                return fail(
+                    Class::Config,
+                    format!(
+                        "{}: the workflow has no on.schedule trigger: --schedule has no time to run it",
+                        file.display()
+                    ),
+                );
+            }
+            let next = parsed
                 .and_then(|p| cron_texts(&p.workflow.on))
                 .map(|c| c.iter().filter_map(|(c, t)| Some((c.next(now())?, t.clone()))).min());
             let at = match next {
@@ -158,8 +183,12 @@ pub fn repeat(args: &[String]) -> Out {
         if watch {
             if changed.load(Ordering::SeqCst) {
                 eprintln!("podrunner: the tree changed; the run starts again");
-            } else if !wait_change(&tree, &file, before) {
-                return last;
+            } else {
+                // An idle watch says that it waits (T-347).
+                eprintln!("podrunner: watching {} and {} for a change (Ctrl-C ends)", tree.display(), file.display());
+                if !wait_change(&tree, &file, before) {
+                    return last;
+                }
             }
         }
     }

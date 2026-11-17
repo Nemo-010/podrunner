@@ -40,6 +40,18 @@ fn doctor_run_checks_the_inputs_of_a_local_run() {
     let out = podrunner::cli::run(&args(&["doctor", "--run", &w, "--runner-dir", &missing]));
     assert_eq!(out.code, 1, "{}", out.stdout);
     assert!(out.stdout.contains("FAIL runner-dir") && out.stdout.contains("fix:"), "{}", out.stdout);
+    // T-342: `--json` gives one object, before or after `--run`.
+    for a in [
+        vec!["doctor", "--run", &w, "--runner-dir", &missing, "--json"],
+        vec!["doctor", "--json", "--run", &w, "--runner-dir", &missing],
+    ] {
+        let out = podrunner::cli::run(&args(&a));
+        assert_eq!(out.code, 1, "{a:?}: {}{}", out.stdout, out.stderr);
+        let v: serde_json::Value =
+            serde_json::from_str(out.stdout.trim()).unwrap_or_else(|e| panic!("{e}: {}", out.stdout));
+        assert_eq!(v["ok"], false);
+        assert!(v["checks"].as_array().unwrap().iter().any(|c| c["name"] == "runner-dir" && c["ok"] == false), "{v}");
+    }
     let _ = std::fs::remove_dir_all(&dir);
 }
 

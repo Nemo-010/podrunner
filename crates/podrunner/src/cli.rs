@@ -25,7 +25,7 @@ pub const USAGE: &str = "usage: podrunner COMMAND [OPTION...]
   stop --wait --state DIR [--timeout SECONDS]       ... and wait until serve ends
   clear-degraded (--state DIR | --socket PATH)      start jobs again after a residue
   doctor [--config FILE] [--json]                   the inputs of a host check
-  doctor --run FILE [the options of run]            the checks of a local run
+  doctor [--json] --run FILE [the options of run]   the checks of a local run
   audit verify (--state DIR | --file FILE) [--anchor SEQ:HASH]
                                                     check the chain of audit.jsonl
   print-unit --config FILE --state DIR [--binary PATH] [--watchdog SECONDS]
@@ -158,9 +158,12 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
                 }
             }
         }
-        "doctor" if rest.first().map(String::as_str) == Some("--run") => {
-            // The checks see the flags that `run` sees: those of the files first.
-            let rest = crate::run_config::expand(&rest[1..]).map_err(|e| err(Class::Config, e))?;
+        "doctor" if rest.iter().any(|x| x == "--run") => {
+            // The checks see the flags that `run` sees: those of the files
+            // first. `--run` can come after another option (T-342).
+            let at = rest.iter().position(|x| x == "--run").unwrap_or(0);
+            let args: Vec<String> = rest.iter().enumerate().filter(|(i, _)| *i != at).map(|(_, x)| x.clone()).collect();
+            let rest = crate::run_config::expand(&args).map_err(|e| err(Class::Config, e))?;
             Ok(crate::run_local::doctor(&rest))
         }
         "doctor" => {

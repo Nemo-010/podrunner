@@ -347,6 +347,17 @@ pub(super) fn text(checks: &[Check]) -> String {
     checks.iter().map(|c| format!("{} {}: {}\n", if c.ok { "ok  " } else { "FAIL" }, c.name, c.text)).collect()
 }
 
+/// The rows as text, or with `--json` as one object: `ok` and each check
+/// (T-342).
+pub(super) fn view(checks: &[Check], json: bool) -> String {
+    if !json {
+        return text(checks);
+    }
+    let rows: Vec<serde_json::Value> =
+        checks.iter().map(|c| serde_json::json!({"name": c.name, "ok": c.ok, "text": c.text})).collect();
+    format!("{}\n", serde_json::json!({"ok": checks.iter().all(|c| c.ok), "checks": rows}))
+}
+
 #[cfg(test)]
 mod rung_tests {
     /// T-300: the doctor reads the rung of podvm and warns off the

@@ -136,3 +136,39 @@ fn an_offline_dry_run_pins_the_uses_of_a_local_composite() {
     );
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-348: `--validate --json` writes an object for a file that is not valid.
+#[test]
+fn validate_json_names_a_file_that_is_not_valid() {
+    let dir = scratch("validate");
+    std::fs::write(dir.join("bad.yml"), "on: push\njobs: [\n").unwrap();
+    let w = dir.join("bad.yml").display().to_string();
+    let out = run(&args(&[&w, "--validate", "--json"]));
+    assert_eq!(out.code, 78, "{}", out.stderr);
+    let v: serde_json::Value = serde_json::from_str(out.stdout.trim()).unwrap();
+    assert_eq!(v["valid"], false);
+    assert_eq!(v["file"], w.as_str());
+    assert!(v["error"].as_str().is_some_and(|e| !e.is_empty()), "{v}");
+    assert!(out.stderr.starts_with("podrunner: "), "{}", out.stderr);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// T-347: a loop with a view that runs once is refused, and `--schedule` of
+/// a workflow with no `on.schedule` says so.
+#[test]
+fn a_loop_refuses_a_view_and_a_workflow_with_no_schedule() {
+    let dir = scratch("loops");
+    std::fs::write(dir.join("w.yml"), WORKFLOW).unwrap();
+    let w = dir.join("w.yml").display().to_string();
+    for (lp, view) in
+        [("--watch", "--list"), ("--schedule", "--dry-run"), ("--watch", "--validate"), ("--schedule", "--graph")]
+    {
+        let out = repeat(&args(&[&w, "--runner-dir", "/r", lp, view]));
+        assert_eq!(out.code, 64, "{lp} {view}: {}", out.stderr);
+        assert!(out.stderr.contains(&format!("{lp} and {view} exclude each other")), "{}", out.stderr);
+    }
+    let out = repeat(&args(&[&w, "--runner-dir", "/r", "--schedule"]));
+    assert_eq!(out.code, 78, "{}", out.stderr);
+    assert!(out.stderr.contains("the workflow has no on.schedule trigger"), "{}", out.stderr);
+    let _ = std::fs::remove_dir_all(&dir);
+}

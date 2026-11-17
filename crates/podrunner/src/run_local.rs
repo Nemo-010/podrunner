@@ -126,12 +126,14 @@ pub fn doctor(args: &[String]) -> Out {
                 true => "; fix: run the installer, which writes run.toml, or give --runner-dir DIR",
                 false => "; fix: podrunner run --help",
             };
-            return Out { code: 1, stdout: format!("FAIL options: {e}{fix}\n"), stderr: String::new() };
+            let c = [doctor::Check { name: "options", ok: false, text: format!("{e}{fix}") }];
+            let json = args.iter().any(|x| x == "--json");
+            return Out { code: 1, stdout: doctor::view(&c, json), stderr: String::new() };
         }
     };
     let checks = doctor::checks(&a);
     let code = if checks.iter().all(|c| c.ok) { 0 } else { 1 };
-    Out { code, stdout: doctor::text(&checks), stderr: String::new() }
+    Out { code, stdout: doctor::view(&checks, a.json), stderr: String::new() }
 }
 
 pub use logs::STREAM;

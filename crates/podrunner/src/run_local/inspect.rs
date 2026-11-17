@@ -86,7 +86,18 @@ pub(super) fn graph(w: &Workflow) -> Result<String, String> {
 /// With `--json`, each view is one JSON object on stdout (T-323 F16).
 pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
     use serde_json::json;
-    let fail = |e: String| super::fail(super::Class::Config, format!("{}: {e}", a.file.display()));
+    // `--validate --json` also gives an object for a file that is not valid
+    // (T-348).
+    let fail = |e: String| {
+        let mut out = super::fail(super::Class::Config, format!("{}: {e}", a.file.display()));
+        if a.validate && a.json {
+            out.stdout = format!(
+                "{}\n",
+                json!({"file": a.file.display().to_string(), "valid": false, "warnings": [], "error": e})
+            );
+        }
+        out
+    };
     let p = match pod_actions_workflow::parse(text) {
         Ok(p) => p,
         Err(e) => return fail(e.to_string()),
