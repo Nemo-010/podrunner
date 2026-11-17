@@ -6119,7 +6119,7 @@ The report of agent B, round 4 (the commands and outputs are in it).
 
 Fix each one; a finding that the code cannot change goes into the documents.
 
-Fixed: F7 (`check --help` has its own lines only). F8 (`help --help`). F13 (a file that is not a workflow is named so, before the actions). F14 (a run refuses a TMPDIR that does not take a directory, by name). F16 (`--validate`, `--list` and `--graph` print JSON with `--json`). F21 (`--image` needs a full digest). F11 (a missing file or directory of a flag exits 64 with the flag). F9 (a release links to the documents of its tag). F35 (`docs/local-mode.md` names the user `runner`). F38 (each return of a run removes its directories in `TMPDIR`).
+Fixed: F23, part 1 (a flag of an environment that no job names gets a line). F7 (`check --help` has its own lines only). F8 (`help --help`). F13 (a file that is not a workflow is named so, before the actions). F14 (a run refuses a TMPDIR that does not take a directory, by name). F16 (`--validate`, `--list` and `--graph` print JSON with `--json`). F21 (`--image` needs a full digest). F11 (a missing file or directory of a flag exits 64 with the flag). F9 (a release links to the documents of its tag). F35 (`docs/local-mode.md` names the user `runner`). F38 (each return of a run removes its directories in `TMPDIR`).
 
 ## Prove
 

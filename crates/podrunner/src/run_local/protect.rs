@@ -33,6 +33,30 @@ fn used(w: &Workflow, jobs: &[String]) -> BTreeSet<String> {
         .collect()
 }
 
+/// A line for each environment of a flag that no job names: a typo of
+/// `--approve` or `--protected` would else pass with no sign (T-323 F23).
+/// A job whose environment is an expression can name any of them.
+pub(super) fn unknown(a: &Args, w: &Workflow) -> Vec<String> {
+    let expr = w.jobs.iter().filter_map(|j| j.environment.as_ref()).any(|n| match &n.kind {
+        Kind::String(s) => s.contains("${{"),
+        _ => true,
+    });
+    if expr {
+        return Vec::new();
+    }
+    let used = used(w, &[]);
+    let names = a.approved.iter().map(|n| ("--approve", n)).chain(a.protected.iter().map(|n| ("--protected", n)));
+    let names = names
+        .chain(a.environment_secrets.iter().map(|(n, _)| ("--environment-secret-file", n)))
+        .chain(a.environment_vars.iter().map(|(n, _)| ("--environment-var-file", n)))
+        .chain(a.environment_allow.iter().map(|(n, _)| ("--environment-allow", n)));
+    let mut seen = BTreeSet::new();
+    names
+        .filter(|(f, n)| !used.contains(*n) && seen.insert((*f, (*n).clone())))
+        .map(|(f, n)| format!("podrunner: {f} {n}: no job of the workflow names the environment {n}"))
+        .collect()
+}
+
 /// The answer of the terminal for the environment NAME: `None` when stdin
 /// is not a terminal.
 pub(super) fn terminal(name: &str) -> Option<bool> {
@@ -101,5 +125,27 @@ mod tests {
         assert!(run(&args(&["prod"], &[]), Some(true)).0.is_empty());
         let only_test = Args { jobs: vec!["test".into()], ..args(&["prod"], &[]) };
         assert!(run(&only_test, None).0.is_empty(), "--job test runs no job of prod");
+    }
+
+    /// T-323 F23: a flag that names an environment of no job gets a line.
+    #[test]
+    fn an_environment_of_no_job_is_named() {
+        let w = pod_actions_workflow::parse(
+            "on: push\njobs:\n  a:\n    runs-on: x\n    environment: prod\n    steps: [{run: x}]\n",
+        )
+        .unwrap()
+        .workflow;
+        let a =
+            Args { approved: vec!["prod".into(), "nosuch".into()], protected: vec!["prod".into()], ..Args::default() };
+        assert_eq!(
+            unknown(&a, &w),
+            ["podrunner: --approve nosuch: no job of the workflow names the environment nosuch"]
+        );
+        let w = pod_actions_workflow::parse(
+            "on: push\njobs:\n  a:\n    runs-on: x\n    environment: ${{ inputs.e }}\n    steps: [{run: x}]\n",
+        )
+        .unwrap()
+        .workflow;
+        assert!(unknown(&a, &w).is_empty(), "an expression can name each");
     }
 }

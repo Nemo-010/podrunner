@@ -283,6 +283,7 @@ pub fn run(args: &[String]) -> Out {
     // The secrets and vars of each environment (T-136).
     match environments(&a) {
         Ok(mut envs) => {
+            protect::unknown(&a, source.workflow()).iter().for_each(|l| eprintln!("{l}"));
             // Only a run of jobs asks for an approval (T-136).
             if !a.dry_run {
                 protect::hold(&a, source.workflow(), &mut envs, &mut protect::terminal);
