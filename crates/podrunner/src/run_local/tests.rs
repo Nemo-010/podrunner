@@ -396,7 +396,7 @@ fn the_log_dir_has_each_step_and_the_summary_with_no_secret() {
     use pod_actions_workflow::JobResult as R;
     assert_eq!(logs::mask("a made-up-key b", &["made-up-key".into(), String::new()]), "a *** b");
     let id = JobId::new("build.0").unwrap();
-    let j = logs::line_json(&Line::Ran { job: id.clone(), name: "build".into(), result: R::Failure });
+    let j = logs::line_json(&Line::Ran { job: id.clone(), name: "build".into(), result: R::Failure }, false);
     let v: serde_json::Value = serde_json::from_str(&j).unwrap();
     assert_eq!(
         (v["event"].as_str(), v["result"].as_str(), v["job"].as_str()),

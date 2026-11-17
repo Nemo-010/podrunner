@@ -58,10 +58,13 @@ pub(super) fn live(secrets: Vec<String>, as_json: bool) -> Live {
 }
 
 /// One JSON object for the end of a job.
-pub(super) fn line_json(l: &Line) -> String {
+pub(super) fn line_json(l: &Line, dry: bool) -> String {
     let v = match l {
+        // A dry run runs no job: a job that would start is `planned` (T-333).
         Line::Ran { job, name, result } => {
-            json!({ "event": "job", "job": job.to_string(), "name": name, "result": result.as_str() })
+            let result =
+                if dry && *result == pod_actions_workflow::JobResult::Success { "planned" } else { result.as_str() };
+            json!({ "event": "job", "job": job.to_string(), "name": name, "result": result })
         }
         Line::Refused { job, name, reason } => {
             json!({ "event": "job", "job": job.to_string(), "name": name, "result": "failure", "reason": reason })

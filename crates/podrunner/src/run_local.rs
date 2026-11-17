@@ -389,7 +389,7 @@ pub fn run(args: &[String]) -> Out {
             w.line(l);
         }
         if as_json {
-            return emit(&mut stdout, &logs::line_json(l));
+            return emit(&mut stdout, &logs::line_json(l, dry));
         }
         let text = line(l);
         // A dry run runs no job: a job that would start is `planned`.
@@ -446,8 +446,8 @@ pub fn run(args: &[String]) -> Out {
     {
         stderr.push_str(&format!("podrunner: --log-dir: {e}\n"));
     }
-    // The state of the run, for a rerun (T-135).
-    if let Some(dir) = &state_dir {
+    // The state of the run, for a rerun (T-135); a dry run ran no job (T-333).
+    if let Some(dir) = state_dir.as_ref().filter(|_| !a.dry_run) {
         let ends = podrunner_local::rerun::with_kept(source.ends(), &before, |j| source.not_selected(j).is_some());
         let text = podrunner_local::rerun::state_json(&digest, &ends);
         if let Err(e) = std::fs::create_dir_all(dir).and_then(|()| std::fs::write(dir.join("state.json"), text)) {

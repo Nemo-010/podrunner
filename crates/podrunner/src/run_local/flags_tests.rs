@@ -376,3 +376,15 @@ fn a_file_that_is_not_a_workflow_is_named() {
     assert!(out.stderr.contains(": not a workflow: ") && !out.stderr.contains("the actions"), "{}", out.stderr);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-333: a dry run writes no state, and its JSON says `planned`.
+#[test]
+fn a_dry_run_writes_no_state() {
+    let (dir, w) = workflow("dry-state", "on: push\njobs:\n  a:\n    runs-on: x\n    steps: [{run: a}]\n");
+    let st = dir.join("st").display().to_string();
+    let out = run(&args(&[&w, "--runner-dir", "/nonexistent", "--dry-run", "--json", "--no-cache", "--state", &st]));
+    assert_eq!(out.code, 0, "{}", out.stderr);
+    assert!(out.stdout.contains(r#""result":"planned""#), "{}", out.stdout);
+    assert!(!dir.join("st/state.json").exists(), "a dry run wrote the state");
+    let _ = std::fs::remove_dir_all(&dir);
+}

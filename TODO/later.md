@@ -6380,7 +6380,7 @@ podvm stops the connects or gives a flag that turns them off (COORD-076, GitHub 
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6397,6 +6397,10 @@ A dry run writes no state; its JSON gives `planned`.
 ## Prove
 
 `cargo test -p podrunner`
+
+## Done
+
+2026-11-17: a dry run writes no `state.json` (with `--state` or `--rerun`), and its JSON gives `"result":"planned"` for a job that would start. Proven on a constrained host as a user (`qa5`): `--dry-run --json --state DIR` printed `planned` and DIR holds no `state.json`; a test holds it.
 
 # T-334: --artifacts DIR or --state DIR of an earlier run makes each upload of the same name fail with 409
 
