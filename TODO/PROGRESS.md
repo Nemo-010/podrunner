@@ -51,7 +51,9 @@ Blocked: T-032, T-033, T-040 (the live gates: GitHub #74 and #75), T-082 (a runn
 
 ## Questions for the owner
 
-None is open. The owner ruled Q7 and the size of a job, and Q8 and `limits_required` settled with githome, on 2026-11-15 (`docs/decisions.md`).
+Q9 (2026-11-17, T-264): `issue-sync.yml` (the workflow of podcrates `v0.69.0`, the ruling "Issues" of podcrates) is a dry run on podrunner. Its second dry run (run 44099014996) writes a status block into 183 issues of podrunner and changes no state. May the sync write? Recommendation: yes, as the other projects do: the block comes from the record, and the sync edits no issue of an author outside the team that has no label `confirmed`. Until then the workflow stays a dry run.
+
+Before Q9: none was open. The owner ruled Q7 and the size of a job, and Q8 and `limits_required` settled with githome, on 2026-11-15 (`docs/decisions.md`).
 
 Before Q7: The owner answered Q6 and U15 on 2026-11-14 (`docs/decisions.md`).
 
