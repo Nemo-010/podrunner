@@ -1,6 +1,6 @@
-//! The checks of a dry run on the paths that the run would use (T-345): a
-//! `planned` line is a promise that the run can keep. A dry run writes no
-//! directory of the run.
+//! The checks of the paths that a run uses, before its first unit, also
+//! in a dry run (T-345, T-356): a `planned` line is a promise that the run
+//! can keep. A dry run writes no directory of the run.
 
 use super::Args;
 
@@ -25,7 +25,7 @@ pub(super) fn paths(a: &Args) -> Result<(), String> {
         }
     }
     if let Some(t) = a.toolcache.as_ref().filter(|t| !t.is_dir()) {
-        return Err(format!("--toolcache {}: not a directory", t.display()));
+        return Err(format!("--toolcache {}: not a directory; fix: mkdir -p {0}", t.display()));
     }
     let dirs = [
         ("--actions", a.actions.as_ref()),

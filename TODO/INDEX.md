@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**369 entries: 37 open, 24 partial, 10 blocked, 298 done.**
+**369 entries: 35 open, 25 partial, 10 blocked, 299 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 4 | 9 | 1 | 58 | 72 |
-| P2 | 6 | 10 | 7 | 151 | 174 |
+| P2 | 4 | 11 | 7 | 152 | 174 |
 | P3 | 27 | 5 | 2 | 89 | 123 |
-| **All** | 37 | 24 | 10 | 298 | 369 |
+| **All** | 35 | 25 | 10 | 299 | 369 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -399,8 +399,8 @@ acceptance, later The crate dependencies later than v1.
 | [T-352](later.md) | P3 | S | later | defect | open | `image verify` cannot verify the runner image of the release |
 | [T-353](later.md) | P2 | M | later | defect | partial | The runner image has no `less` |
 | [T-354](later.md) | P2 | M | later | defect | blocked | A podvm unit has no devpts: `openpty` fails |
-| [T-355](later.md) | P2 | M | later | defect | open | A failed route of the egress module is reported as a host that the policy refused |
-| [T-356](later.md) | P2 | M | later | defect | open | A run does not check `--toolcache` before its first unit |
+| [T-355](later.md) | P2 | M | later | defect | partial | A failed route of the egress module is reported as a host that the policy refused |
+| [T-356](later.md) | P2 | M | later | defect | done | A run does not check `--toolcache` before its first unit |
 | [T-357](later.md) | P3 | S | later | defect | open | `--state FILE` is named as `--artifacts`; a `--log-dir` with a missing parent does not name the parent |
 | [T-358](later.md) | P3 | S | later | defect | open | `check --config run.toml` gives a serve error with no hint |
 | [T-359](later.md) | P3 | S | later | defect | open | `podrunner --bogus` says "an unknown command" |

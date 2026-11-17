@@ -88,23 +88,50 @@ pub(crate) fn unit_extra(env: &mut std::collections::BTreeMap<String, String>, g
 }
 
 /// The hosts that the egress hold refused for unit `id` of `job`, into its
-/// log; for a failed job also on stderr, with the fix (T-328).
+/// log; for a failed job also on stderr, with the fix (T-328). A host that
+/// the policy allows and that the module found no way to (the rules
+/// `resolve` and `upstream`) is named as such: an allow does not fix it
+/// (T-355).
 pub(crate) fn denials(log: &mut String, job: &str, id: &str, denied: &[String], failed: bool) {
     for d in denied {
         log.push_str(&format!("\npodrunner: the egress policy of {id} denied {d}"));
     }
-    let mut hosts: Vec<&str> = denied
-        .iter()
-        .filter_map(|d| d.split_once(':').map(|(h, _)| h))
-        .filter(|h| !h.is_empty() && *h != "null")
-        .collect();
-    hosts.dedup();
-    if failed && !hosts.is_empty() {
+    let (refused, no_way) = split(denied);
+    if failed && !refused.is_empty() {
         eprintln!(
             "podrunner: {job}: the egress hold refused {}; if the job needs one, allow it: --allow HOST, or `allow` in run.toml",
-            hosts.join(", ")
+            refused.join(", ")
         );
     }
+    if failed && !no_way.is_empty() {
+        eprintln!(
+            "podrunner: {job}: the egress module found no way to {}; an allow does not fix this: see `podrunner doctor`",
+            no_way.join(", ")
+        );
+    }
+}
+
+/// The hosts that the policy refused, and the hosts with no way to them
+/// (the rules `resolve` and `upstream`), each with its cause.
+fn split(denied: &[String]) -> (Vec<String>, Vec<String>) {
+    let (mut refused, mut no_way): (Vec<String>, Vec<String>) = (Vec::new(), Vec::new());
+    for d in denied {
+        let Some((host, rest)) = d.split_once(':') else { continue };
+        if host.is_empty() || host == "null" {
+            continue;
+        }
+        let rule = rest.split_once(" (").map_or("", |(_, r)| r.trim_end_matches(')'));
+        let item = match rule {
+            "resolve" => format!("{host} (no address: the resolver of this host)"),
+            "upstream" => format!("{host} (the proxy of this host)"),
+            _ => host.to_string(),
+        };
+        let list = if matches!(rule, "resolve" | "upstream") { &mut no_way } else { &mut refused };
+        if !list.contains(&item) {
+            list.push(item);
+        }
+    }
+    (refused, no_way)
 }
 
 #[cfg(test)]
@@ -151,6 +178,18 @@ mod tests {
         let denied = [":0 (usage)".to_string(), "nodejs.org:443 (policy:no-rule)".to_string()];
         denials(&mut log, "j.0", "u-1", &denied, true);
         assert!(log.contains("u-1 denied nodejs.org:443"), "{log}");
+    }
+
+    /// T-355: a host with no route is not a host to allow.
+    #[test]
+    fn a_failed_route_is_not_a_refusal() {
+        let denied = ["github.com:443 (resolve)".to_string(), "example.com:443 (policy:no-rule)".to_string()];
+        let (refused, no_way) = split(&denied);
+        assert_eq!(refused, ["example.com"]);
+        assert_eq!(no_way, ["github.com (no address: the resolver of this host)"]);
+        let mut log = String::new();
+        denials(&mut log, "j.0", "u-1", &denied, false);
+        assert!(log.contains("github.com:443 (resolve)"), "{log}");
     }
 
     /// T-319: a held unit names the port of its broker.

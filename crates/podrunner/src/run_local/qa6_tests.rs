@@ -230,3 +230,28 @@ fn a_wildcard_allow_and_a_web_dry_run_are_refused() {
     let e = parse(&args(&["w.yml", "--runner-dir", "/r", "--dry-run", "--web", "127.0.0.1:0"])).unwrap_err();
     assert!(e.contains("--web and --dry-run"), "{e}");
 }
+
+/// T-356: a real run refuses a missing `--toolcache` before its first unit.
+#[test]
+fn a_run_refuses_a_missing_toolcache_before_a_unit() {
+    let dir = scratch("toolcache");
+    std::fs::write(dir.join("w.yml"), WORKFLOW).unwrap();
+    let w = dir.join("w.yml").display().to_string();
+    let pin = format!("i@sha256:{}", "a".repeat(64));
+    let none = dir.join("none").display().to_string();
+    let out = run(&args(&[
+        &w,
+        "--podvm",
+        "/bin/true",
+        "--images",
+        "/s",
+        "--image",
+        &pin,
+        "--toolcache",
+        &none,
+        "--no-cache",
+    ]));
+    assert_eq!(out.code, 78, "{}{}", out.stdout, out.stderr);
+    assert!(out.stderr.contains("--toolcache") && out.stderr.contains("mkdir -p"), "{}", out.stderr);
+    let _ = std::fs::remove_dir_all(&dir);
+}

@@ -7087,7 +7087,7 @@ State (2026-11-17): podvm answered (PodUtils/podvm#470, COORD-177): the namespac
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -7105,6 +7105,8 @@ In `crates/podrunner-local/src/exec/proxy.rs` `denials`, read the rule of each `
 
 `exec::proxy::tests::a_failed_route_is_not_a_refusal` (denials with rule `resolve` give no "allow it" line). The user-gate lane `proxy-only-dns` runs `hold:podvm`.
 
+In the code (2026-11-17): a denial with the rule `resolve` or `upstream` is named `the egress module found no way to HOST (CAUSE); an allow does not fix this: see podrunner doctor`, and only the refusals of the policy keep the fix `--allow HOST` (`exec::proxy::split`). Open: the route itself follows T-351 (COORD-078); the measure of the user gate (T-372).
+
 # T-356: A run does not check `--toolcache` before its first unit
 
 **Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F6; the triage of the report against `main` at `b752051`
@@ -7112,7 +7114,7 @@ In `crates/podrunner-local/src/exec/proxy.rs` `denials`, read the rule of each `
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -7129,6 +7131,10 @@ In `crates/podrunner/src/run_local/routes.rs` (`export_dir`, or a new check next
 ## Prove
 
 `flags_tests::a_run_refuses_a_missing_toolcache_before_a_unit`.
+
+## Done
+
+2026-11-17: each run checks the paths of the run before its first unit, as a dry run does (`dry::paths` from `slots::build`); a missing `--toolcache` gives `--toolcache DIR: not a directory; fix: mkdir -p DIR`, exit 78. Proven in CI on GitHub-hosted runners by `qa6_tests::a_run_refuses_a_missing_toolcache_before_a_unit` (once the gate runs).
 
 # T-357: `--state FILE` is named as `--artifacts`; a `--log-dir` with a missing parent does not name the parent
 

@@ -28,13 +28,14 @@ pub(super) fn build(
     live: Option<Live>,
     groups: Option<Groups>,
 ) -> Result<Vec<Box<dyn Executor>>, Out> {
+    // Each path of the run, before the first unit: also a real run (T-356).
+    super::dry::paths(a).map_err(|e| super::fail(pod_core::failure::Class::Config, e))?;
     let n = if a.dry_run { 1 } else { a.parallel.max(1) };
     let mut out = Vec::with_capacity(n);
     for i in 0..n {
         let dir = if n == 1 { state.to_path_buf() } else { state.join(format!("slot-{i}")) };
         let mut exec = match a.dry_run {
             true => {
-                super::dry::paths(a).map_err(|e| super::fail(pod_core::failure::Class::Config, e))?;
                 let host = a.podvm.is_none() && a.guest.is_none() && a.platforms.is_empty() && a.runner_dir.is_some();
                 let podvm = a.podvm.is_some() && a.guest.is_none() && a.platforms.is_empty();
                 // Each runner image of the run is in the store (T-272).
