@@ -4399,7 +4399,7 @@ The installer removes the write of the group and the others from `bin` and `shar
 
 # T-264: Take podcrates `v0.55.0`: the sync of the issues and pod-lab
 
-**Source:** PodUtils/podcrates#188 (COORD-113, `v0.54.0`), PodUtils/podcrates#194 (COORD-115, `v0.55.0`) PodUtils/podcrates#200 (COORD-116, `v0.58.0`: the installer core, `podlab` as a release asset), PodUtils/podcrates#204 (COORD-118, `v0.59.0`) and PodUtils/podcrates#206 (COORD-119, `v0.60.0`: the network labs of pod-lab, 20 host-class rows of pod-hostprobe) and PodUtils/podcrates#214 (COORD-124, `v0.64.0`: the roots of the host in the certificate file of a lab with `--way-out`, the SIGPIPE of the lab, the overlay root with `userxattr`) (2026-11-16)
+**Source:** PodUtils/podcrates#188 (COORD-113, `v0.54.0`), PodUtils/podcrates#194 (COORD-115, `v0.55.0`) PodUtils/podcrates#200 (COORD-116, `v0.58.0`: the installer core, `podlab` as a release asset), PodUtils/podcrates#204 (COORD-118, `v0.59.0`) and PodUtils/podcrates#206 (COORD-119, `v0.60.0`: the network labs of pod-lab, 20 host-class rows of pod-hostprobe) and PodUtils/podcrates#214 (COORD-124, `v0.64.0`: the roots of the host in the certificate file of a lab with `--way-out`, the SIGPIPE of the lab, the overlay root with `userxattr`), PodUtils/podcrates#219 (COORD-129, `v0.68.0`) and PodUtils/podcrates#220 (COORD-130, `v0.69.0`: two more hosts of GitHub Actions in `services/github-actions.toml`) (2026-11-16)
 **Category:** chore
 **Milestone:** later
 **Priority:** P2
