@@ -27,7 +27,9 @@ pub const HOST_ROWS: [&str; 5] = [
     // A mount in a user namespace with an ID map, as a driver with no root
     // does it (T-283, PodUtils/podcrates#201).
     pod_hostprobe::probes::USERNS_LEG,
-    "chroot(/tmp)",
+    // The chroot of a driver with no root, after the same map (T-283,
+    // PodUtils/podcrates#204).
+    pod_hostprobe::probes::USERNS_CHROOT,
     "open(/dev/kvm, O_RDWR)",
     "landlock_create_ruleset(VERSION)",
 ];

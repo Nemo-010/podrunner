@@ -178,6 +178,14 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   user-gate lane `bind-denied` measures it (`lab:vnet`, an xfail until it
   passes). The CI runs of these commits were queued for an hour or more:
   read their results first.
+- A second user QA of beta.7 (a report with F1 to F23) gave T-351 to
+  T-371. They block the next release: T-351 (P1: a host with DNS only
+  through its proxy fetches no action; the root is in `pod-broker`,
+  COORD-078 #215) and T-371 (P1: the user gate has no lane of that host),
+  and the P2 T-353, T-354 (devpts, COORD-079 #216), T-355 and T-356.
+- COORD state: #170 (podnet) and #191 (podcrates) are closed; #189 holds
+  the facts that podvm asked for (PodUtils/podvm#466); #214 and #215 wait
+  for podcrates, #216 for podvm.
 - The fourth QA: agent B found T-318 to T-323 and T-203 (each P1 and P2
   done). Agent A (user
   `qa3`) stopped before its report: it gave no findings. The adversarial

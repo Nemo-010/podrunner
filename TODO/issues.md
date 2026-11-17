@@ -169,7 +169,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #167 | Local mode 2026-11-15: a host that denies AF_INET bind cannot serve the fake broker, and the static binary keeps podnet's shim out | open (T-220 waits for podnet, #170) | T-220, T-228 |
 | #168 | COORD-056: a store flag of `load` and `images`, and an attestation of each release (to podvm) | open (podvm answered on PodUtils/podvm#417: `--store` in its next beta; attestations since beta.22) | T-218 |
 | #169 | COORD-057: podrunner takes podcrates v0.52.0 at 45bd964 (the answer to PodUtils/podcrates#176) (to podcrates) | closed (podcrates closed PodUtils/podcrates#176) | T-118 |
-| #170 | COORD-058: a TCP address of the vnet that connects to a unix socket, for a payload in a podvm unit (to podnet) | open | T-220 |
+| #170 | COORD-058: a TCP address of the vnet that connects to a unix socket, for a payload in a podvm unit (to podnet) | closed (podnet v0.4.0-beta.14; `--vnet`, T-220) | T-220 |
 | #171 | Local mode 2026-11-15: the run should pick its own transport and environment, instead of leaving that to the reader of four documents | open (T-229 is open) | T-229 |
 | #172 | Local mode 2026-11-15: `doctor --run` reports `ok store` for an empty store and never checks that `--image` is in it | closed (fixed; the entries are done) | T-223 |
 | #173 | Local mode 2026-11-15: a run that hangs prints nothing until it ends, so the phase it is stuck in is invisible | closed (fixed; the entries are done) | T-224 |
@@ -190,7 +190,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #188 | [gh action] requested | closed (gate 43754963454, runner-image 43754966711, level2 43754970180 green on `b5c9214`; the user-path gate 43758947099 red: `--microvm` and three corpus rows on podvm, T-261 to T-263; no release) | T-243, T-254, T-256, T-261, T-262, T-263 |
 | #189 | COORD-066: three jobs fail in a podvm unit and pass on a runner directory: persist of a temporary file EACCES, Node package config (to podvm) | open (waits for PodUtils/podvm@T-1740: a volume of `run -d` on the namespace rung; PodUtils/podvm#466) | T-261, T-262 |
 | #190 | [gh action] requested | closed (gate 43782934101, level2 43782940547, runner-image 43782937209 green on `12cb64e`; user-gate 43787604846 red: express-lint on podvm with `UV_USE_IO_URING=0`, T-262; `--microvm` as a user with no root, T-291; no release asked) | T-243, T-261, T-262, T-263, T-291 |
-| #191 | COORD-067: pod-hostprobe: a mount and a chroot probe in a user namespace with an ID map (to podcrates) | open (PodUtils/podcrates#201: the mount row is in v0.52.0, shown now; the chroot row comes in the next tag) | T-283 |
+| #191 | COORD-067: pod-hostprobe: a mount and a chroot probe in a user namespace with an ID map (to podcrates) | closed (podcrates v0.59.0; T-283 done) | T-283 |
 | #192 | [gh action] requested | closed (gate 43789349432, level2 43789355829, runner-image 43789352527 green on `45ef3c3`; user-gate 43794547449 on `52e7356` refused the images of `45ef3c3` at prepare: a run of an older commit now serves when `images/` is the same) | T-246, T-265, T-284 |
 | #193 | COORD-068: Node 26 still reads an invalid package.json with UV_USE_IO_URING=0, and the machine tier ends before the exit code as a user with no root (to podvm) | closed (Node 26: podvm beta.26, T-262 done; the machine tier: T-291 done) | T-262, T-291 |
 | #194 | [gh action] requested | closed (gate 43795116133 and level2 43795119948 green on `a4b41b9`; user-gate 43795123788 red: express-node22 on runner-dir in CI (T-255), express-lint on podvm passed in one lane (T-262), rq-lint on runner-dir in proxy-only (T-299)) | T-246, T-284, T-291, T-299 |
@@ -214,6 +214,8 @@ numbers. `TODO/RULES.md` gives the rules.
 | #212 | run: a pre-start failure claims a log in --log-dir that is not written | closed (fixed on `main`; the entry is done) | T-349 |
 | #213 | v0.1.0-beta.7 pins podnet 0.4.0-beta.13, but the vnet forward needed by #170 is in 0.4.0-beta.14 | open (podnet `0.4.0-beta.15` pinned; the forward is T-220) | T-350 |
 | #214 | COORD-077: pod-actions-workflow: the error of an unknown need marks the job, not its needs: (to podcrates) | open (waits for podcrates) | T-331 |
+| #215 | COORD-078: pod-broker: names_upstream still resolves the name itself, so a host whose DNS is only through its proxy refuses each CONNECT (to podcrates) | open (waits for podcrates) | T-351 |
+| #216 | COORD-079: a podvm unit has no /dev/pts: pty.spawn and script fail, and pager tests fail (to podvm) | open (waits for podvm) | T-354 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

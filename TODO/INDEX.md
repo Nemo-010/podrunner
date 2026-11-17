@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**347 entries: 17 open, 23 partial, 10 blocked, 297 done.**
+**368 entries: 37 open, 23 partial, 10 blocked, 298 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 1 | 9 | 1 | 58 | 69 |
-| P2 | 4 | 9 | 6 | 151 | 170 |
-| P3 | 12 | 5 | 3 | 88 | 108 |
-| **All** | 17 | 23 | 10 | 297 | 347 |
+| P1 | 3 | 9 | 1 | 58 | 71 |
+| P2 | 7 | 9 | 7 | 151 | 174 |
+| P3 | 27 | 5 | 2 | 89 | 123 |
+| **All** | 37 | 23 | 10 | 298 | 368 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -327,7 +327,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-280](later.md) | P3 | S | later | defect | done | `--break` on `--runner-dir` speaks of a unit, and two flags pass together |
 | [T-281](later.md) | P3 | S | later | defect | done | A runner directory with a space, and the growth of `_diag` |
 | [T-282](later.md) | P3 | S | later | defect | done | Each live log line comes twice |
-| [T-283](later.md) | P3 | S | later | defect | blocked | `doctor` reports mount and chroot as denied where a user namespace mounts |
+| [T-283](later.md) | P3 | S | later | defect | done | `doctor` reports mount and chroot as denied where a user namespace mounts |
 | [T-284](later.md) | P2 | S | later | defect | partial | The user-path gate has no lane of a host with a proxy only |
 | [T-285](later.md) | P2 | M | later | defect | open | A Dockerfile action on `--podvm` gets no container hooks |
 | [T-286](later.md) | P3 | S | later | defect | done | A cell that a signal cancelled is not in `state.json` |
@@ -395,3 +395,24 @@ acceptance, later The crate dependencies later than v1.
 | [T-348](later.md) | P3 | S | later | defect | done | `--validate --json` gives no JSON for a workflow that is not valid |
 | [T-349](later.md) | P3 | S | later | defect | done | A failure before the start of a job names a log in `--log-dir` that is not there |
 | [T-350](later.md) | P2 | M | later | defect | partial | beta.7 pins podnet `0.4.0-beta.13`; the vnet forward of #170 is in `0.4.0-beta.14` |
+| [T-351](later.md) | P1 | M | later | defect | open | The egress module resolves each name itself, so a host with DNS only through its proxy gets 502 for each fetch and each allowed host |
+| [T-352](later.md) | P3 | S | later | defect | open | `image verify` cannot verify the runner image of the release |
+| [T-353](later.md) | P2 | M | later | defect | open | The runner image has no `less` |
+| [T-354](later.md) | P2 | M | later | defect | blocked | A podvm unit has no devpts: `openpty` fails |
+| [T-355](later.md) | P2 | M | later | defect | open | A failed route of the egress module is reported as a host that the policy refused |
+| [T-356](later.md) | P2 | M | later | defect | open | A run does not check `--toolcache` before its first unit |
+| [T-357](later.md) | P3 | S | later | defect | open | `--state FILE` is named as `--artifacts`; a `--log-dir` with a missing parent does not name the parent |
+| [T-358](later.md) | P3 | S | later | defect | open | `check --config run.toml` gives a serve error with no hint |
+| [T-359](later.md) | P3 | S | later | defect | open | `podrunner --bogus` says "an unknown command" |
+| [T-360](later.md) | P3 | S | later | defect | open | `--no-git`, `--with-git` and `--checkout-head` do not apply to the default checkout |
+| [T-361](later.md) | P3 | S | later | defect | open | The line of a concurrency wait comes after the run, not when the wait starts |
+| [T-362](later.md) | P3 | S | later | defect | open | `print-unit` writes a relative `--config` and `--state` into `ExecStart` |
+| [T-363](later.md) | P3 | S | later | defect | open | The stop line of a signal names a running job when no job runs |
+| [T-364](later.md) | P3 | S | later | defect | open | A raw seed file gives `invalid data`, not the format |
+| [T-365](later.md) | P3 | S | later | defect | open | A `--var`, `--input` or `--env` of two config files is refused, not overridden |
+| [T-366](later.md) | P3 | S | later | defect | open | `serve` gives no ready line in the foreground |
+| [T-367](later.md) | P3 | S | later | defect | open | An abort of podrunner leaves no cause; two runs at once may abort |
+| [T-368](later.md) | P3 | S | later | defect | open | The two executors give a different console |
+| [T-369](later.md) | P3 | S | later | defect | open | The installer names no command to add its binary directory to PATH |
+| [T-370](later.md) | P3 | S | later | defect | open | A run does not say which configuration files it read |
+| [T-371](later.md) | P1 | M | later | defect | open | The user gate has no lane of a host with DNS only through an authenticated proxy |

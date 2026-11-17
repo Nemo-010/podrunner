@@ -4331,6 +4331,7 @@ State (2026-11-16): podvm `v0.2.0-beta.25` (PodUtils/podvm#439, PodUtils/podvm@T
 
 State (2026-11-17): the rows `click-py313` and `rq-lint` on podvm are still xfail in each lane of user-gate 44051472680 (podvm `0.2.0-beta.30`): a unit with a volume (the socket directory where the hooks give containers, `--export`) leaves the namespace rung until PodUtils/podvm@T-1740; GitHub #189 names it (PodUtils/podvm#466).
 
+State (2026-11-17): the premise above is most likely wrong. As uid 30036 on this sandbox, podvm `0.2.0-beta.30` keeps `run -d` on the namespace rung with no volume, with the socket directory and with a read-only volume (`namespace fresh-chroot`). The podvm tests of runner-image 44085737348 on the hosted `ubuntu-24.04` runner say `entered rung: userland` (AppArmor restricts user namespaces). So the rows most likely fail because each unit there is on the userland rung, where `tempfile` issues `renameat2` as a raw system call. #189 gives podvm the three facts that PodUtils/podvm#466 asked for. Next: the user gate logs `podvm inspect UNIT --format '{{.Rung}} {{.Exec.Mode}}'` for the rows of podvm.
 
 # T-262: In a podvm unit, Node sometimes reads an invalid package.json
 
@@ -4956,7 +4957,7 @@ Find the second source of the lines (the console of the runner and the feed of t
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** blocked
+**Status:** done
 
 ## Problem
 
@@ -4974,9 +4975,11 @@ COORD-067 (GitHub #191) asks podcrates for a mount and a chroot probe in a user 
 
 `podrunner doctor`: `doctor` on this sandbox gives the mount as `ok`.
 
-## Blocker
+History of the blocker: 2026-11-16: the mount row is done; the chroot row `chroot(/tmp) in unshare(NEWUSER+maps)` is in podcrates `v0.59.0` (PodUtils/podcrates#204); it waits for the bump of T-264, after the release of `v0.1.0-beta.7`.
 
-2026-11-16: the mount row is done; the chroot row `chroot(/tmp) in unshare(NEWUSER+maps)` is in podcrates `v0.59.0` (PodUtils/podcrates#204); it waits for the bump of T-264, after the release of `v0.1.0-beta.7`.
+## Done
+
+2026-11-17: with podcrates `v0.69.0` (T-264), `doctor` shows `chroot(/tmp) in unshare(NEWUSER+maps)` (`USERNS_CHROOT`) in place of the chroot of the caller, beside the mount row (`HOST_ROWS`). Proven as root on this sandbox (`doctor --json`: `ok`); not run as a user with no root. COORD-067 (#191) is closed.
 
 # T-284: The user-path gate has no lane of a host with a proxy only
 
@@ -6964,3 +6967,532 @@ Pin podnet `0.4.0-beta.15` (`images/podnet.toml`) after the gate passes with it.
 `cargo test -p podrunner`; The gate and the user-gate with podnet beta.15; a podvm job in `podnet pod --backend seccomp` connects to the broker on a host that refuses a bind of the loopback.
 
 Pinned (2026-11-17): podnet `0.4.0-beta.15` in `images/podnet.toml` and `scripts/install.sh`; its Breaking items (the ports of `netns-kernel`, the rules of `warp proxy`) do not touch the seccomp hold. Open: the gate and the user-gate with it; the listener of the broker on a unix socket and `PODNET_VNET_FORWARD` (#170 step 1, T-220).
+
+# T-351: The egress module resolves each name itself, so a host with DNS only through its proxy gets 502 for each fetch and each allowed host
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F1; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+On a host whose only resolver is the proxy, `git ls-remote` of each action gets `502 ... system resolver: failed to lookup address information: Try again; DNS over HTTPS: not asked for this name`. The 502 comes from podrunner's fetch relay, not from the proxy. The same `git ls-remote` from the shell through the same proxy works 3 of 3 times. Each workflow with an action outside the built-in set fails with exit 78. The error does not name `--local-repository`.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`. Other project: the root fix is in podcrates (`pod-broker`).
+
+## Approach
+
+(1) Root fix in podcrates (`pod-broker`): with `Settings::names_upstream`, when `resolve_once` fails with `NotFound`, `Unavailable` or `Timeout`, check the name against each deny, then send the name to the upstream. Write an audit line `unresolved`. Keep the hold `advisory` unless the canary says `refuses-non-public` (as `names.rs` says now). Send a COORD issue `(to podcrates)` and set the entry `blocked` on it. (2) Interim fix in podrunner, `crates/podrunner-local/src/fetch.rs`: when the environment names a proxy for the host and the resolver of the module has no address for it, give git the relay of a plain CONNECT forward to the proxy (one host, the same `GIT_CONFIG_*` rules), or give the module a resolver that answers with a placeholder address for the one allowed host so that the name goes up. (3) The error of a failed fetch (`run_local/actions.rs`) names the cause ("the resolver of this host has no address for HOST") and the workaround `--local-repository OWNER/REPO@REF=DIR`. (4) `doctor` reports "the system resolver has no address for github.com; names go through the proxy". The ask to podcrates is COORD-078 (GitHub #215).
+
+## Prove
+
+`cargo test -p podrunner-egress names_upstream_with_no_resolver` (a fake resolver that fails, a fake CONNECT proxy that takes names: the CONNECT gets 200). A new user-gate lane `proxy-only-dns` (see "Gaps of the gate"): the corpus fetches each action.
+
+# T-352: `image verify` cannot verify the runner image of the release
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F2; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner image verify --tarball runner-x86_64.tar --arch x86_64` exits 78 for the asset of the same release, whose bytes match the published `.sha256`. The command only checks the tarball of `actions/runner`. A user has no podrunner command that checks the image that the installer loads.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `crates/podrunner/src/image.rs`, when `is_image` is true, read `index.json` of the layout and compare its manifest digest with the image digest that the release pins (the digest that the installer writes into `run.toml` as `image = "runner@sha256:..."`). Build that digest into the binary at release time (`scripts/release-assets.sh` gives it as an environment value of the build), or take `--image NAME@sha256:HEX`. Say `the runner image of release VERSION: the digest matches`.
+
+## Prove
+
+`image::tests::an_image_of_the_release_is_verified` (a small OCI layout with a known digest); a user-gate step runs `image verify` on the real asset.
+
+# T-353: The runner image has no `less`
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F3; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+`command -v less` is empty in a podvm unit. `ubuntu-latest` has `less`. Suites that test a pager (click `test_echo_via_pager.py`) fail.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+Add `less` to the base package list in `images/runner/Dockerfile` (it is small). Add it to the tool check of `runner-image.yml` (the check of T-324).
+
+## Prove
+
+`cargo test -p podrunner`; the tool check of `runner-image.yml` in a podvm unit: `command -v less`.
+
+# T-354: A podvm unit has no devpts: `openpty` fails
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F3; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** blocked
+
+## Problem
+
+In a podvm unit `/dev/pts` is empty, `pty.spawn` gives `out of pty devices`, and `script` fails. On `--runner-dir` each probe passes.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`. Other project: podvm.
+
+## Approach
+
+Ask podvm by a COORD issue `(to podvm)` to mount a new `devpts` instance (`newinstance,ptmxmode=0666`) and link `/dev/ptmx` in each unit of `run -d`, on each rung. Set the entry `blocked` on it. podrunner then adds a pty probe to the tool check.
+
+## Prove
+
+`cargo test -p podrunner`; a probe step in `runner-image.yml` (`python3 -c "import pty; pty.spawn(['/bin/true'])"`).
+
+## Blocker
+
+2026-11-17: waits for podvm: COORD-079 (GitHub #216) asks for a devpts in each unit.
+
+# T-355: A failed route of the egress module is reported as a host that the policy refused
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F4; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+With `--allow github.com`, a job that cannot reach `github.com` gets `the egress hold refused github.com; if the job needs one, allow it: --allow HOST`. The host is allowed. The cause is no route (no resolver, or the upstream failed). The fix that the message gives does not work.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `crates/podrunner-local/src/exec/proxy.rs` `denials`, read the rule of each `HOST:PORT (RULE)`. For the rules `resolve` and `upstream`, print `podrunner: JOB: the egress module found no way to HOST (RULE: the resolver of this host / the proxy); see doctor`. Keep the "allow it" text for policy rules only. Keep the stage text from the audit line in `podrunner-egress/src/denials.rs`. The route itself follows the fix of F1.
+
+## Prove
+
+`exec::proxy::tests::a_failed_route_is_not_a_refusal` (denials with rule `resolve` give no "allow it" line). The user-gate lane `proxy-only-dns` runs `hold:podvm`.
+
+# T-356: A run does not check `--toolcache` before its first unit
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F6; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+`podrunner run wf.yml --toolcache /tmp/toolcache` with no such directory fails job `g` with `unit-start-failed: podvm run: exit 125: ... the host path ...: No such file or directory`. The run exits 1. The message gives no fix.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `crates/podrunner/src/run_local/routes.rs` (`export_dir`, or a new check next to it), refuse a `--toolcache` that is not a directory before the first unit: `--toolcache DIR: not a directory; fix: mkdir -p DIR`, exit 78. Better: call the path checks of `dry::paths` at the start of each run, not only of a dry run.
+
+## Prove
+
+`flags_tests::a_run_refuses_a_missing_toolcache_before_a_unit`.
+
+# T-357: `--state FILE` is named as `--artifacts`; a `--log-dir` with a missing parent does not name the parent
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F7; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`--state /tmp/statefile` (a file) gives an error on the internal path `/tmp/statefile/artifacts`. `--log-dir /nope/logs` gives `Permission denied` and does not say which directory cannot be made.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `run_local.rs`, check `--state` (and `--rerun`) before the artifact store: a path that exists and is not a directory gives `--state PATH: not a directory`. In `routes.rs` `export_dir` and in `dry.rs`, on a failed `create_dir_all`, name the first parent that is missing and the parent that refuses it (`doctor` does this already: reuse it).
+
+## Prove
+
+`flags_tests::a_state_that_is_a_file_is_named_by_its_flag`.
+
+# T-358: `check --config run.toml` gives a serve error with no hint
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F8; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner check --config run.toml` (the file of the installer) exits 78 with `unknown field image, expected one of host, ...`. The error does not say that `check` reads a configuration of `serve`, and that `run.toml` is for `run`.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `serve::check`, when the parse fails and the file has a key of `run` (`podvm`, `images`, `image`, `runner-dir`; the list of `run_config.rs`), add `; this is a file of podrunner run (run.toml): check it with podrunner doctor --run FILE`. Also say it in `check --help`.
+
+## Prove
+
+`crates/podrunner/tests/check.rs`: `a_run_toml_names_doctor_run`.
+
+# T-359: `podrunner --bogus` says "an unknown command"
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F9; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner --bogus` exits 64 with `an unknown command "--bogus"`. `--help` and `--version` are options at the top level, so the right noun is option.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `cli.rs` dispatch, a first word that starts with `-` gives `an unknown option "--bogus"; the options are --help and --version`.
+
+## Prove
+
+`cli::tests::an_unknown_top_option_is_an_option`.
+
+# T-360: `--no-git`, `--with-git` and `--checkout-head` do not apply to the default checkout
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F11; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+In a git tree a run with no `--checkout` checks out the top of the tree. `--no-git` alone exits 64 with `--checkout-head, --with-git and --no-git need --checkout`. The same flag works with `--checkout .`.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+Move the check from `args.rs:325` to the place where the default checkout is chosen (`run_local.rs`, the T-336 code). Refuse the modifiers only when the run has no checkout at all.
+
+## Prove
+
+`flags_tests::no_git_applies_to_the_default_checkout`.
+
+# T-361: The line of a concurrency wait comes after the run, not when the wait starts
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F13; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A second run of a held group prints nothing for about 40 s. The line `the group ... waits for the run PID` comes at the end, after `ok`. A user cannot tell a wait from a hang.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `run_local.rs:426` (and the job-level `Grouped` notes), print the note on stderr at once (with `--json`, as a `{"event":"wait"}` line). Keep the vector for the tests.
+
+## Prove
+
+`concurrency::tests::a_wait_is_named_before_it_blocks` (the note arrives before the lock is free).
+
+# T-362: `print-unit` writes a relative `--config` and `--state` into `ExecStart`
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F15; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`print-unit --config example.toml --state DIR` writes `ExecStart=... --config example.toml`. systemd starts the unit in `/`, so the unit fails to start.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `cli.rs`, make `--config` absolute with `std::fs::canonicalize` (the file must exist already), and `--state` absolute against the current directory.
+
+## Prove
+
+`cli::tests::print_unit_makes_paths_absolute`.
+
+# T-363: The stop line of a signal names a running job when no job runs
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F16; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+After the run ends, the web view waits for SIGINT. At SIGINT podrunner prints `podrunner: stopping: the running job ends and its unit goes`. No job runs. `--watch` between runs gives the same line.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+Add an atomic `IDLE` to `cancel.rs`; `web::hold` and the wait of `--watch` set it. The handler then writes `podrunner: stopping` only. Add the open part to T-339 item 13 in the same commit.
+
+## Prove
+
+`cancel::tests::an_idle_stop_names_no_job`.
+
+# T-364: A raw seed file gives `invalid data`, not the format
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F18; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A 32-byte raw seed file gives `podrunner: the seed file: invalid data`, exit 78. A file of 64 hex digits works. The error does not name the format.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `pins.rs` `read_seed`, read the bytes; when they are not UTF-8 or not 64 hex digits, say `the seed file: not 64 hex digits (a raw seed of 32 bytes: xxd -p -c 64 FILE)`. Use the text of the system, not `e.kind()` (as T-323 F12).
+
+## Prove
+
+`pins::tests::a_raw_seed_names_the_format`.
+
+# T-365: A `--var`, `--input` or `--env` of two config files is refused, not overridden
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F20; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`.actrc` with `--var MYVAR=a` and `.podrunner/run.toml` with `var = ["MYVAR=b"]` give `--var MYVAR: given two times`, exit 64. For each other flag a later file or the command line wins.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `run_config.rs` `expand`, drop an earlier `NAME=` of `--var`, `--input`, `--env` and `--secret` when a later source sets the same name. Keep the refusal of a name given two times on the command line, or in one file.
+
+## Prove
+
+`run_config::tests::a_later_file_wins_for_a_var`.
+
+# T-366: `serve` gives no ready line in the foreground
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F21; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`serve` with a valid configuration writes nothing at start. The control socket works. A user in the foreground cannot tell that it is ready, or where its socket is.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `serve.rs`, next to `notify::send("READY=1")`, write `podrunner: serve: ready; the control socket is PATH; the sources: N; the kinds: K`.
+
+## Prove
+
+`cargo test -p podrunner`; a test in `crates/podrunner/tests/` that reads the first line of `serve` with the fake configuration.
+
+# T-367: An abort of podrunner leaves no cause; two runs at once may abort
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F22; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+One of two `podrunner run` processes with podvm units, started a few seconds apart, exited 134 after the start of `a.0`. No text was kept. A later pair passed.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+(1) Install a panic hook in `crates/podrunner/src/main.rs` that writes the panic text, the thread and the version to stderr and to `$XDG_STATE_HOME/podrunner/crash-PID.txt`, then aborts. (2) Make the image tar cache of T-242 safe for two runs: write to a temporary name and `rename`, under a `flock` of the cache. (3) Add a stress step to the user gate: two runs of `hello.yml` on podvm at once, 5 times; each exits 0.
+
+## Prove
+
+`cargo test -p podrunner`; the user-gate step `two-runs`; `cargo test -p podrunner a_panic_writes_its_text`.
+
+# T-368: The two executors give a different console
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F23; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+On `--runner-dir`, stderr carries the console of the runner (`Listening for Jobs`, the host name, `Runner listener exit with 0 return code`). On podvm only the `[JOB.N]` lines come. The host name appears only on the executor with no isolation.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+In `crates/podrunner-broker-fake/src/runner.rs` (the console relay at `:101`), put each console line in the log of the job (`--log-dir`) and show on stderr only a warning or an error line, as on podvm. Give the runner a machine name `podrunner-host` (`--name` of the config of the runner directory) so that the host name does not leak.
+
+## Prove
+
+`runner::tests::the_console_stays_in_the_log`.
+
+# T-369: The installer names no command to add its binary directory to PATH
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding N1; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The warning `DIR is not in PATH: add it, or use the full path` (`scripts/install.sh`) gives no command, and a new user does not know which file to change.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+Add the line `export PATH="DIR:$PATH"` and the profile file of the shell (`~/.profile`) to the warning.
+
+## Prove
+
+`scripts/test-install.sh` checks the text.
+
+# T-370: A run does not say which configuration files it read
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding N2; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The installer writes `run.toml` under `XDG_CONFIG_HOME`, and a run does not say which configuration files it read; a user in another directory cannot tell which file applies.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+`doctor --run` names each file that `run_config::expand` read.
+
+## Prove
+
+`cargo test -p podrunner` (a test of `doctor --run` with a `run.toml` of the user).
+
+# T-371: The user gate has no lane of a host with DNS only through an authenticated proxy
+
+**Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding gate; the triage of the report against `main` at `b752051`
+**Category:** defect
+**Milestone:** later
+**Priority:** P1
+**Effort:** M
+**Status:** open
+
+## Problem
+
+The lane `proxy-only` (`scripts/lab/proxy-only.sh`) lets the lab user reach the loopback resolver, and its mitmproxy takes no credential. The host of the QA report has DNS only through an authenticated proxy that intercepts TLS. F1 and F4 pass in the lane and fail on the host.
+
+## Premise
+
+The report and its logs (not in the repository), read on 2026-11-17; the triage read the code of `main`.
+
+## Approach
+
+Add a lane `proxy-only-dns` (or options of `proxy-only.sh`): no working resolver for the lab user (REJECT of port 53 to each address, the loopback too), and mitmproxy with `--proxyauth` and the credential in `HTTPS_PROXY`. Run the corpus (which fetches actions), `hold:podvm` and `image verify` of the real release asset in it.
+
+## Prove
+
+`cargo test -p podrunner`; The lane fails on `b752051` (F1) and passes after the fix.
