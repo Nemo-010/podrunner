@@ -6135,7 +6135,7 @@ Fixed: F23, part 1 (a flag of an environment that no job names gets a line). F7 
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6154,6 +6154,10 @@ Add `make`, `libatomic1` and `python3` to the base image (`images/runner/Dockerf
 A runner-image run; the corpus row of a project that needs `make`.
 
 State (2026-11-17): `make`, `python3` and `libatomic1` are in the base image (`images/runner/Dockerfile`), the step "The tools of the base image in a podvm unit" of `runner-image.yml` checks them, and `docs/local-mode.md` lists them. Next: a green `runner-image.yml` run.
+
+## Done
+
+2026-11-17: `make`, `python3` and `libatomic1` are in the base image; the step "The tools of the base image in a podvm unit" of `runner-image.yml` passed (run 44043008133 on `291f702`, proven in CI on GitHub-hosted runners).
 
 # T-325: A podvm unit needs more scratch disk than doctor says; --jobs 2 fills the disk
 
