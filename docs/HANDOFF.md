@@ -147,9 +147,14 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   `qa7`, kit `/srv/qa-kit`): no P1; the P2 T-324 to T-338 are done
   (T-326 by a call: no compiler in the base image), except T-324, which
   waits for its `runner-image.yml` run (44043008133 on `291f702`). P3:
-  T-331, T-339. Next: that run green, then gate, level2 and user-gate
-  (`-f images_run=44043008133`) on the release commit, then the request
-  of `release.yml`.
+  T-331, T-339.
+- `v0.1.0-beta.7` is released (release 44066276664 on `129310e`; gate
+  44051464379, runner-image 44057392980, user-gate 44051472680, level2
+  44043008110 on `291f702`, with only documents and the record after
+  it). The online quick start from the release URL passed as `qa6` (no
+  root, a proxy that intercepts TLS): the installer, `--version` and
+  `hello.yml` ok. Next: the P3 groups T-331 and T-339 (and T-308, T-316,
+  T-323), then T-264 (podcrates `v0.68.0`, COORD-129).
 - The fourth QA: agent B found T-318 to T-323 and T-203 (each P1 and P2
   done). Agent A (user
   `qa3`) stopped before its report: it gave no findings. The adversarial
