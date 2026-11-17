@@ -85,6 +85,14 @@ pub fn host_of(base: &str) -> Option<String> {
     (!host.is_empty()).then(|| host.to_ascii_lowercase())
 }
 
+/// The way out of an egress module of the local mode: the proxy that the
+/// environment names for `host`, else a direct connection (T-233). On a
+/// host whose only way out is a proxy, a direct connection gets nothing.
+pub fn env_proxy(host: &str) -> Result<Option<pod_proxy::Proxy>, String> {
+    let env = pod_proxy::Environment::read(&|n| std::env::var_os(n));
+    env.proxy_for(host, &[]).map_err(|e| format!("the proxy of the environment: {e}"))
+}
+
 /// One grant of the egress module for a fetch, and its relay. Drop it
 /// after the fetch: the grant, its socket and the module end.
 pub struct Fetch {
@@ -98,8 +106,7 @@ pub struct Fetch {
 impl Fetch {
     /// Open a grant that allows `host` only.
     pub fn open(host: &str) -> Result<Fetch, String> {
-        let env = pod_proxy::Environment::read(&|n| std::env::var_os(n));
-        let upstream = env.proxy_for(host, &[]).map_err(|e| format!("the proxy of the environment: {e}"))?;
+        let upstream = env_proxy(host)?;
         let names = upstream.is_some();
         let resolve = podrunner_egress::dns::resolver(false, Vec::new());
         // A failed way out falls back to the proxy: no line (T-331 F8).

@@ -3549,7 +3549,7 @@ State (2026-11-15): podvm `0.2.0-beta.24` (pinned) has the fix. `runner-image.ym
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -3567,6 +3567,10 @@ Give the egress module of a job the upstream proxy of `pod_proxy::Environment`, 
 
 `cargo test -p podrunner-local egress_upstream`: an allowed host goes through the upstream proxy of the environment.
 
+## Done
+
+2026-11-17: the egress module of a job of the local mode takes the proxy that the environment names as its way out (`fetch::env_proxy`, in `routes.rs` and `guest.rs`), as the fetch of the actions does. Proven on a constrained host as a user (`qa5`, `--podnet --allow pypi.org`, the way out through the proxy of the host that intercepts TLS): `allowed host: http 200`, `other host: refused`. The check `hold:podvm` of the user-path gate runs it in the lane `proxy-only`, where a direct connection gets nothing.
+
 # T-234: A job on `--runner-dir` drops the proxy of the host
 
 **Source:** the QA report of a second user agent of the local mode (Debian 13 in LXC, user namespaces, KVM, a host behind an authenticated proxy; podrunner `0.1.0-beta.6`), given by the owner on 2026-11-15
@@ -3574,7 +3578,7 @@ Give the egress module of a job the upstream proxy of `pod_proxy::Environment`, 
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -3591,6 +3595,10 @@ Serve the job through a local relay of the proxy (as the fetch does) and give th
 ## Prove
 
 A test: a step that reads `https_proxy` sees the relay, not the credential.
+
+## Done
+
+2026-11-17: fixed by T-265 and T-266: a job on a runner directory gets `PATH`, the proxy variables and the CA files of the environment (`PASSED` of `exec/host.rs`), with the loopback in `NO_PROXY`. Proven on a constrained host as a user by the fifth QA (agent 1: the proxy variables and the CA files reach the job on `--runner-dir`).
 
 # T-235: Each log line of a job comes two times, with a BOM
 
@@ -3674,7 +3682,7 @@ A test of `run --dry-run` on `--podvm` with a Dockerfile action: the job fails w
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -3691,6 +3699,10 @@ Key the store as `DIR/RUN_ID`; `--rerun` keeps the run id of its state.
 ## Prove
 
 A test: two runs into one `--artifacts DIR` both pass, with two directories.
+
+## Done
+
+2026-11-17: fixed by T-334: a new run removes the artifacts of an earlier run from its artifact directory first, by name on stderr; a rerun replaces what it uploads again. Proven on a constrained host as a user (`qa5`, two runs of one upload into one `--artifacts DIR`).
 
 # T-239: `--action-server` on the loopback or a private address is denied
 

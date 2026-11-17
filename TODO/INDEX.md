@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**336 entries: 25 open, 22 partial, 12 blocked, 277 done.**
+**336 entries: 22 open, 22 partial, 12 blocked, 280 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 12 | 8 | 7 | 139 | 166 |
+| P2 | 9 | 8 | 7 | 142 | 166 |
 | P3 | 12 | 5 | 3 | 81 | 101 |
-| **All** | 25 | 22 | 12 | 277 | 336 |
+| **All** | 22 | 22 | 12 | 280 | 336 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -280,12 +280,12 @@ acceptance, later The crate dependencies later than v1.
 | [T-230](later.md) | P1 | S | later | defect | done | With no `--platform`, a job of Windows, macOS or another architecture runs on the host |
 | [T-231](later.md) | P3 | S | later | defect | done | Ctrl-C in the wait of `--schedule` exits 0 |
 | [T-232](later.md) | P1 | S | later | defect | partial | A tar with a link before its target fails in a podvm unit |
-| [T-233](later.md) | P2 | S | later | defect | open | The egress of a job ignores the proxy of the host |
-| [T-234](later.md) | P2 | S | later | defect | open | A job on `--runner-dir` drops the proxy of the host |
+| [T-233](later.md) | P2 | S | later | defect | done | The egress of a job ignores the proxy of the host |
+| [T-234](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` drops the proxy of the host |
 | [T-235](later.md) | P3 | S | later | defect | open | Each log line of a job comes two times, with a BOM |
 | [T-236](later.md) | P3 | S | later | defect | open | The events of `--json` share stderr with the console of the runner |
 | [T-237](later.md) | P2 | S | later | defect | open | A Dockerfile action on `--podvm` fails at its step, not before the job |
-| [T-238](later.md) | P2 | S | later | defect | open | `--artifacts DIR` gives 409 on a second run |
+| [T-238](later.md) | P2 | S | later | defect | done | `--artifacts DIR` gives 409 on a second run |
 | [T-239](later.md) | P2 | S | later | defect | open | `--action-server` on the loopback or a private address is denied |
 | [T-240](later.md) | P3 | S | later | defect | open | `doctor --run --incus` does not try incus |
 | [T-241](later.md) | P3 | S | later | defect | open | The small findings of the second QA report |

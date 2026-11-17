@@ -140,9 +140,15 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
                 format!("--podnet: the hold is {hold:?}; the local mode takes only the seccomp hold (advisory) now"),
             ));
         }
-        let e = podrunner_egress::Egress::host(None, true, podrunner_egress::dns::resolver(false, Vec::new()))
-            .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?
-            .quiet();
+        // The proxy of the environment is the way out of the module (T-233).
+        let up = podrunner_local::fetch::env_proxy("github.com").map_err(|e| fail(Class::Config, e))?;
+        let e = podrunner_egress::Egress::host(
+            up.clone(),
+            up.is_some(),
+            podrunner_egress::dns::resolver(false, Vec::new()),
+        )
+        .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?
+        .quiet();
         egress = Some((std::sync::Arc::new(e), policy(&a.allow)));
     }
     // The runner image comes from the store only: a missing one is named,
