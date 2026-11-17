@@ -13,7 +13,7 @@ const KEEP: usize = 4;
 
 impl PodvmUnit {
     /// Keep the tars in `dir` (a cache of the user), not under the state of
-    /// the driver. The oldest tars beyond [`KEEP`] go.
+    /// the driver. The oldest tars beyond the newest four go.
     pub fn with_image_cache(mut self, dir: &Path) -> PodvmUnit {
         prune(dir, KEEP);
         self.tars = Some(dir.to_path_buf());
