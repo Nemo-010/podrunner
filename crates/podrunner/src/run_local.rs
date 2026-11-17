@@ -179,13 +179,7 @@ pub fn run(args: &[String]) -> Out {
         match context::takes(&a, &facts, &p.workflow) {
             Ok(true) => {}
             Ok(false) => {
-                let events = context::events(&p.workflow.on);
-                let msg = format!(
-                    "{}: `on:` ({events:?}) does not take the event {:?} of {} after its filters; --ref REF gives another ref, and --force-event runs it",
-                    a.file.display(),
-                    a.event,
-                    facts.git_ref
-                );
+                let msg = context::refused_event(&a, &facts.git_ref, &context::events(&p.workflow.on));
                 return fail(Class::Config, msg);
             }
             Err(e) => return fail(Class::Config, format!("{}: {e}", a.file.display())),

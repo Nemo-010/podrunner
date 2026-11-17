@@ -249,6 +249,19 @@ pub(super) fn github(a: &Args, f: &Facts) -> Result<Value, String> {
 
 /// The events that `on:` takes: a name, a list of names, or the keys of a
 /// mapping.
+/// The refusal of a run whose `on:` does not take its event: an event that
+/// `on:` does not name needs `--event`; one that a filter refuses, another
+/// ref or file list (T-339).
+pub(super) fn refused_event(a: &super::Args, git_ref: &str, events: &[String]) -> String {
+    let fix = match events.contains(&a.event) {
+        true => {
+            "a filter refuses it: --ref REF or --changed-since REF gives others, and --force-event runs it".to_string()
+        }
+        false => format!("give --event with one of {events:?}, or --force-event"),
+    };
+    format!("{}: `on:` ({events:?}) does not take the event {:?} of {git_ref}; {fix}", a.file.display(), a.event)
+}
+
 pub(super) fn events(on: &Node) -> Vec<String> {
     match &on.kind {
         Kind::String(e) => vec![e.clone()],

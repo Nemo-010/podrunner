@@ -6632,7 +6632,7 @@ The report of agent 2 of the fifth QA (the commands and outputs are in it).
 
 Fix each one; a finding that the code cannot change goes into the documents.
 
-Fixed (2026-11-17): 14, `--web localhost:PORT`; 18, `version` refuses an option (exit 64); 19, `print-unit` refuses a `--config` that is not there (exit 66); 12, the egress lines (T-328, T-329, T-332).
+Fixed (2026-11-17): 4, a refusal of `on:` names `--event` for an event that `on:` does not name, and `--ref`, `--changed-since` and `--force-event` for one that a filter refuses (`context::refused_event`); 14, `--web localhost:PORT`; 18, `version` refuses an option (exit 64); 19, `print-unit` refuses a `--config` that is not there (exit 66); 12, the egress lines (T-328, T-329, T-332).
 
 ## Prove
 
