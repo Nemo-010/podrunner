@@ -405,7 +405,9 @@ class Lane:
         (src / ".github" / "workflows").mkdir(parents=True)
         (src / ".github" / "workflows" / "pids.yml").write_text(
             "on: push\njobs:\n  pids:\n    runs-on: ubuntu-latest\n    steps:\n"
-            "      - run: if kill -0 \"$HOSTPID\" 2>/dev/null; then echo \"host pid: seen\"; else echo \"host pid: not seen\"; fi\n"
+            "      - run: |\n"
+            # The text of the step holds no answer: the log echoes the step.
+            "          r=seen; kill -0 \"$HOSTPID\" 2>/dev/null || r=\"not $r\"; echo \"host pid: $r\"\n"
         )
         host = subprocess.Popen(["sleep", "600"], start_new_session=True)
         try:
@@ -415,12 +417,13 @@ class Lane:
             host.kill()
             host.wait()
         logs = "".join(j.read_text(errors="replace") for j in (self.out / "logs" / f"pids-{executor}").glob("*/job.log"))
-        if not ok or ("host pid: seen" not in logs and "host pid: not seen" not in logs):
+        said = re.findall(r"host pid: (not seen|seen)\s*$", logs, re.M)
+        if not ok or not said:
             raise GateError(f"the job did not say what it sees ({detail})")
         doctor = (self.out / "logs" / f"pids-{executor}-doctor.out").read_text(errors="replace")
         m = re.search(r"rung: (\S+?):", doctor)
         rung = m.group(1) if m else "unknown"
-        if "host pid: not seen" in logs:
+        if said[-1] == "not seen":
             return f"a step does not see a process of the host (rung {rung})"
         if rung == "namespace":
             raise GateError("a step on the namespace rung sees a process of the host (T-318)")
