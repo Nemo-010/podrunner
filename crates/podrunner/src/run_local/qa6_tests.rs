@@ -255,3 +255,7 @@ fn a_run_refuses_a_missing_toolcache_before_a_unit() {
     assert!(out.stderr.contains("--toolcache") && out.stderr.contains("mkdir -p"), "{}", out.stderr);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// The command line of `run` as a contract (T-245).
+#[path = "contract_tests.rs"]
+mod contract;

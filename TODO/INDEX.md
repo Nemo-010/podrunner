@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**369 entries: 35 open, 25 partial, 10 blocked, 299 done.**
+**369 entries: 34 open, 26 partial, 10 blocked, 299 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 4 | 9 | 1 | 58 | 72 |
-| P2 | 4 | 11 | 7 | 152 | 174 |
+| P2 | 3 | 12 | 7 | 152 | 174 |
 | P3 | 27 | 5 | 2 | 89 | 123 |
-| **All** | 35 | 25 | 10 | 299 | 369 |
+| **All** | 34 | 26 | 10 | 299 | 369 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -292,7 +292,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-242](later.md) | P2 | M | later | defect | partial | Each run copies the runner image several times into a new directory |
 | [T-243](later.md) | P1 | M | later | release | partial | The user-path gate: the files of the release, installed and used as a user |
 | [T-244](later.md) | P1 | M | later | release | partial | The host lanes of the user-path gate |
-| [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |
+| [T-245](later.md) | P2 | S | later | chore | partial | The command line as a contract |
 | [T-246](later.md) | P1 | S | later | release | partial | An adversarial QA before each release |
 | [T-247](later.md) | P2 | S | later | release | done | The notes of a release name the level of the proof of each claim |
 | [T-248](later.md) | P1 | M | later | feature | blocked | The help and the manual of podrunner from the shared crate of PodUtils |
