@@ -3386,7 +3386,7 @@ One line at the start of a run (`podrunner: the egress hold: ...`) and a row `ho
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -3406,6 +3406,11 @@ A run under `podnet pod --egress direct` starts its unit (a measure on a host of
 
 
 State (2026-11-15): podvm `0.2.0-beta.24` (pinned) holds descriptor 17 from its start. The lane `inherited-fds` of `user-gate.yml` runs podvm units with descriptors 3 to 15 open (the class of #176). Next: that lane green, and a run under `podnet pod` on a host of the class of #167.
+
+## Done
+
+2026-11-17: the lane `inherited-fds` of the user-path gate (descriptors 3 to 15 open) is green in user-gate 44051472680 on podvm `0.2.0-beta.30` (proven in CI on GitHub-hosted runners); runs under `podnet pod` start each unit (proven on a constrained host as a user, `qa5`). GitHub #177 closed.
+
 
 # T-228: A listener of the loopback needs `getsockname`, which `podnet pod` refuses
 
@@ -3526,7 +3531,7 @@ By hand: `podrunner run FILE --schedule --runner-dir DIR`, Ctrl-C in the wait, `
 **Milestone:** later
 **Priority:** P1
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -3546,6 +3551,11 @@ A COORD issue to podvm with the probe of four tars; then pin the podvm that fixe
 
 
 State (2026-11-15): podvm `0.2.0-beta.24` (pinned) has the fix. `runner-image.yml` extracts four tars (a link first, the target first, a dangling link, a hard link first) in a podvm unit of the runner image (step "The links of tar in a podvm unit"). Next: that step green.
+
+## Done
+
+2026-11-17: the step "The links of tar in a podvm unit" of `runner-image.yml` is green in run 44057392980 on podvm `0.2.0-beta.30` (proven in CI on GitHub-hosted runners). GitHub #178 closed.
+
 
 # T-233: The egress of a job ignores the proxy of the host
 
@@ -3856,7 +3866,7 @@ State (2026-11-15, the first run): user-gate 43743490768 on `f0fd5f2` (podvm bet
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** blocked
+**Status:** partial
 
 ## Problem
 
@@ -3878,7 +3888,7 @@ The owner, 2026-11-15: the labs are shared crates or scripts, so that each proje
 
 `gh workflow run user-gate.yml`: each lane has its own job, and a lane fails on the code before the fix of its class (for example the proxy lane on the code before T-233).
 
-## Blocker
+History of the blocker:
 
 2026-11-15: podcrates: part 1 of `pod-lab` in the tag after `v0.53.0` (PodUtils/podcrates#180), and podvm's `podvm lab run` (PodUtils/podvm#424); COORD-061 (GitHub #180). The scripts of podrunner can go first.
 
@@ -3891,6 +3901,9 @@ State (2026-11-15, the first scripts): `scripts/lab/` has `small-tmp.sh`, `usern
 State (2026-11-15, the lanes): `user-gate.yml` (T-243) has the lanes `plain` (`nonroot.sh`), `small-tmp` (`small-tmp.sh`, then `nonroot.sh`), `userns-off` (`userns-off.sh`, then `nonroot.sh`) and `inherited-fds` (`nonroot.sh`, then `inherited-fds.sh`; `scripts/user-gate.py` keeps the descriptors open in each command), each a job of its own on `ubuntu-24.04` x86_64 with the checks of T-243. The matrix of the job `lanes` has the place of `bind-denied` and `proxy-only` in a comment; a lane is one matrix row with its lab command. `small-tmp.sh` uses `[:lower:]` and `[:upper:]` for shellcheck, and `scripts/test-install.sh` runs shellcheck on `scripts/lab/`. Not run: the lanes on a hosted runner; aarch64 has no lane yet.
 
 State (2026-11-15, podvm beta.24): podvm `0.2.0-beta.24` has `podvm lab run`, `lab check` and `lab profiles` (PodUtils/podvm#430) and is pinned. The lane `bind-denied` of `user-gate.yml` installs as a user with no root, then runs `podvm lab check bind-denied,getsockname-denied`, `doctor --run` (it must say `FAIL loopback` with a fix) and `podrunner run` (it must fail and name the bind and its fix; an xfail of T-220, which fails the lane when the run passes) in that lab (`scripts/user-gate.py --podvm-lab`). Measured here with podvm beta.24 and a build of this tree: each part of the lab holds, and doctor and the run give those lines. Next: the first run of the gate; `userns-off`, `small-tmp` and `inherited-fds` from `podvm lab run` in place of the scripts; `proxy-only` (podnet).
+
+State (2026-11-17): the part of podvm is done: `podvm lab run` and `lab check` in the lane `bind-denied`, green in user-gate 44051472680; GitHub #180 and #182 closed (PodUtils/podvm#466). The rest is the crate `pod-lab` of podcrates, which T-264 takes with the next tag of podcrates.
+
 
 # T-245: The command line as a contract
 
@@ -4307,6 +4320,8 @@ The rows `click-py313` and `rq-lint` on `podvm` pass in the user-path gate.
 2026-11-16: waits for the release of podvm that binds a volume on the namespace rung (PodUtils/podvm#439; on podvm `main` at `1298b66a`, PodUtils/podvm#442).
 
 State (2026-11-16): podvm `v0.2.0-beta.25` (PodUtils/podvm#439, PodUtils/podvm@T-1920) binds each volume of a foreground run of a user with no root and keeps the run on the namespace rung. podrunner pins it (`images/podvm.toml`, the installer); the rows `click-py313` and `rq-lint` on podvm of the corpus are `ok`. The proof is the next run of `runner-image.yml` and of the user-path gate on that pin.
+
+State (2026-11-17): the rows `click-py313` and `rq-lint` on podvm are still xfail in each lane of user-gate 44051472680 (podvm `0.2.0-beta.30`): a unit with a volume (the socket directory where the hooks give containers, `--export`) leaves the namespace rung until PodUtils/podvm@T-1740; GitHub #189 names it (PodUtils/podvm#466).
 
 
 # T-262: In a podvm unit, Node sometimes reads an invalid package.json

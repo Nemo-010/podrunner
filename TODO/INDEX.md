@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**336 entries: 18 open, 24 partial, 11 blocked, 283 done.**
+**336 entries: 18 open, 22 partial, 10 blocked, 286 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 5 | 10 | 6 | 145 | 166 |
+| P1 | 1 | 9 | 1 | 58 | 69 |
+| P2 | 5 | 8 | 6 | 147 | 166 |
 | P3 | 12 | 5 | 3 | 81 | 101 |
-| **All** | 18 | 24 | 11 | 283 | 336 |
+| **All** | 18 | 22 | 10 | 286 | 336 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -229,7 +229,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-179](live.md) | P1 | M | M-C | defect | partial | On an H0 host the runner times out on the broker under the seccomp hold and the egress module |
 | [T-180](live.md) | P2 | S | M-C | defect | partial | As PID 1 of a container, `serve` reaps no orphan: the zombies stop the supervisor |
 | [T-181](live.md) | P2 | M | M-C | defect | partial | `--podvm-confine` stops name resolution in a podvm unit: the runner cannot reach the broker |
-| [T-182](live.md) | P2 | S | M-C | defect | partial | A podvm unit has the host name of the host: the job log of GitHub shows it |
+| [T-182](live.md) | P2 | S | M-C | defect | done | A podvm unit has the host name of the host: the job log of GitHub shows it |
 | [T-183](live.md) | P2 | S | M-C | defect | partial | The tree-kill self-test of a held podvm unit fails, and its units stay after it |
 | [T-184](live.md) | P2 | S | M-C | defect | done | `status` answers `busy` while the supervisor waits on a call of a source |
 | [T-185](live.md) | P3 | S | M-C | defect | done | `check`, `doctor` and `status` give a capacity that `serve` does not have |
@@ -274,12 +274,12 @@ acceptance, later The crate dependencies later than v1.
 | [T-224](later.md) | P2 | M | later | feature | done | A run that hangs prints nothing until it ends |
 | [T-225](later.md) | P2 | S | later | defect | done | A unit that has no room says `PODVM_STORE`, which podrunner sets itself |
 | [T-226](later.md) | P2 | S | later | defect | done | A run does not say what egress hold its units have |
-| [T-227](later.md) | P2 | S | later | defect | partial | `podvm run -d` refuses a passed descriptor when podrunner runs under `podnet pod` |
+| [T-227](later.md) | P2 | S | later | defect | done | `podvm run -d` refuses a passed descriptor when podrunner runs under `podnet pod` |
 | [T-228](later.md) | P2 | S | later | defect | done | A listener of the loopback needs `getsockname`, which `podnet pod` refuses |
 | [T-229](later.md) | P2 | M | later | feature | open | The run should pick its transport, its stores and its hold, and say so |
 | [T-230](later.md) | P1 | S | later | defect | done | With no `--platform`, a job of Windows, macOS or another architecture runs on the host |
 | [T-231](later.md) | P3 | S | later | defect | done | Ctrl-C in the wait of `--schedule` exits 0 |
-| [T-232](later.md) | P1 | S | later | defect | partial | A tar with a link before its target fails in a podvm unit |
+| [T-232](later.md) | P1 | S | later | defect | done | A tar with a link before its target fails in a podvm unit |
 | [T-233](later.md) | P2 | S | later | defect | done | The egress of a job ignores the proxy of the host |
 | [T-234](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` drops the proxy of the host |
 | [T-235](later.md) | P3 | S | later | defect | open | Each log line of a job comes two times, with a BOM |
@@ -291,7 +291,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-241](later.md) | P3 | S | later | defect | open | The small findings of the second QA report |
 | [T-242](later.md) | P2 | M | later | defect | partial | Each run copies the runner image several times into a new directory |
 | [T-243](later.md) | P1 | M | later | release | partial | The user-path gate: the files of the release, installed and used as a user |
-| [T-244](later.md) | P1 | M | later | release | blocked | The host lanes of the user-path gate |
+| [T-244](later.md) | P1 | M | later | release | partial | The host lanes of the user-path gate |
 | [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |
 | [T-246](later.md) | P1 | S | later | release | partial | An adversarial QA before each release |
 | [T-247](later.md) | P2 | S | later | release | done | The notes of a release name the level of the proof of each claim |

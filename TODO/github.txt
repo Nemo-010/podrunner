@@ -118,7 +118,7 @@
 112 issue closed
 113 issue closed
 114 issue closed
-115 issue open
+115 issue closed
 116 issue closed
 117 issue closed
 118 issue closed
@@ -180,12 +180,12 @@
 174 issue open
 175 issue open
 176 issue open
-177 issue open
-178 issue open
+177 issue closed
+178 issue closed
 179 issue closed
-180 issue open
+180 issue closed
 181 issue open
-182 issue open
+182 issue closed
 183 issue open
 184 issue open
 185 issue closed

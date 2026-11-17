@@ -1107,7 +1107,7 @@ State (2026-11-15, podvm beta.22): podvm `0.2.0-beta.22` (pinned) resolves names
 **Milestone:** M-C
 **Priority:** P2
 **Effort:** S
-**Status:** partial
+**Status:** done
 
 ## Problem
 
@@ -1126,6 +1126,11 @@ Give the runner a machine name of the unit: set `--hostname` of `podvm run` wher
 A test of the podvm driver: the argv or the environment of the unit names the unit, not the host. The log of a canned job in `runner-image.yml` holds no host name of the runner VM.
 
 State (2026-11-15): podvm `0.2.0-beta.22` is out with `--hostname` and is pinned (`images/podvm.toml`). Each podvm unit starts with `--hostname podrunner-UNIT`; a refusal that names the host name starts it again with no name, and says so on stderr (`labels::no_hostname`, `the_start_with_no_name_drops_the_name_only`). `the_runner_in_a_podvm_unit_runs_a_canned_job` checks `Machine name: 'podrunner-u-1'` in the job log. Next: that test in `runner-image.yml`.
+
+## Done
+
+2026-11-17: each podvm unit starts with `--hostname podrunner-UNIT` (podvm `0.2.0-beta.22` or later); `the_runner_in_a_podvm_unit_runs_a_canned_job` checks `Machine name: 'podrunner-u-1'`, green in runner-image 44057392980 on podvm `0.2.0-beta.30` (proven in CI on GitHub-hosted runners); the fifth QA saw the name on a constrained host as a user. GitHub #115 closed.
+
 
 # T-183: The tree-kill self-test of a held podvm unit fails, and its units stay after it
 
