@@ -118,7 +118,17 @@ pub(super) fn pin(
             Mode::Offline => None,
             _ => {
                 let host = podrunner_local::fetch::host_of(&base).ok_or_else(|| format!("{base}: no host"))?;
-                Some(podrunner_local::fetch::Fetch::open(&host)?)
+                match a.action_server.is_some() && on_local_network(&host) {
+                    // The egress module refuses the loopback and a private
+                    // network; the user named this forge (T-239).
+                    true => {
+                        eprintln!(
+                            "podrunner: --action-server {host} is on the loopback or a private network: git reaches it directly, with no egress grant"
+                        );
+                        None
+                    }
+                    false => Some(podrunner_local::fetch::Fetch::open(&host)?),
+                }
             }
         };
         let mut git = Git::new(base, std::env::temp_dir());
@@ -254,6 +264,31 @@ fn run_jobs(w: &pod_actions_workflow::Workflow, selected: &[String]) -> (pod_act
         }
     }
     (out, more)
+}
+
+/// `localhost`, or an address of the loopback, of a private network or a
+/// link-local one (a name that resolves to one is not looked up).
+fn on_local_network(host: &str) -> bool {
+    let host = host.trim_start_matches('[').trim_end_matches(']');
+    match host.parse::<std::net::IpAddr>() {
+        Ok(std::net::IpAddr::V4(ip)) => ip.is_loopback() || ip.is_private() || ip.is_link_local(),
+        Ok(std::net::IpAddr::V6(ip)) => ip.is_loopback() || (ip.segments()[0] & 0xfe00) == 0xfc00,
+        Err(_) => host.eq_ignore_ascii_case("localhost"),
+    }
+}
+
+#[cfg(test)]
+mod local_network_tests {
+    /// T-239: a forge on the loopback or a private network.
+    #[test]
+    fn a_forge_on_a_local_network() {
+        for h in ["127.0.0.1", "localhost", "10.1.2.3", "192.168.0.5", "[::1]", "fd00::5"] {
+            assert!(super::on_local_network(h), "{h}");
+        }
+        for h in ["github.com", "8.8.8.8", "gitea.example"] {
+            assert!(!super::on_local_network(h), "{h}");
+        }
+    }
 }
 
 #[cfg(test)]

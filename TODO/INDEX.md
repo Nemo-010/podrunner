@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**336 entries: 21 open, 22 partial, 12 blocked, 281 done.**
+**336 entries: 20 open, 22 partial, 12 blocked, 282 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 8 | 8 | 7 | 143 | 166 |
+| P2 | 7 | 8 | 7 | 144 | 166 |
 | P3 | 12 | 5 | 3 | 81 | 101 |
-| **All** | 21 | 22 | 12 | 281 | 336 |
+| **All** | 20 | 22 | 12 | 282 | 336 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -286,7 +286,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-236](later.md) | P3 | S | later | defect | open | The events of `--json` share stderr with the console of the runner |
 | [T-237](later.md) | P2 | S | later | defect | done | A Dockerfile action on `--podvm` fails at its step, not before the job |
 | [T-238](later.md) | P2 | S | later | defect | done | `--artifacts DIR` gives 409 on a second run |
-| [T-239](later.md) | P2 | S | later | defect | open | `--action-server` on the loopback or a private address is denied |
+| [T-239](later.md) | P2 | S | later | defect | done | `--action-server` on the loopback or a private address is denied |
 | [T-240](later.md) | P3 | S | later | defect | open | `doctor --run --incus` does not try incus |
 | [T-241](later.md) | P3 | S | later | defect | open | The small findings of the second QA report |
 | [T-242](later.md) | P2 | M | later | defect | open | Each run copies the runner image several times into a new directory |

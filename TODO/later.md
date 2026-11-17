@@ -3715,7 +3715,7 @@ A test: two runs into one `--artifacts DIR` both pass, with two directories.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -3732,6 +3732,10 @@ Grant the one address of `--action-server` (the same one-target grant that T-187
 ## Prove
 
 A test with a local git server on the loopback named by `--action-server`.
+
+## Done
+
+2026-11-17: when `--action-server` names the loopback, `localhost` or a private or link-local address, the fetch takes no egress grant: git reaches the forge directly, and a line says so (`actions.rs`, `on_local_network`); each other forge keeps the grant of its one host. Proven on a constrained host as a user (`qa5`, podvm): a composite action served by `git http-backend` on `127.0.0.1` ran (`from-the-local-forge`, `ok a`) and the lock pins it. A name that resolves to a private address is not looked up.
 
 # T-240: `doctor --run --incus` does not try incus
 
