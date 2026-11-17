@@ -22,6 +22,7 @@ pub mod lock;
 pub mod message;
 pub mod mirror;
 pub mod oidc;
+mod open;
 pub mod rerun;
 pub mod secrets;
 mod source;

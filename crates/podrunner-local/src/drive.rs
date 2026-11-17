@@ -101,11 +101,27 @@ pub(crate) fn cancel_the_rest(source: &mut LocalSource, skips: usize, out: &mut 
         let job = JobId::new(&format!("{id}.0")).unwrap_or_else(|_| JobId::new("job.0").expect("a job id"));
         cancelled.push((job, name));
     }
+    // Each open cell by its name with its matrix; a job that `--job` keeps
+    // out is not selected, not cancelled (T-339 item 2).
+    let mut out_of_run = Vec::new();
     for j in &source.workflow().jobs {
-        if source.result(&j.id).is_none() {
-            let job = JobId::new(&format!("{}.0", j.id)).unwrap_or_else(|_| JobId::new("job.0").expect("a job id"));
-            cancelled.push((job, j.name.clone().unwrap_or_else(|| j.id.clone())));
+        if source.result(&j.id).is_some() {
+            continue;
         }
+        let name = j.name.clone().unwrap_or_else(|| j.id.clone());
+        let job = JobId::new(&format!("{}.0", j.id)).unwrap_or_else(|_| JobId::new("job.0").expect("a job id"));
+        if source.left_out(&j.id) {
+            out_of_run.push((job, name));
+            continue;
+        }
+        let open = source.open_cells(&j.id);
+        match open.is_empty() {
+            true => cancelled.push((job, name)),
+            false => cancelled.extend(open),
+        }
+    }
+    for (job, name) in out_of_run {
+        out(&Line::NotSelected { job, name, reason: "not selected (--job)".into() });
     }
     // Each one is an end of the run: `state.json` keeps it (T-286).
     for (job, name) in cancelled {

@@ -176,3 +176,32 @@ fn a_job_runs_with_its_needs_and_a_matrix_filter_keeps_its_cells() {
     let mut bad = LocalSource::new("l", text, Base::default(), "x86_64", Box::new(|_, _| unreachable!())).unwrap();
     assert!(bad.set_filter(&["nope".into()], &[]).unwrap_err().contains("no such job"));
 }
+
+/// T-339 item 2: at a signal, each open cell is cancelled by its name with
+/// its matrix, and a job that `--job` keeps out is not selected.
+#[test]
+fn a_signal_names_each_open_cell_and_keeps_a_left_out_job_out() {
+    let text = "on: push\njobs:\n  a:\n    runs-on: x\n    strategy: {max-parallel: 1, matrix: {v: [1, 2]}}\n    \
+                steps: [{run: a}]\n  other:\n    runs-on: x\n    steps: [{run: o}]\n";
+    let mut s = LocalSource::new("l", text, Base::default(), "x86_64", Box::new(|_, _| unreachable!())).unwrap();
+    s.set_filter(&["a".to_string()], &[]).unwrap();
+    let stop = AtomicBool::new(false);
+    let mut exec = Stopped { stop: &stop, ran: vec![] };
+    let mut lines = Vec::new();
+    assert!(!drive_with(&mut s, &mut exec, &mut |l| lines.push(l.clone()), &stop).unwrap());
+    let cancelled: Vec<String> = lines
+        .iter()
+        .filter_map(|l| match l {
+            Line::Ran { name, result: JobResult::Cancelled, .. } => Some(name.clone()),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        !cancelled.is_empty() && cancelled.iter().all(|n| n.starts_with("a (")),
+        "a matrix label on each cell: {lines:?}"
+    );
+    assert!(
+        lines.iter().any(|l| matches!(l, Line::NotSelected { name, .. } if name == "other")),
+        "the job that --job keeps out: {lines:?}"
+    );
+}
