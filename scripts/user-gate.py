@@ -522,6 +522,19 @@ class Lane:
             raise GateError(f"the run in the lab failed (exit {rc}) with no bind and no fix named")
         return "xfail", "T-220: the run fails and names the bind and its fix"
 
+    def run_on_the_vnet(self, profiles: str):
+        """T-220: with --vnet, a run on a host that refuses the bind keeps
+        its broker on a unix socket, and the runner of the unit reaches it
+        through the vnet shim of podnet. A measure: a failure is an xfail
+        with its cause until a run passes in this lab."""
+        podnet = self.data / "bin" / "podnet"
+        rc, out = self.in_lab(profiles, ["podrunner", "run", self.data / "hello.yml", "--vnet", podnet], "lab-vnet")
+        if rc == 0:
+            return "a run with --vnet passes in the lab"
+        self.show("lab-vnet")
+        tail = " / ".join(line for line in out.splitlines()[-3:] if line.strip())[:300]
+        return "xfail", f"T-220: the run with --vnet failed (exit {rc}): {tail}"
+
     def wants(self, r: dict) -> bool:
         return r["executor"] in self.executors and (r["lanes"] == "*" or self.name in r["lanes"].split(","))
 
@@ -584,6 +597,7 @@ def lane(a) -> int:
                     if g.check("lab:check", functools.partial(g.lab_check, a.podvm_lab)):
                         g.check("lab:doctor", functools.partial(g.doctor_names_the_bind, a.podvm_lab))
                         g.check("lab:run", functools.partial(g.run_names_the_bind, a.podvm_lab))
+                        g.check("lab:vnet", functools.partial(g.run_on_the_vnet, a.podvm_lab))
                 for e in g.executors:
                     g.check(f"hello:{e}", functools.partial(g.hello, e))
                 if "podvm" in g.executors:

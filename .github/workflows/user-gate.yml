@@ -198,7 +198,7 @@ jobs:
             executors: podvm,runner-dir
           # podvm 0.2.0-beta.24 makes the class around podrunner only (the
           # local server of the lane binds): the install, then doctor and a
-          # run in `podvm lab run` (T-213, T-220 open).
+          # run in `podvm lab run` (T-213), and a run with --vnet (T-220, a measure).
           - lane: bind-denied
             lab: sh scripts/lab/nonroot.sh --
             executors: ""
