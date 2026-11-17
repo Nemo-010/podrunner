@@ -183,7 +183,13 @@ pub(super) fn failed_end<J: std::fmt::Display>(logs: &[(J, String)], quiet: bool
                 out.push_str(&format!("--- log of {job}\n{log}\n"));
             }
         }
-        (false, _) if dry => {}
+        // The JSON line of each job has its result; no text line (T-339).
+        (false, _) if dry || json => {}
+        // No log: each failed job ended before it ran, with its reason on
+        // its line.
+        (false, false) if logs.iter().all(|(_, l)| l.trim().is_empty()) => {
+            out.push_str("podrunner: a job failed before it ran; its line above names why\n")
+        }
         (false, _) => out.push_str("podrunner: a job failed; its log is above (and in --log-dir DIR)\n"),
     }
     out
