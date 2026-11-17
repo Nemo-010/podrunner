@@ -48,9 +48,9 @@ fn the_flags_of_an_actrc_that_podrunner_takes() {
     // A secret reads the environment of the host: not for an untrusted project.
     assert_eq!(got, s(&["--var", "A=1", "--env", "B=2"]));
     assert_eq!(notes.len(), 4, "{notes:?}");
-    assert!(notes[0].contains("-P is not a flag"), "{notes:?}");
+    assert!(notes[0].contains("-P of act is not used") && notes[0].contains("--platform LABEL="), "{notes:?}");
     assert!(notes[1].contains("--secret reaches the host") && notes[2].contains("NAME=VALUE"), "{notes:?}");
-    assert!(notes[3].contains("--secret-file reaches the host"), "{notes:?}");
+    assert!(notes[3].contains("--secret-file reaches the host") && notes[3].contains("`trusted`"), "{notes:?}");
     let got = actrc("-s TOKEN\n", ".actrc", Some(std::path::Path::new("/p")), true, &mut Vec::new()).unwrap();
     assert_eq!(got, s(&["--secret", "TOKEN"]), "a trusted project");
     let got = actrc("--secret-file .secrets\n", "~/.actrc", None, true, &mut Vec::new()).unwrap();

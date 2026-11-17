@@ -228,7 +228,9 @@ fn actrc(
                 notes.push(format!("{name}: -s NAME=VALUE: podrunner takes no value of a secret from a file of flags"));
             }
             (true, Some(_)) if project.is_some() && host && !trusted => {
-                notes.push(format!("{name}: --{key} reaches the host; it is not used for an untrusted project"));
+                notes.push(format!(
+                    "{name}: --{key} reaches the host; it is not used for an untrusted project: name the project in `trusted` of the file of the user"
+                ));
             }
             // A file of an untrusted project stays in the project, as in
             // run.toml (T-292).
@@ -240,6 +242,11 @@ fn actrc(
                 None => out.extend([format!("--{key}"), v]),
             },
             (true, Some(v)) => out.extend([format!("--{key}"), v]),
+            // The platforms of act are `--platform LABEL=TARGET` of podrunner
+            // (T-339 item 9).
+            _ if matches!(w.as_str(), "-P" | "--platform") => notes.push(format!(
+                "{name}: {w} of act is not used; podrunner maps a label with --platform LABEL=NAME@sha256:HEX|host"
+            )),
             _ => notes.push(format!("{name}: {w} is not a flag of podrunner run; it is not used")),
         }
     }

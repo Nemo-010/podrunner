@@ -252,6 +252,12 @@ pub(crate) fn finish(
             let line = Line::Ran { job: job.clone(), name, result: end.result };
             (end, line)
         }
+        // A signal in the start of a unit ends its job as cancelled, not as
+        // a failure of the start (T-339 item 3).
+        Err(_) if crate::cancel::requested() => {
+            let line = Line::Ran { job: job.clone(), name, result: JobResult::Cancelled };
+            (End { result: JobResult::Cancelled, outputs: vec![] }, line)
+        }
         Err(reason) => {
             (End { result: JobResult::Failure, outputs: vec![] }, Line::Refused { job: job.clone(), name, reason })
         }
