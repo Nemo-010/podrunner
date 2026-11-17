@@ -77,3 +77,24 @@ fn a_payload_past_the_pids_limit_gets_an_error() {
     let exit = run(4, FORKS, held);
     assert!(matches!(exit, Some(Exit::Code(c)) if c != 0 && c != 12), "1000 forks must fail under pids 256: {exit:?}");
 }
+
+/// The quota of the cgroup of the payload: exit 0 when `cpu.max` is the
+/// quota of one CPU; 13 when it can not be read.
+const CPU_MAX: &str = "p=$(sed -n 's/^0:://p' /proc/self/cgroup); cat /proc/self/cgroup; \
+    q=$(cat /sys/fs/cgroup$p/cpu.max 2>/dev/null) || exit 13; echo \"cpu.max $q\"; \
+    case $q in '100000 100000') exit 0 ;; *) exit 14 ;; esac";
+
+/// T-221: where the host delegates a cgroup v2 subtree with the `cpu`
+/// controller to the user, a unit holds `cpus` of its limits. Run it in such
+/// a subtree (`systemd-run --uid=USER -p Delegate=yes`).
+#[test]
+#[ignore]
+fn a_cpu_limit_holds_in_a_delegated_cgroup() {
+    // Only the measure of `runner-image.yml` runs in a delegated cgroup.
+    if std::env::var_os("PODRUNNER_CPU_DELEGATED").is_none() {
+        println!("skip: PODRUNNER_CPU_DELEGATED is not set");
+        return;
+    }
+    let held = Limits { cpus: Some(1), ..Limits::default() };
+    assert_eq!(run(5, CPU_MAX, held), Some(Exit::Code(0)), "cpu.max of the unit must be one CPU");
+}

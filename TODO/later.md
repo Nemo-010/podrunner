@@ -3238,7 +3238,7 @@ State (2026-11-17): the state block names the tag `v0.4.0-beta.14` for PodUtils/
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** blocked
+**Status:** partial
 
 ## Problem
 
@@ -3256,9 +3256,11 @@ When podvm releases it: give `--cpus` to `podvm run -d` where the host delegates
 
 A unit test of the arguments, and a measure in `runner-image.yml`: a payload that spins on two CPUs under `cpus = 1` uses one.
 
-## Blocker
+History of the blocker:
 
-2026-11-15: PodUtils/podvm@T-1747 (COORD-050, GitHub #110).
+2026-11-15: PodUtils/podvm@T-1747 (COORD-050, GitHub #110). 2026-11-17: podvm `0.2.0-beta.23` holds `--memory`, `--cpus` and `--pids-limit` in a delegated cgroup v2 subtree (PodUtils/podvm@T-1747).
+
+State (2026-11-17): the podvm kind takes `[unit.podvm] cpus` and the `cpu` of an offer where this process is in a cgroup v2 directory of its user with the `cpu` controller and podvm is `0.2.0-beta.23` or later (`unit/limits.rs`, `cpu_held`); a unit gets `--cpus N`; elsewhere `cpus` is refused with the reason and an offer's `cpu` is not held. `a_cpu_limit_needs_a_delegated_cgroup` holds the detection; `tests/limits.rs` has `a_cpu_limit_holds_in_a_delegated_cgroup`, which the measure of `runner-image.yml` runs in a transient service of systemd with `Delegate=yes`. Next: that measure.
 
 # T-223: `doctor --run` says ok for a store that does not hold `--image`
 

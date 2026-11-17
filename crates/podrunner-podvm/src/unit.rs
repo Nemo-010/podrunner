@@ -89,7 +89,7 @@ impl PodvmUnit {
         let mut capability = podvm.probe()?;
         // rlimits of the payload: the kind applies the memory and the
         // processes that an offer or its configuration names (T-198).
-        for name in ["memory", "pids"] {
+        for name in limits::held_names(&podvm) {
             capability.limits.insert(name.into(), podrunner_schema::LimitMode::Enforced);
         }
         let platform = if capability.arch == "aarch64" { "linux/arm64" } else { "linux/amd64" }.to_string();
@@ -266,7 +266,7 @@ impl UnitDriver for PodvmUnit {
         env.insert(TAG_VAR.into(), tag.clone());
         limits::runner_env(&mut env);
         // The lesser of the kind and the offer (T-198); podvm holds no CPU limit.
-        let held = podrunner_unit::limits::Limits { cpus: None, ..self.limits.lesser(&spec.limits) };
+        let held = limits::held(&self.podvm, &self.limits, &spec.limits);
         args.extend(limits::ulimit_args(&held, &mut env));
         for (k, v) in &env {
             args.push("-e".into());
