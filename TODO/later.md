@@ -6127,3 +6127,203 @@ Fixed: F23, part 1 (a flag of an environment that no job names gets a line). F7 
 ## Prove
 
 `cargo test -p podrunner -p podrunner-local`
+
+# T-324: The base runner image has no make, libatomic1 or python3
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+On the default (base) image, cobra's tests fail with `make: command not found`, Node 26 of `setup-node` fails at `libatomic.so.1`, and Python tooling has no `python3`. `sudo` does not work in a podvm unit, so a job cannot add them. The larger image (`--full`) passes both.
+
+## Premise
+
+The report of agent 1 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+Add `make`, `libatomic1` and `python3` to the base image (`images/runner/Dockerfile`), and list them in `docs/local-mode.md`, "The runner images".
+
+## Prove
+
+A runner-image run; the corpus row of a project that needs `make`.
+
+# T-325: A podvm unit needs more scratch disk than doctor says; --jobs 2 fills the disk
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+The peak size of a unit in `TMPDIR` is about 2.4 GiB on the base image and 3.9 GiB on the full one; `doctor --run` says a run needs about 2 GiB and says `ok` with 7 GiB free for `--jobs 2` on the full image, which then fails with `No space left on device`. The unpack of the image takes 27 to 67 s with no line. The error carries an internal reference of the record of podvm.
+
+## Premise
+
+The report of agent 1 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+`doctor --run` gives the need of the image of the run (its size in the store, unpacked) times `--jobs`, and fails below it with the fix. A line names the unpack of the image. The documents say how much disk a unit needs.
+
+## Prove
+
+`cargo test -p podrunner`; `doctor --run` on a small tmpfs as a user.
+
+# T-326: A uv build in a podvm unit on the base image fails at utime of its cache
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+pallets/markupsafe tests (3.13, uv) on the base image: with no gcc the C extension falls back, then `Cannot update time stamp of directory '/root/.cache/uv/builds-v0/.../MarkupSafe.egg-info'`. The job passes on `--full` and on `--runner-dir`.
+
+## Premise
+
+The report of agent 1 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+Find the call that fails (strace in a unit). A path of a raw system call that podvm does not map (the T-261 family) goes to podvm by COORD; the notes list the case with its work-around.
+
+## Prove
+
+`podrunner run .github/workflows/tests.yaml --job tests --matrix python=3.13` of pallets/markupsafe on the base image as a user.
+
+# T-327: A run pulls the images of services: before it refuses the job
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+On podvm with no container hooks, and on `--microvm` with no `/dev/kvm`, a real run first pulls `postgres:14` and `mysql:5.7` (290 MiB), then a 429 of the registry ends the run. The dry run already knows that the job cannot run there.
+
+## Premise
+
+The report of agent 1 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+Refuse each job that the host cannot run (no hooks; no KVM) before the pull of its images, and check `/dev/kvm` before any pull. A failed pull fails only the jobs that need that image.
+
+## Prove
+
+`cargo test -p podrunner`; the run as a user with `services:` and no KVM.
+
+# T-328: Under the egress hold, a refused host is not named with its fix
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+With `allow = ["github.com"]`, a job fails at `ECONNREFUSED`; the refusal `nodejs.org:443 failed at proxy (policy)` is one of eleven egress lines, and the run ends with `a job failed` only.
+
+## Premise
+
+The report of agent 1 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+At the end of the run, name each host that the hold refused for a failed job, with the fix (`--allow HOST`, or `allow` in run.toml).
+
+## Prove
+
+`cargo test -p podrunner`; the run as a user under `--podnet`.
+
+# T-329: Each unit under --podnet logs connects that the job did not make
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+Before the first step of `hello.yml` under `--podnet`: `null:null failed at proxy (usage)`, and two refusals each of `help.ubuntu.com`, `archive.ubuntu.com` and `security.ubuntu.com`. A user reads them as a unit that calls home.
+
+## Premise
+
+The report of agent 1 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+Find the process that makes the connects (the image, the runner or podnet). Stop it, or keep the line out of the output of a run.
+
+## Prove
+
+The hello run under `--podnet` as a user: no egress line.
+
+# T-330: The refusals of services: send the user in a circle
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+On `--runner-dir` a job with `services:` is first refused for a tag (`not pinned by digest`); with a digest, it needs a unit; on `--podvm` with no hooks, `--microvm --engine`, which the host cannot run. The refusal names `doctor --config`, the file of `serve`.
+
+## Premise
+
+The report of agent 1 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+One refusal that says what the host needs for `services:` and names `podrunner doctor --run`; the kind of the job comes before the pin of its image.
+
+## Prove
+
+`cargo test -p podrunner`.
+
+# T-331: The P3 findings of the fifth QA, agent 1
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+F8 a `failed at connect (unavailable)` line where the fallback to the proxy works. F9 a missing `ci.yml` of the quick start gives `No such file or directory`, not the list of workflows; a folded `name: >` gives a blank line after `planned`; `--event nope` prints the usage; `--validate` points at the job, not at `needs:`; the runner console on `--runner-dir` prints `Connected to GitHub`. F10 `~/podrunner-work` stays after a run; a socket of podnet stayed after a `kill -9`.
+
+## Premise
+
+The report of agent 1 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+Fix each one; a finding that the code cannot change goes into the documents.
+
+## Prove
+
+`cargo test -p podrunner -p podrunner-local`

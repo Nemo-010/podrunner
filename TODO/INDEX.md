@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**320 entries: 23 open, 21 partial, 13 blocked, 263 done.**
+**328 entries: 31 open, 21 partial, 13 blocked, 263 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 12 | 8 | 7 | 126 | 153 |
-| P3 | 10 | 4 | 4 | 80 | 98 |
-| **All** | 23 | 21 | 13 | 263 | 320 |
+| P2 | 19 | 8 | 7 | 126 | 160 |
+| P3 | 11 | 4 | 4 | 80 | 99 |
+| **All** | 31 | 21 | 13 | 263 | 328 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -368,3 +368,11 @@ acceptance, later The crate dependencies later than v1.
 | [T-321](later.md) | P2 | S | later | defect | done | doctor --run does not check the paths of many flags |
 | [T-322](later.md) | P2 | S | later | defect | done | An unwritable --log-dir is found after the run, with exit 0 |
 | [T-323](later.md) | P3 | M | later | defect | open | The P3 findings of the fourth QA, agent B |
+| [T-324](later.md) | P2 | M | later | defect | open | The base runner image has no make, libatomic1 or python3 |
+| [T-325](later.md) | P2 | M | later | defect | open | A podvm unit needs more scratch disk than doctor says; --jobs 2 fills the disk |
+| [T-326](later.md) | P2 | S | later | defect | open | A uv build in a podvm unit on the base image fails at utime of its cache |
+| [T-327](later.md) | P2 | M | later | defect | open | A run pulls the images of services: before it refuses the job |
+| [T-328](later.md) | P2 | S | later | defect | open | Under the egress hold, a refused host is not named with its fix |
+| [T-329](later.md) | P2 | S | later | defect | open | Each unit under --podnet logs connects that the job did not make |
+| [T-330](later.md) | P2 | S | later | defect | open | The refusals of services: send the user in a circle |
+| [T-331](later.md) | P3 | M | later | defect | open | The P3 findings of the fifth QA, agent 1 |
