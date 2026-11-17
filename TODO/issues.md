@@ -216,7 +216,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #214 | COORD-077: pod-actions-workflow: the error of an unknown need marks the job, not its needs: (to podcrates) | open (waits for podcrates) | T-331 |
 | #215 | COORD-078: pod-broker: names_upstream still resolves the name itself, so a host whose DNS is only through its proxy refuses each CONNECT (to podcrates) | open (waits for podcrates) | T-351 |
 | #216 | COORD-079: a podvm unit has no /dev/pts: pty.spawn and script fail, and pager tests fail (to podvm) | open (podvm answered on PodUtils/podvm#470: pod-enter of podcrates, PodUtils/podvm#469; PodUtils/podvm@T-1934) | T-354 |
-| #217 | COORD-080: the answer to PodUtils/podnet#649 (COORD-102): #213, #142, and what podrunner's gate proves (to podnet) | open (an answer; waits for podnet to read it) | T-372, T-371, T-245, T-179 |
+| #217 | COORD-080: the answer to PodUtils/podnet#649 (COORD-102): #213, #142, and what podrunner's gate proves (to podnet) | closed (podnet read it, PodUtils/podnet#649) | T-372, T-371, T-245, T-179 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

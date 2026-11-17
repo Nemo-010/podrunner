@@ -3938,7 +3938,7 @@ A table of each pair of the flags of `run`, with the answer that each pair must 
 
 `cargo test -p podrunner --lib the_flags_of_run_as_a_contract`.
 
-Also (2026-11-17, PodUtils/podnet#649, COORD-102 of podnet: its testers found 40 defects in one hour where no check looked): each flag that `USAGE`, `run --help` and `docs/cli.md` name is a flag of the parser, and the reverse; each example of `docs/cli.md` and `docs/local-mode.md` parses; each `--json` output of a command has one schema (`schemas/`). The user QA of beta.7 found the same class (#203 to #212, F9, F10).
+Also (2026-11-17, PodUtils/podnet#649, COORD-102 of podnet: its testers found 40 defects in one hour where no check looked): each flag that `USAGE`, `run --help` and `docs/cli.md` name is a flag of the parser, and the reverse; each example of `docs/cli.md` and `docs/local-mode.md` parses; each `--json` output of a command has one schema (`schemas/`). The user QA of beta.7 found the same class (#203 to #212, F9, F10). The model: PodUtils/podssh `tests/man_flag_parity.rs` and `src/man/examples.rs` (named on PodUtils/podnet#649).
 
 # T-246: An adversarial QA before each release
 
