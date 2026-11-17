@@ -118,12 +118,21 @@ pub(super) fn line_json(l: &Line, dry: bool) -> String {
 }
 
 /// Write `DIR/JOB/step-ID.log` for each step log, `DIR/JOB/job.log` for the
-/// rest, and `DIR/JOB/summary.md` of the summaries of the job.
+/// rest, and `DIR/JOB/summary.md` of the summaries of the job. A job that
+/// sent no log (it failed before it ran) gets its log of the run as
+/// `job.log`, with the cause (T-349).
 pub(super) fn write_dir(
     dir: &Path,
     blobs: &[(JobId, Vec<(String, String)>)],
+    logs: &[(JobId, String)],
     secrets: &[String],
 ) -> Result<(), String> {
+    for (job, log) in logs.iter().filter(|(j, l)| !l.trim().is_empty() && !blobs.iter().any(|(b, _)| b == j)) {
+        let d = dir.join(job.as_str());
+        std::fs::create_dir_all(&d).map_err(|e| format!("{}: {e}", d.display()))?;
+        let f = d.join("job.log");
+        std::fs::write(&f, mask(log, secrets)).map_err(|e| format!("{}: {e}", f.display()))?;
+    }
     for (job, list) in blobs {
         let d = dir.join(job.as_str());
         std::fs::create_dir_all(&d).map_err(|e| format!("{}: {e}", d.display()))?;
@@ -168,7 +177,13 @@ pub(super) fn emit(out: &mut String, text: &str) {
 
 /// The end of stderr of a failed run. The live lines gave each log once;
 /// with `-q`, the logs come here (T-289), as JSON with `--json` (T-296).
-pub(super) fn failed_end<J: std::fmt::Display>(logs: &[(J, String)], quiet: bool, json: bool, dry: bool) -> String {
+pub(super) fn failed_end<J: std::fmt::Display>(
+    logs: &[(J, String)],
+    quiet: bool,
+    json: bool,
+    dry: bool,
+    log_dir: Option<&Path>,
+) -> String {
     let mut out = String::new();
     match (quiet, json) {
         (true, true) => {
@@ -190,7 +205,11 @@ pub(super) fn failed_end<J: std::fmt::Display>(logs: &[(J, String)], quiet: bool
         (false, false) if logs.iter().all(|(_, l)| l.trim().is_empty()) => {
             out.push_str("podrunner: a job failed before it ran; its line above names why\n")
         }
-        (false, _) => out.push_str("podrunner: a job failed; its log is above (and in --log-dir DIR)\n"),
+        // The directory of the logs only when the run wrote one (T-349).
+        (false, _) => match log_dir {
+            Some(d) => out.push_str(&format!("podrunner: a job failed; its log is above and in {}\n", d.display())),
+            None => out.push_str("podrunner: a job failed; its log is above\n"),
+        },
     }
     out
 }

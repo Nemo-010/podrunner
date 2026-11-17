@@ -413,7 +413,7 @@ fn the_log_dir_has_each_step_and_the_summary_with_no_secret() {
             ("step-../x".to_string(), "not a path\n".to_string()),
         ],
     )];
-    logs::write_dir(&dir, &blobs, &["made-up-key".into()]).unwrap();
+    logs::write_dir(&dir, &blobs, &[], &["made-up-key".into()]).unwrap();
     let read = |f: &str| std::fs::read_to_string(dir.join("build.0").join(f)).unwrap();
     assert_eq!(read("step-1.log"), "a line with ***\n");
     assert_eq!(read("summary.md"), "# sum\n");

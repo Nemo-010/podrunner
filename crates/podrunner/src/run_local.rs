@@ -440,7 +440,7 @@ pub fn run(args: &[String]) -> Out {
     stderr.extend(group_notes.iter().map(String::as_str));
     let log_dir = a.log_dir.clone().or_else(|| state_dir.as_ref().map(|d| d.join("logs")));
     if let Some(dir) = &log_dir
-        && let Err(e) = logs::write_dir(dir, &blobs, &masked)
+        && let Err(e) = logs::write_dir(dir, &blobs, &logs, &masked)
     {
         stderr.push_str(&format!("podrunner: --log-dir: {e}\n"));
     }
@@ -477,7 +477,7 @@ pub fn run(args: &[String]) -> Out {
     let out = match result {
         Ok(true) => Out { code: 0, stdout, stderr },
         Ok(false) => {
-            stderr.push_str(&logs::failed_end(&logs, a.quiet, a.json, a.dry_run));
+            stderr.push_str(&logs::failed_end(&logs, a.quiet, a.json, a.dry_run, log_dir.as_deref()));
             stderr.push_str(&logs::token_hint(&logs));
             Out { code: 1, stdout, stderr }
         }

@@ -172,3 +172,21 @@ fn a_loop_refuses_a_view_and_a_workflow_with_no_schedule() {
     assert!(out.stderr.contains("the workflow has no on.schedule trigger"), "{}", out.stderr);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-349: a job that failed before it ran gets its cause as `job.log` in
+/// the directory of the logs, and the end line names a directory only
+/// when the run wrote one.
+#[test]
+fn a_failure_before_the_start_has_its_log_in_the_log_dir() {
+    let dir = scratch("logdir");
+    let job = podrunner_schema::JobId::new("lint.0").unwrap();
+    let logs = vec![(job.clone(), "the fake broker: bind 127.0.0.1:0: Permission denied".to_string())];
+    logs::write_dir(&dir, &[], &logs, &[]).unwrap();
+    let text = std::fs::read_to_string(dir.join("lint.0/job.log")).unwrap();
+    assert!(text.contains("Permission denied"), "{text}");
+    let end = logs::failed_end(&logs, false, false, false, None);
+    assert_eq!(end, "podrunner: a job failed; its log is above\n");
+    let end = logs::failed_end(&logs, false, false, false, Some(&dir));
+    assert!(end.contains(&dir.display().to_string()), "{end}");
+    let _ = std::fs::remove_dir_all(&dir);
+}

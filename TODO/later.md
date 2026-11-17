@@ -6907,7 +6907,7 @@ Write `{"file":...,"valid":false,"warnings":[],"error":"..."}` on stdout, and ke
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6924,6 +6924,10 @@ Write `DIR/JOB/job.log` with the failure line when a job fails before it starts.
 ## Prove
 
 `cargo test -p podrunner`; A test: a failure before the start writes `job.log` with the cause.
+
+## Done
+
+2026-11-17: a job that failed before it ran gets its log of the run (the cause) as `DIR/JOB/job.log` in `--log-dir` (or the logs of `--state`); the end line names the directory of the logs only when the run has one (`logs::write_dir`, `logs::failed_end`). Proven in CI on GitHub-hosted runners by `qa6_tests::a_failure_before_the_start_has_its_log_in_the_log_dir`.
 
 # T-350: beta.7 pins podnet `0.4.0-beta.13`; the vnet forward of #170 is in `0.4.0-beta.14`
 
