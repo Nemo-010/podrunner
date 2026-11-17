@@ -250,6 +250,8 @@ impl Executor for InUnit {
         use podrunner_schema::{Credential, CredentialFile, Secret, UnitId};
         // One count for the process: the units of parallel jobs (T-132)
         // never share an id, a socket directory or an egress grant.
+        let src = docker::Sources { store: self.actions.as_deref(), pins: &self.pins, tree: self.checkout.as_deref() };
+        docker::build_refusal(&message, &src).filter(|_| !self.guest).map_or(Ok(()), Err)?;
         let n = NEXT_UNIT.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
         // A guest reaches the broker through its front: a unix socket, so
         // the host needs no AF_INET bind (T-220).

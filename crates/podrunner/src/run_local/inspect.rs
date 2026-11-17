@@ -172,6 +172,14 @@ impl Executor for DryRun {
         if self.podvm && self.no_hooks && podrunner_local::exec::needs_containers(&message) {
             return Err(NO_HOOKS.into());
         }
+        let src = podrunner_local::exec::docker::Sources {
+            store: self.actions.as_deref(),
+            pins: &self.pins,
+            tree: self.tree.as_deref(),
+        };
+        if let Some(e) = podrunner_local::exec::docker::build_refusal(&message, &src).filter(|_| self.podvm) {
+            return Err(e);
+        }
         if self.podvm && message.overrides.contains_key("jobServiceContainers") {
             return Err("the job has services: a podvm unit of the local mode is on the host network, so it runs no services; run it with --microvm and --engine".into());
         }

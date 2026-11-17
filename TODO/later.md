@@ -3657,7 +3657,7 @@ A test: with `--json`, each line of stderr is a JSON object.
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -3674,6 +3674,10 @@ Read the `action.yml` of each fetched action: `using: docker` with `image: Docke
 ## Prove
 
 A test of `run --dry-run` on `--podvm` with a Dockerfile action: the job fails with `build-not-supported`.
+
+## Done
+
+2026-11-17: a job with an action of `using: docker` whose image is a Dockerfile (also in a composite action, and a `./` action of the tree) is refused before its unit starts on `--podvm`, in the run and in the dry run (`docker::build_refusal`): the hooks of a podvm unit run images and build none; an action of a `docker://` image still runs through the hooks. Proven on a constrained host as a user (`qa5`, podvm): `failure d: the job uses the Docker action ./act, which builds a Dockerfile: ...` in a dry run and a run, with no unit started.
 
 # T-238: `--artifacts DIR` gives 409 on a second run
 

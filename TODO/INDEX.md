@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**336 entries: 22 open, 22 partial, 12 blocked, 280 done.**
+**336 entries: 21 open, 22 partial, 12 blocked, 281 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 9 | 8 | 7 | 142 | 166 |
+| P2 | 8 | 8 | 7 | 143 | 166 |
 | P3 | 12 | 5 | 3 | 81 | 101 |
-| **All** | 22 | 22 | 12 | 280 | 336 |
+| **All** | 21 | 22 | 12 | 281 | 336 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -284,7 +284,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-234](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` drops the proxy of the host |
 | [T-235](later.md) | P3 | S | later | defect | open | Each log line of a job comes two times, with a BOM |
 | [T-236](later.md) | P3 | S | later | defect | open | The events of `--json` share stderr with the console of the runner |
-| [T-237](later.md) | P2 | S | later | defect | open | A Dockerfile action on `--podvm` fails at its step, not before the job |
+| [T-237](later.md) | P2 | S | later | defect | done | A Dockerfile action on `--podvm` fails at its step, not before the job |
 | [T-238](later.md) | P2 | S | later | defect | done | `--artifacts DIR` gives 409 on a second run |
 | [T-239](later.md) | P2 | S | later | defect | open | `--action-server` on the loopback or a private address is denied |
 | [T-240](later.md) | P3 | S | later | defect | open | `doctor --run --incus` does not try incus |

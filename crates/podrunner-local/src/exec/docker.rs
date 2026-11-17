@@ -60,7 +60,9 @@ pub struct Sources<'a> {
 /// Each Docker action that `uses` (`OWNER/REPO[/PATH]@REF`, or `./PATH` of
 /// the tree) is or holds, to the depth of composite actions that GitHub
 /// allows (10).
-fn docker_of(uses: &str, src: &Sources, depth: u8, out: &mut Vec<String>) {
+/// With `build`, only an action whose image is a Dockerfile (a `docker://`
+/// image needs no build).
+fn docker_of_kind(uses: &str, src: &Sources, depth: u8, out: &mut Vec<String>, build: bool) {
     let text = match uses.strip_prefix("./") {
         // With no tarball of a tree, the tree is the current directory.
         Some(path) => match src.tree {
@@ -82,14 +84,23 @@ fn docker_of(uses: &str, src: &Sources, depth: u8, out: &mut Vec<String>) {
     let Ok(root) = load(&text, Limits::default()) else { return };
     let Some(runs) = root.get("runs") else { return };
     match runs.get("using").map(|n| &n.kind) {
-        Some(Kind::String(u)) if u.eq_ignore_ascii_case("docker") => out.push(uses.to_string()),
+        Some(Kind::String(u)) if u.eq_ignore_ascii_case("docker") => {
+            let image = runs.get("image").and_then(|n| match &n.kind {
+                Kind::String(i) => Some(i.clone()),
+                _ => None,
+            });
+            if !build || !image.is_some_and(|i| i.starts_with("docker://")) {
+                out.push(uses.to_string());
+            }
+        }
         Some(Kind::String(u)) if u == "composite" && depth < 10 => {
             let Some(Kind::Seq(steps)) = runs.get("steps").map(|n| &n.kind) else { return };
             for s in steps {
                 if let Some(Kind::String(u)) = s.get("uses").map(|n| &n.kind) {
                     match u.strip_prefix("docker://") {
-                        Some(_) => out.push(u.clone()),
-                        None => docker_of(u, src, depth + 1, out),
+                        Some(_) if !build => out.push(u.clone()),
+                        Some(_) => {}
+                        None => docker_of_kind(u, src, depth + 1, out, build),
                     }
                 }
             }
@@ -100,6 +111,23 @@ fn docker_of(uses: &str, src: &Sources, depth: u8, out: &mut Vec<String>) {
 
 /// Each Docker action of the steps of the job `message`.
 pub fn docker_actions(message: &crate::Job, src: &Sources) -> Vec<String> {
+    actions_of(message, src, false)
+}
+
+/// The refusal of a job with an action that builds a Dockerfile, where the
+/// unit has no engine: the hooks of podvm run images and build none
+/// (T-237). An action of a `docker://` image runs through the hooks.
+pub fn build_refusal(message: &crate::Job, src: &Sources) -> Option<String> {
+    let found = actions_of(message, src, true);
+    (!found.is_empty()).then(|| {
+        format!(
+            "the job uses the Docker action {}, which builds a Dockerfile: the hooks of a podvm unit build no image; run it with --microvm and --engine (a host with /dev/kvm)",
+            found.join(", ")
+        )
+    })
+}
+
+fn actions_of(message: &crate::Job, src: &Sources, build: bool) -> Vec<String> {
     let mut out = Vec::new();
     let steps = message.overrides.get("steps").and_then(|s| s.as_array()).cloned().unwrap_or_default();
     for s in &steps {
@@ -110,7 +138,7 @@ pub fn docker_actions(message: &crate::Job, src: &Sources) -> Vec<String> {
         if r["repositoryType"] == "self" {
             if let Some(p) = r["path"].as_str() {
                 let p = if p.starts_with("./") { p.to_string() } else { format!("./{p}") };
-                docker_of(&p, src, 0, &mut out);
+                docker_of_kind(&p, src, 0, &mut out, build);
             }
             continue;
         }
@@ -119,7 +147,7 @@ pub fn docker_actions(message: &crate::Job, src: &Sources) -> Vec<String> {
             Some(p) => format!("{name}/{p}@{git_ref}"),
             None => format!("{name}@{git_ref}"),
         };
-        docker_of(&uses, src, 0, &mut out);
+        docker_of_kind(&uses, src, 0, &mut out, build);
     }
     out.dedup();
     out
@@ -185,6 +213,15 @@ mod tests {
         assert!(e.contains("o/d@v1") && e.contains("--podvm"), "{e}");
         job.overrides.insert("steps".into(), serde_json::json!([step("o/d", "v1", None)]));
         assert!(refusal(&job, &Sources { store: Some(&dir), pins: &pins, tree: None }).is_some());
+        // T-237: a Dockerfile needs a build, a `docker://` image does not.
+        let src = Sources { store: Some(&dir), pins: &pins, tree: None };
+        assert!(build_refusal(&job, &src).is_some_and(|e| e.contains("builds a Dockerfile")));
+        put(&dir, "o/i", "c4", &[("action.yml", "runs:\n  using: docker\n  image: docker://alpine@sha256:00\n")]);
+        let pins2: BTreeMap<String, String> = [("o/i@v4".to_string(), "c4".to_string())].into();
+        job.overrides.insert("steps".into(), serde_json::json!([step("o/i", "v4", None)]));
+        let src2 = Sources { store: Some(&dir), pins: &pins2, tree: None };
+        assert!(build_refusal(&job, &src2).is_none(), "an image action needs no build");
+        assert!(refusal(&job, &src2).is_some(), "a runner directory runs neither");
         let _ = std::fs::remove_dir_all(&dir);
     }
 
