@@ -388,3 +388,18 @@ fn a_dry_run_writes_no_state() {
     assert!(!dir.join("st/state.json").exists(), "a dry run wrote the state");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-339: `--validate` reads each number of minutes as a run does.
+#[test]
+fn validate_reads_the_minutes() {
+    let bad = "on: push\njobs:\n  a:\n    runs-on: x\n    timeout-minutes: abc\n    steps: [{run: a}]\n";
+    let (dir, w) = workflow("minutes-bad", bad);
+    let out = run(&args(&[&w, "--validate"]));
+    assert_eq!(out.code, 78, "{}", out.stdout);
+    assert!(out.stderr.contains("jobs.a.timeout-minutes") && out.stderr.contains("not a number"), "{}", out.stderr);
+    let _ = std::fs::remove_dir_all(&dir);
+    let good = "on: push\njobs:\n  a:\n    runs-on: x\n    timeout-minutes: ${{ inputs.t }}\n    steps: [{run: a, timeout-minutes: 5}]\n";
+    let (dir, w) = workflow("minutes-good", good);
+    assert_eq!(run(&args(&[&w, "--validate"])).code, 0);
+    let _ = std::fs::remove_dir_all(&dir);
+}

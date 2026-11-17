@@ -102,6 +102,10 @@ pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
         if let Err(e) = super::watch::crons(&p.workflow.on) {
             return fail(e);
         }
+        // Each number of minutes, as a run reads it (T-339).
+        if let Err(e) = minutes(&p.workflow) {
+            return fail(e);
+        }
         if a.json {
             let warnings: Vec<String> = p.warnings.iter().map(|w| w.to_string()).collect();
             stdout.push_str(&format!("{}\n", json!({"file": file, "valid": true, "warnings": warnings})));
@@ -131,6 +135,32 @@ pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
         }
     }
     super::Out { code: 0, stdout, stderr: String::new() }
+}
+
+/// Each `timeout-minutes` and `cancel-timeout-minutes` of a job and
+/// `timeout-minutes` of a step: a number, or an expression that the run
+/// evaluates.
+fn minutes(w: &Workflow) -> Result<(), String> {
+    let check = |n: &Node, at: String| match &n.kind {
+        Kind::String(v) if !v.contains("${{") && v.trim().parse::<f64>().is_err() => {
+            Err(format!("{at} (line {}): {v:?} is not a number of minutes", n.mark.line))
+        }
+        _ => Ok(()),
+    };
+    for j in &w.jobs {
+        for (key, n) in [("timeout-minutes", &j.timeout_minutes), ("cancel-timeout-minutes", &j.cancel_timeout_minutes)]
+        {
+            if let Some(n) = n {
+                check(n, format!("jobs.{}.{key}", j.id))?;
+            }
+        }
+        for (i, s) in j.steps.iter().enumerate() {
+            if let Some(n) = &s.timeout_minutes {
+                check(n, format!("jobs.{}.steps[{i}].timeout-minutes", j.id))?;
+            }
+        }
+    }
+    Ok(())
 }
 
 /// The text of a workflow file that cannot be read: for a file that is not
