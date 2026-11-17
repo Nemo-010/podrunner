@@ -202,17 +202,17 @@ numbers. `TODO/RULES.md` gives the rules.
 | #200 | COORD-074: a PID namespace for run -d on the namespace rung: a job sees and signals the processes of the host (to podvm) | closed (podvm `0.2.0-beta.30` pinned; T-318 done) | T-318 |
 | #201 | COORD-075: the seccomp hold of podnet pod lets a job connect to each port on the loopback, also a proxy (to podnet) | closed (PodUtils/podnet#605: `--loopback-rules`; podnet `0.4.0-beta.13` pinned; T-319 done) | T-319 |
 | #202 | COORD-076: podvm run connects to help, archive and security.ubuntu.com:443 at the start of each unit (to podvm) | closed (PodUtils/podvm#464: the source fixup; `--no-source-fixup` passed; T-332 done) | T-332 |
-| #203 | Local mode: a workflow symlink that points out of the project is followed, not refused | open | T-340 |
-| #204 | Local mode: .secrets in the tree bypasses the validation an explicit --secret-file gets | open | T-341 |
-| #205 | doctor: doctor --run --json emits no JSON, and doctor --json --run is an unknown option | open | T-342 |
-| #206 | print-unit: unquoted/relative/empty ExecStart values, and a nonexistent --config is accepted | open | T-343, T-339 |
-| #207 | image verify: the release's runner-x86_64.tar asset is rejected, and the error does not name the expected tarball | open | T-344 |
-| #208 | run: a dry run writes --state/artifacts and the cache, and does not validate executor paths | open | T-345 |
-| #209 | run: nested uses: of a local composite action are not pinned, and a local-repository composite misreports the refusal as offline | open | T-346 |
-| #210 | run: --watch/--schedule with a one-shot mode hangs; --schedule on a schedule-less workflow says on.schedule has no cron time | open | T-347 |
-| #211 | run: --validate --json emits no JSON for an invalid workflow | open | T-348 |
-| #212 | run: a pre-start failure claims a log in --log-dir that is not written | open | T-349 |
-| #213 | v0.1.0-beta.7 pins podnet 0.4.0-beta.13, but the vnet forward needed by #170 is in 0.4.0-beta.14 | open | T-350 |
+| #203 | Local mode: a workflow symlink that points out of the project is followed, not refused | closed (fixed on `main`; the entry is done) | T-340 |
+| #204 | Local mode: .secrets in the tree bypasses the validation an explicit --secret-file gets | closed (fixed on `main`; the entry is done) | T-341 |
+| #205 | doctor: doctor --run --json emits no JSON, and doctor --json --run is an unknown option | closed (fixed on `main`; the entry is done) | T-342 |
+| #206 | print-unit: unquoted/relative/empty ExecStart values, and a nonexistent --config is accepted | closed (fixed on `main`; the entry is done) | T-343, T-339 |
+| #207 | image verify: the release's runner-x86_64.tar asset is rejected, and the error does not name the expected tarball | closed (fixed on `main`; the entry is done) | T-344 |
+| #208 | run: a dry run writes --state/artifacts and the cache, and does not validate executor paths | closed (fixed on `main`; the entry is done) | T-345 |
+| #209 | run: nested uses: of a local composite action are not pinned, and a local-repository composite misreports the refusal as offline | closed (fixed on `main`; the entry is done) | T-346 |
+| #210 | run: --watch/--schedule with a one-shot mode hangs; --schedule on a schedule-less workflow says on.schedule has no cron time | closed (fixed on `main`; the entry is done) | T-347 |
+| #211 | run: --validate --json emits no JSON for an invalid workflow | closed (fixed on `main`; the entry is done) | T-348 |
+| #212 | run: a pre-start failure claims a log in --log-dir that is not written | closed (fixed on `main`; the entry is done) | T-349 |
+| #213 | v0.1.0-beta.7 pins podnet 0.4.0-beta.13, but the vnet forward needed by #170 is in 0.4.0-beta.14 | open (podnet `0.4.0-beta.15` pinned; the forward is T-220) | T-350 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |
