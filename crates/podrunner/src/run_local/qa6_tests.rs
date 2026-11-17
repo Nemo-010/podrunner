@@ -218,3 +218,15 @@ fn the_usage_comes_with_a_wrong_form_only() {
     let out = run(&args(&["w.yml", "--no-such-flag"]));
     assert!(out.stderr.contains("usage:"), "{}", out.stderr);
 }
+
+/// T-323 F20, F24: `--allow "*"` and `--web` with `--dry-run` are refused.
+#[test]
+fn a_wildcard_allow_and_a_web_dry_run_are_refused() {
+    let pin = format!("i@sha256:{}", "a".repeat(64));
+    let e =
+        parse(&args(&["w.yml", "--podvm", "/p", "--images", "/s", "--image", &pin, "--podnet", "/n", "--allow", "*"]))
+            .unwrap_err();
+    assert!(e.contains("--allow \"*\""), "{e}");
+    let e = parse(&args(&["w.yml", "--runner-dir", "/r", "--dry-run", "--web", "127.0.0.1:0"])).unwrap_err();
+    assert!(e.contains("--web and --dry-run"), "{e}");
+}

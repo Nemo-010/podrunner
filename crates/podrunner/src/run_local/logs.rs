@@ -53,10 +53,13 @@ pub(super) fn live(secrets: Vec<String>, as_json: bool) -> Live {
     watch_quiet(Arc::downgrade(&token), last.clone(), as_json);
     // The fix of a refused token comes at once, not after the run (T-305).
     let hinted = std::sync::atomic::AtomicBool::new(false);
+    // The colors of the runner go to a terminal only (T-323 F19).
+    let tty = std::io::IsTerminal::is_terminal(&std::io::stderr()) && !as_json;
     Arc::new(move |job: &JobId, text: &str| {
         let _ = &token;
         *last.lock().unwrap_or_else(|e| e.into_inner()) = std::time::Instant::now();
-        for line in mask(text, &secrets).lines() {
+        let text = if tty { text.to_string() } else { plain(text) };
+        for line in mask(&text, &secrets).lines() {
             if refused(line) && !hinted.swap(true, std::sync::atomic::Ordering::Relaxed) {
                 eprintln!("{TOKEN_HINT}");
             }
@@ -67,6 +70,25 @@ pub(super) fn live(secrets: Vec<String>, as_json: bool) -> Live {
             }
         }
     })
+}
+
+/// `text` with no ANSI escape sequence (CSI: `ESC [` ... a final byte).
+pub(super) fn plain(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut it = text.chars().peekable();
+    while let Some(c) = it.next() {
+        if c == '\u{1b}' && it.peek() == Some(&'[') {
+            it.next();
+            for d in it.by_ref() {
+                if ('@'..='~').contains(&d) {
+                    break;
+                }
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
 }
 
 /// Write a line for each `QUIET` with no line of a job, while `token` lives.
@@ -212,6 +234,16 @@ pub(super) fn failed_end<J: std::fmt::Display>(
         },
     }
     out
+}
+
+#[cfg(test)]
+mod plain_tests {
+    /// T-323 F19: the colors of the runner leave a line for a file.
+    #[test]
+    fn a_line_with_no_colors() {
+        assert_eq!(super::plain("\u{1b}[36;1mecho hi\u{1b}[0m"), "echo hi");
+        assert_eq!(super::plain("no codes [x]"), "no codes [x]");
+    }
 }
 
 #[cfg(test)]

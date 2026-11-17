@@ -30,8 +30,8 @@ pub(crate) fn program(s: &SourceConfig) -> Result<podrunner_mint::SidecarSource,
         .map_err(|e| fail(Class::Config, format!("[[source]] {} program: {e}", s.name)))?;
     let mut env = Vec::new();
     if let Some(key) = &s.key_file {
-        let meta = std::fs::metadata(key)
-            .map_err(|e| fail(Class::Config, format!("{}: the key file: {}", s.name, e.kind())))?;
+        let meta =
+            std::fs::metadata(key).map_err(|e| fail(Class::Config, format!("{}: the key file: {}", s.name, e)))?;
         if meta.permissions().mode() & 0o077 != 0 {
             return Err(fail(
                 Class::Config,
@@ -48,8 +48,9 @@ pub(crate) fn program(s: &SourceConfig) -> Result<podrunner_mint::SidecarSource,
 /// stdio, one request line at a time, until stdin ends.
 pub fn fake_source(args: &[String]) -> Result<(), Failure> {
     let script = match args {
-        [flag, file] if flag == "--script" => std::fs::read_to_string(file)
-            .map_err(|e| fail(Class::NotFound, format!("the script {file}: {}", e.kind())))?,
+        [flag, file] if flag == "--script" => {
+            std::fs::read_to_string(file).map_err(|e| fail(Class::NotFound, format!("the script {file}: {}", e)))?
+        }
         [] => String::new(),
         _ => return Err(fail(Class::Usage, "usage: podrunner fake-source [--script FILE]")),
     };
@@ -59,12 +60,12 @@ pub fn fake_source(args: &[String]) -> Result<(), Failure> {
     let stdin = std::io::stdin().lock();
     let mut stdout = std::io::stdout().lock();
     for line in stdin.split(b'\n') {
-        let line = line.map_err(|e| fail(Class::Unavailable, format!("stdin: {}", e.kind())))?;
+        let line = line.map_err(|e| fail(Class::Unavailable, format!("stdin: {}", e)))?;
         let reply = podrunner_source::serve_line(&mut source, &line);
         stdout
             .write_all(reply.as_bytes())
             .and_then(|()| stdout.flush())
-            .map_err(|e| fail(Class::Unavailable, format!("stdout: {}", e.kind())))?;
+            .map_err(|e| fail(Class::Unavailable, format!("stdout: {}", e)))?;
     }
     Ok(())
 }

@@ -56,13 +56,12 @@ impl StateLock {
             .recursive(true)
             .mode(0o700)
             .create(state)
-            .map_err(|e| fail(Class::Unavailable, format!("the state directory: {}", e.kind())))?;
-        let f = open(state)
-            .map_err(|e| fail(Class::Unavailable, format!("the lock of the state directory: {}", e.kind())))?;
+            .map_err(|e| fail(Class::Unavailable, format!("the state directory: {}", e)))?;
+        let f = open(state).map_err(|e| fail(Class::Unavailable, format!("the lock of the state directory: {}", e)))?;
         match try_flock(&f) {
             Ok(true) => Ok(StateLock(f)),
             Ok(false) => Err(fail(Class::Unavailable, "another podrunner serve holds the state directory")),
-            Err(e) => Err(fail(Class::Unavailable, format!("the lock of the state directory: {}", e.kind()))),
+            Err(e) => Err(fail(Class::Unavailable, format!("the lock of the state directory: {}", e))),
         }
     }
 }

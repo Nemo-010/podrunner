@@ -39,7 +39,7 @@ pub(crate) fn stop_wait(rest: &[String]) -> Result<Out, Out> {
         match crate::lock::is_free(&state) {
             Ok(true) => return Ok(ok("stopped\n".into())),
             Ok(false) => {}
-            Err(e) => return Err(err(Class::Unavailable, format!("the lock of the state directory: {}", e.kind()))),
+            Err(e) => return Err(err(Class::Unavailable, format!("the lock of the state directory: {}", e))),
         }
         if timeout.is_some_and(|t| started.elapsed() >= t) {
             return Err(err(Class::Timeout, "serve did not end in time: a job is not final"));
@@ -116,7 +116,7 @@ pub(crate) fn no_socket(o: &Opts, e: std::io::Error) -> Out {
     let socket = o.socket().map(|s| s.display().to_string()).unwrap_or_default();
     match o.get("--state") {
         Some(d) if !d.is_dir() => err(Class::Unavailable, format!("--state {}: not a directory", d.display())),
-        _ => err(Class::Unavailable, format!("the control socket {socket}: {}", e.kind())),
+        _ => err(Class::Unavailable, format!("the control socket {socket}: {}", e)),
     }
 }
 

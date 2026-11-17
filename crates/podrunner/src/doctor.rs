@@ -64,7 +64,7 @@ fn read(tool: &Path, args: &[&str]) -> Result<Value, String> {
         .stdin(Stdio::null())
         .stderr(Stdio::null())
         .output()
-        .map_err(|e| format!("{}: not run ({})", tool.display(), e.kind()))?;
+        .map_err(|e| format!("{}: not run ({})", tool.display(), e))?;
     if !out.status.success() {
         return Err(format!("{} {}: exit {}", tool.display(), args.join(" "), out.status.code().unwrap_or(-1)));
     }

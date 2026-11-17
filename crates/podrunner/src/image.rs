@@ -45,7 +45,7 @@ pub fn sha256_file(path: &Path) -> std::io::Result<String> {
 pub fn verify(tarball: &Path, arch: &str) -> Result<String, String> {
     let pin = runner_pin();
     let want = pin.sha256.get(arch).ok_or_else(|| format!("no pin for the architecture {arch:?}"))?;
-    let have = sha256_file(tarball).map_err(|e| format!("the tarball: {}", e.kind()))?;
+    let have = sha256_file(tarball).map_err(|e| format!("the tarball: {}", e))?;
     if &have != want {
         // The file that the pin names, and the way to check an image of a
         // release (T-344).

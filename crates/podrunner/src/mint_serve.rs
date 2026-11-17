@@ -133,7 +133,7 @@ pub fn check(config: &Path) -> Result<MintConfig, Failure> {
     let c = MintConfig::parse(&text).map_err(|e| fail(Class::Config, e))?;
     source_of(&c.source, Arc::new(SystemClock::default()), None)?;
     private_file("the key file of the mint", &c.key_file)?;
-    std::fs::read(&c.cert_file).map_err(|e| fail(Class::Config, format!("the certificate: {}", e.kind())))?;
+    std::fs::read(&c.cert_file).map_err(|e| fail(Class::Config, format!("the certificate: {}", e)))?;
     Ok(c)
 }
 
@@ -144,7 +144,7 @@ pub fn run(config: &Path) -> Result<(), Failure> {
     // A mint holds no remote source: no lookup.
     let source = source_of(&c.source, clock, None)?;
     let state = Path::new(&c.state);
-    let io = |what: &str, e: std::io::Error| fail(Class::Unavailable, format!("{what}: {}", e.kind()));
+    let io = |what: &str, e: std::io::Error| fail(Class::Unavailable, format!("{what}: {}", e));
     std::fs::create_dir_all(state).map_err(|e| io("the state directory", e))?;
     let ledger = Ledger::open(&state.join("ledger.jsonl")).map_err(|e| io("the ledger", e))?;
     let audit = {
@@ -165,8 +165,7 @@ pub fn run(config: &Path) -> Result<(), Failure> {
         })
         .collect();
     let key = private_file("the key file of the mint", &c.key_file)?;
-    let cert =
-        std::fs::read(&c.cert_file).map_err(|e| fail(Class::Config, format!("the certificate: {}", e.kind())))?;
+    let cert = std::fs::read(&c.cert_file).map_err(|e| fail(Class::Config, format!("the certificate: {}", e)))?;
     let served = Served::new(Some(certified(&cert, &key).map_err(|e| fail(Class::Config, e.to_string()))?));
     let tls = server_config(provider(), served, Pins::new(keys.iter().map(|k| k.pin)), &[ALPN])
         .map_err(|e| fail(Class::Config, e.to_string()))?;

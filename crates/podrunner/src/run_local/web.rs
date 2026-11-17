@@ -161,7 +161,7 @@ impl Web {
                 let mut v = view.lock().expect("the view");
                 let log = &mut v.job(job.as_str()).3;
                 if log.len() < LOG_MAX {
-                    log.push_str(&super::logs::mask(text, &secrets));
+                    log.push_str(&super::logs::mask(&super::logs::plain(text), &secrets));
                 }
             }
             if let Some(t) = &then {

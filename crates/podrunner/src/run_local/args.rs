@@ -420,6 +420,13 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     if a.podnet.is_some() && a.podvm.is_none() {
         return Err("--podnet needs --podvm".into());
     }
+    // A dry run runs no job to view, and `*` is no hold (T-323 F20, F24).
+    if a.web.is_some() && a.dry_run {
+        return Err("--web and --dry-run exclude each other: a dry run runs no job to view".into());
+    }
+    if let Some(h) = a.allow.iter().find(|h| h.trim() == "*" || h.trim().is_empty()) {
+        return Err(format!("--allow {h:?}: not a host; a hold of each host is no hold: give each host"));
+    }
     // The vnet holds the egress in the front: the hold of `podnet pod`
     // is not taken with it (T-220).
     if a.vnet.is_some() && a.podvm.is_none() {

@@ -60,11 +60,11 @@ fn now_unix() -> u64 {
 /// A file of a key: the group and the others cannot read it.
 pub(crate) fn private_file(name: &str, path: &str) -> Result<Vec<u8>, Failure> {
     use std::os::unix::fs::PermissionsExt;
-    let meta = std::fs::metadata(path).map_err(|e| fail(Class::Config, format!("{name}: {}", e.kind())))?;
+    let meta = std::fs::metadata(path).map_err(|e| fail(Class::Config, format!("{name}: {}", e)))?;
     if meta.permissions().mode() & 0o077 != 0 {
         return Err(fail(Class::Config, format!("{name} is open to the group or to others: set mode 0600")));
     }
-    std::fs::read(path).map_err(|e| fail(Class::Config, format!("{name}: {}", e.kind())))
+    std::fs::read(path).map_err(|e| fail(Class::Config, format!("{name}: {}", e)))
 }
 
 /// The wire to a remote mint (GitHub #31): this host presents its key, and
@@ -77,7 +77,7 @@ fn remote(
     let get = |v: &Option<String>| v.clone().unwrap_or_default();
     let key = private_file(&format!("{}: the key file", s.name), &get(&s.key_file))?;
     let cert = std::fs::read(get(&s.cert_file))
-        .map_err(|e| fail(Class::Config, format!("{}: the certificate: {}", s.name, e.kind())))?;
+        .map_err(|e| fail(Class::Config, format!("{}: the certificate: {}", s.name, e)))?;
     let certified =
         pod_tls::server::certified(&cert, &key).map_err(|e| fail(Class::Config, format!("{}: {e}", s.name)))?;
     let pin =
@@ -98,8 +98,8 @@ pub(crate) fn scaleset(
     }
     let get = |v: &Option<String>| v.clone().unwrap_or_default();
     let key_file = get(&s.key_file);
-    let meta = std::fs::metadata(&key_file)
-        .map_err(|e| fail(Class::Config, format!("{}: the key file: {}", s.name, e.kind())))?;
+    let meta =
+        std::fs::metadata(&key_file).map_err(|e| fail(Class::Config, format!("{}: the key file: {}", s.name, e)))?;
     if meta.permissions().mode() & 0o077 != 0 {
         return Err(fail(
             Class::Config,
@@ -107,7 +107,7 @@ pub(crate) fn scaleset(
         ));
     }
     let pem = std::fs::read_to_string(&key_file)
-        .map_err(|e| fail(Class::Config, format!("{}: the key file: {}", s.name, e.kind())))?;
+        .map_err(|e| fail(Class::Config, format!("{}: the key file: {}", s.name, e)))?;
     let key = podrunner_mint::sign::key_from_pem(&pem)
         .map_err(|_| fail(Class::Config, format!("{}: the key file holds no PKCS#1 key", s.name)))?;
     // Each request of `sign` is a line of the log of the process (T-172).
@@ -149,7 +149,7 @@ pub(crate) fn source_of(
         SourceKind::Fake => {
             let text = match &s.script {
                 Some(p) => std::fs::read_to_string(p)
-                    .map_err(|e| fail(Class::Config, format!("the script of {}: {}", s.name, e.kind())))?,
+                    .map_err(|e| fail(Class::Config, format!("the script of {}: {}", s.name, e)))?,
                 None => String::new(),
             };
             let script =
@@ -325,7 +325,7 @@ pub fn build(cfg: Config, state: &Path) -> Result<Slots, Failure> {
         }
     }
     let mut slots = Slots::start(cfg, state, clock, Box::new(now_unix), sources, kinds)
-        .map_err(|e| fail(Class::Unavailable, format!("the state directory: {}", e.kind())))?;
+        .map_err(|e| fail(Class::Unavailable, format!("the state directory: {}", e)))?;
     for (i, r) in retests {
         slots.retest_guest(i, r);
     }
