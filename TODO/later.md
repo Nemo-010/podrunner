@@ -5898,7 +5898,7 @@ The report of agent B (the commands and outputs are in it).
 
 Fix each one; a finding that the code cannot change goes into the documents.
 
-Fixed: B-18 (each return of a run removes its directories in `TMPDIR`).
+Fixed: B-15 (`--image` needs a full digest). B-18 (each return of a run removes its directories in `TMPDIR`).
 
 ## Prove
 
@@ -6117,7 +6117,7 @@ The report of agent B, round 4 (the commands and outputs are in it).
 
 Fix each one; a finding that the code cannot change goes into the documents.
 
-Fixed: F11 (a missing file or directory of a flag exits 64 with the flag). F9 (a release links to the documents of its tag). F35 (`docs/local-mode.md` names the user `runner`). F38 (each return of a run removes its directories in `TMPDIR`).
+Fixed: F21 (`--image` needs a full digest). F11 (a missing file or directory of a flag exits 64 with the flag). F9 (a release links to the documents of its tag). F35 (`docs/local-mode.md` names the user `runner`). F38 (each return of a run removes its directories in `TMPDIR`).
 
 ## Prove
 

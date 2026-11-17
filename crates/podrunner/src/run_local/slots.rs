@@ -120,7 +120,15 @@ mod tests {
     #[test]
     fn jobs_in_parallel_need_a_unit_kind() {
         let args = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<Vec<_>>();
-        let unit = ["w.yml", "--podvm", "/p", "--images", "/s", "--image", "r@sha256:00"];
+        let unit = [
+            "w.yml",
+            "--podvm",
+            "/p",
+            "--images",
+            "/s",
+            "--image",
+            "r@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        ];
         assert_eq!(parse(&args(&[&unit[..], &["--jobs", "4"]].concat())).unwrap().parallel, 4);
         assert_eq!(parse(&args(&unit)).unwrap().parallel, 0, "one at a time by default");
         let e = parse(&args(&["w.yml", "--runner-dir", "/r", "--jobs", "2"])).unwrap_err();

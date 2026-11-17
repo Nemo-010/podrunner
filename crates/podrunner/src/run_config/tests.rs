@@ -118,12 +118,32 @@ fn actrc_of_a_project_keeps_its_files_in_the_project() {
 /// T-303: an executor of the command line replaces the one of the files.
 #[test]
 fn an_executor_of_the_command_line_replaces_the_one_of_the_files() {
-    let file =
-        s(&["--podvm", "/b/podvm", "--images", "/i", "--image", "r@sha256:00", "--quiet", "--allow", "x.example"]);
+    let file = s(&[
+        "--podvm",
+        "/b/podvm",
+        "--images",
+        "/i",
+        "--image",
+        "r@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "--quiet",
+        "--allow",
+        "x.example",
+    ]);
     let got = executor_of_command_line(file.clone(), &s(&["w.yml", "--runner-dir", "/r"]));
     assert_eq!(got, s(&["--quiet", "--allow", "x.example"]));
     let got = executor_of_command_line(file.clone(), &s(&["w.yml", "--microvm", "/m"]));
-    assert_eq!(got, s(&["--images", "/i", "--image", "r@sha256:00", "--quiet", "--allow", "x.example"]));
+    assert_eq!(
+        got,
+        s(&[
+            "--images",
+            "/i",
+            "--image",
+            "r@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--quiet",
+            "--allow",
+            "x.example"
+        ])
+    );
     assert_eq!(executor_of_command_line(file.clone(), &s(&["w.yml", "--quiet"])), file, "no executor: the file stays");
 }
 

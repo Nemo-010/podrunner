@@ -210,7 +210,12 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
                 a.platforms.push((label.to_string(), target.to_string()));
             }
             "--images" => a.images = Some(PathBuf::from(value()?)),
-            "--image" => a.image = Some(value()?),
+            "--image" => {
+                // A tag or a short digest is refused, as for --platform (T-323 F21).
+                let v = value()?;
+                podrunner_local::message::pinned(&v).map_err(|e| format!("--image: {e}"))?;
+                a.image = Some(v);
+            }
             "--actions" => a.actions = Some(PathBuf::from(value()?)),
             "--artifacts" => a.artifacts = Some(PathBuf::from(value()?)),
             "--secret" => {

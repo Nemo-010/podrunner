@@ -4,6 +4,9 @@ use podrunner_schema::JobId;
 
 use super::*;
 
+/// A runner image with a full digest: `--image` refuses a short one.
+const IMG: &str = "r@sha256:0000000000000000000000000000000000000000000000000000000000000000";
+
 fn args(a: &[&str]) -> Vec<String> {
     a.iter().map(|s| s.to_string()).collect()
 }
@@ -27,7 +30,7 @@ fn the_options_of_run() {
         "--images",
         "/s",
         "--image",
-        "r@sha256:00",
+        IMG,
         "--podnet",
         "/n",
         "--allow",
@@ -39,19 +42,19 @@ fn the_options_of_run() {
     assert_eq!((held.podnet.as_deref(), held.allow.len()), (Some(std::path::Path::new("/n")), 2));
     assert!(parse(&args(&["w.yml", "--runner-dir", "/r", "--podnet", "/n"])).unwrap_err().contains("--podvm"));
     assert!(
-        parse(&args(&["w.yml", "--podvm", "/p", "--images", "/s", "--image", "r@sha256:00", "--allow", "a"]))
+        parse(&args(&["w.yml", "--podvm", "/p", "--images", "/s", "--image", IMG, "--allow", "a"]))
             .unwrap_err()
             .contains("--podnet")
     );
     assert_eq!(policy(&["a.example".into()]), r#"{"allow":[{"host":"a.example"}],"mode":"allow","schema":1}"#);
     assert_eq!(with.actions, Some(PathBuf::from("/a")));
-    let p = parse(&args(&["w.yml", "--podvm", "/p", "--images", "/s", "--image", "r@sha256:00"])).unwrap();
-    assert_eq!((p.podvm.as_deref(), p.image.as_deref()), (Some(std::path::Path::new("/p")), Some("r@sha256:00")));
+    let p = parse(&args(&["w.yml", "--podvm", "/p", "--images", "/s", "--image", IMG])).unwrap();
+    assert_eq!((p.podvm.as_deref(), p.image.as_deref()), (Some(std::path::Path::new("/p")), Some(IMG)));
     // One executor: a runner directory, or the three options of podvm.
     for bad in [
         &["w.yml"][..],
         &["w.yml", "--podvm", "/p", "--images", "/s"],
-        &["w.yml", "--runner-dir", "/r", "--podvm", "/p", "--images", "/s", "--image", "r@sha256:00"],
+        &["w.yml", "--runner-dir", "/r", "--podvm", "/p", "--images", "/s", "--image", IMG],
     ] {
         // The text of each case: `flags_tests::the_refusal_of_an_executor_names_its_flag`.
         assert!(parse(&args(bad)).is_err(), "{bad:?}");
@@ -265,7 +268,7 @@ fn the_egress_workflow_gives_one_job() {
 
 #[test]
 fn the_guest_kinds_of_run() {
-    let unit = ["--images", "/s", "--image", "r@sha256:00"];
+    let unit = ["--images", "/s", "--image", IMG];
     let with = |extra: &[&str]| {
         let mut v = vec!["w.yml"];
         v.extend_from_slice(extra);
@@ -431,7 +434,7 @@ fn the_environment_flags_of_run() {
         "--images",
         "/s",
         "--image",
-        "r@sha256:00",
+        IMG,
         "--environment-allow",
         "prod=deploy.example",
         "--environment-var-file",

@@ -97,7 +97,15 @@ fn a_break_names_a_job_and_a_step_of_the_file() {
 fn doctor_names_a_missing_podvm_as_a_path() {
     let (dir, w) = workflow("doctor", "on: push\njobs:\n  a:\n    runs-on: x\n    steps: [{run: a}]\n");
     for flag in ["--podvm", "--incus"] {
-        let out = doctor(&args(&[&w, flag, "/nonexistent/podvm", "--images", "/s", "--image", "r@sha256:00"]));
+        let out = doctor(&args(&[
+            &w,
+            flag,
+            "/nonexistent/podvm",
+            "--images",
+            "/s",
+            "--image",
+            "r@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        ]));
         let line = out.stdout.lines().find(|l| l.contains(" podvm: ")).unwrap_or_default().to_string();
         assert!(line.contains(&format!("{flag} /nonexistent/podvm: not a file")), "{flag}: {}", out.stdout);
         assert!(!line.contains("take podvm"), "{flag}: {line}");
@@ -187,22 +195,46 @@ fn doctor_checks_the_image_of_the_store_and_names_the_hold() {
     let podvm = dir.join("podvm");
     std::fs::write(
         &podvm,
-        "#!/bin/sh\ncase \"$1\" in probe) echo '{\"podvm\":\"0.2.0-beta.22\",\"rung\":\"userland\"}';; inspect) [ \"$2\" = have@sha256:00 ];; esac\n",
+        "#!/bin/sh\ncase \"$1\" in probe) echo '{\"podvm\":\"0.2.0-beta.22\",\"rung\":\"userland\"}';; inspect) [ \"$2\" = have@sha256:0000000000000000000000000000000000000000000000000000000000000000 ];; esac\n",
     )
     .unwrap();
     std::fs::set_permissions(&podvm, std::fs::Permissions::from_mode(0o755)).unwrap();
     let store = dir.join("store");
     std::fs::create_dir_all(&store).unwrap();
     let (p, s) = (podvm.display().to_string(), store.display().to_string());
-    let out = doctor(&args(&[&w, "--podvm", &p, "--images", &s, "--image", "none@sha256:00"]));
+    let out = doctor(&args(&[
+        &w,
+        "--podvm",
+        &p,
+        "--images",
+        &s,
+        "--image",
+        "none@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    ]));
     assert!(
-        out.stdout.contains("FAIL image:") && out.stdout.contains("does not hold none@sha256:00"),
+        out.stdout.contains("FAIL image:")
+            && out
+                .stdout
+                .contains("does not hold none@sha256:0000000000000000000000000000000000000000000000000000000000000000"),
         "{}",
         out.stdout
     );
     assert!(out.stdout.contains("ok   hold: none: the unit has the network of the host"), "{}", out.stdout);
-    let out = doctor(&args(&[&w, "--podvm", &p, "--images", &s, "--image", "have@sha256:00"]));
-    assert!(out.stdout.contains("ok   image: have@sha256:00 is in"), "{}", out.stdout);
+    let out = doctor(&args(&[
+        &w,
+        "--podvm",
+        &p,
+        "--images",
+        &s,
+        "--image",
+        "have@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    ]));
+    assert!(
+        out.stdout
+            .contains("ok   image: have@sha256:0000000000000000000000000000000000000000000000000000000000000000 is in"),
+        "{}",
+        out.stdout
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -308,4 +340,13 @@ fn a_dry_run_on_podvm_with_no_hooks_refuses_a_container_job() {
     job.overrides.insert("jobContainer".into(), serde_json::json!({ "type": 2, "map": [] }));
     let e = dry.run(&id, job, std::time::Duration::from_secs(1)).unwrap_err();
     assert!(e.contains("--microvm and --engine"), "{e}");
+}
+
+/// T-323 F21, T-316 B-15: `--image` needs a full digest.
+#[test]
+fn the_image_needs_a_full_digest() {
+    for image in ["runner:latest", "runner@sha256:00"] {
+        let e = parse(&args(&["w.yml", "--podvm", "/p", "--images", "/s", "--image", image])).unwrap_err();
+        assert!(e.contains("--image: the image") && e.contains("not pinned by digest"), "{e}");
+    }
 }
