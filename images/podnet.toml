@@ -6,8 +6,10 @@
 # v0.4.0-beta.10 and later take `--loopback-rules`: the seccomp hold of the
 # local mode lets only the broker of the run through on the loopback (T-319,
 # PodUtils/podnet#605).
-version = "0.4.0-beta.13"
+# v0.4.0-beta.14 and later take `PODNET_VNET_FORWARD`: a TCP address of the
+# vnet that connects to a unix socket (#170, T-350).
+version = "0.4.0-beta.15"
 
 [sha256]
-x86_64 = "65933be199019669ae2aa39354858c249255a90d1af9a1a9c0ea1cc039f1bbd7"
-aarch64 = "93b122fb8f4171221cf2b6de64af7271eb92d7a87ecaf640c09d84181b0a29c2"
+x86_64 = "97cbad273fa764f80dea5e431d56bb791b49ced3c7abe548d97c103e5344e39c"
+aarch64 = "981be4b71ac6cc21d145b0599582237cbc39bf5aa5d3253c3acbe4b413d115d4"

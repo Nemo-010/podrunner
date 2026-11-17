@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**347 entries: 26 open, 21 partial, 10 blocked, 290 done.**
+**347 entries: 25 open, 22 partial, 10 blocked, 290 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 1 | 58 | 69 |
-| P2 | 6 | 7 | 6 | 151 | 170 |
+| P2 | 5 | 8 | 6 | 151 | 170 |
 | P3 | 19 | 5 | 3 | 81 | 108 |
-| **All** | 26 | 21 | 10 | 290 | 347 |
+| **All** | 25 | 22 | 10 | 290 | 347 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -394,4 +394,4 @@ acceptance, later The crate dependencies later than v1.
 | [T-347](later.md) | P3 | S | later | defect | open | `--watch` and `--schedule` with a one-shot mode wait for ever; `--schedule` of a workflow with no `on.schedule` gives a bad message |
 | [T-348](later.md) | P3 | S | later | defect | open | `--validate --json` gives no JSON for a workflow that is not valid |
 | [T-349](later.md) | P3 | S | later | defect | open | A failure before the start of a job names a log in `--log-dir` that is not there |
-| [T-350](later.md) | P2 | M | later | defect | open | beta.7 pins podnet `0.4.0-beta.13`; the vnet forward of #170 is in `0.4.0-beta.14` |
+| [T-350](later.md) | P2 | M | later | defect | partial | beta.7 pins podnet `0.4.0-beta.13`; the vnet forward of #170 is in `0.4.0-beta.14` |

@@ -6910,7 +6910,7 @@ Write `DIR/JOB/job.log` with the failure line when a job fails before it starts.
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -6927,3 +6927,5 @@ Pin podnet `0.4.0-beta.15` (`images/podnet.toml`) after the gate passes with it.
 ## Prove
 
 `cargo test -p podrunner`; The gate and the user-gate with podnet beta.15; a podvm job in `podnet pod --backend seccomp` connects to the broker on a host that refuses a bind of the loopback.
+
+Pinned (2026-11-17): podnet `0.4.0-beta.15` in `images/podnet.toml` and `scripts/install.sh`; its Breaking items (the ports of `netns-kernel`, the rules of `warp proxy`) do not touch the seccomp hold. Open: the gate and the user-gate with it; the listener of the broker on a unix socket and `PODNET_VNET_FORWARD` (#170 step 1, T-220).
