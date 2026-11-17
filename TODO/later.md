@@ -6981,7 +6981,7 @@ Pinned (2026-11-17): podnet `0.4.0-beta.15` in `images/podnet.toml` and `scripts
 **Milestone:** later
 **Priority:** P1
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -6998,6 +6998,8 @@ The report and its logs (not in the repository), read on 2026-11-17; the triage 
 ## Prove
 
 `cargo test -p podrunner-egress names_upstream_with_no_resolver` (a fake resolver that fails, a fake CONNECT proxy that takes names: the CONNECT gets 200). A new user-gate lane `proxy-only-dns` (see "Gaps of the gate"): the corpus fetches each action.
+
+In the code (2026-11-17): step 3: a fetch whose way out fails (`CONNECT tunnel failed`) names the egress module, the proxy of the environment, `podrunner doctor` and `--local-repository OWNER/REPO@REF=DIR` (`actions::with_fix`); measured here with a dead proxy. Open: the root fix (COORD-078, #215), the lane of T-371, and the line of `doctor`.
 
 # T-352: `image verify` cannot verify the runner image of the release
 

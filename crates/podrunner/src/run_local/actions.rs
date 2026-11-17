@@ -195,7 +195,15 @@ fn with_fix(e: &podrunner_local::store::Error, mode: Mode) -> String {
         true => "; the forge asked for a login: the repository of the action is not there, or it is private",
         false => "",
     };
-    format!("{text}{fix}{login}")
+    // A fetch that the way out refused: the proxy, or the resolver of the
+    // egress module (T-351, F1 of the user QA of beta.7).
+    let way = match text.contains("CONNECT tunnel failed") || text.contains("Could not resolve proxy") {
+        true => {
+            "; the fetch goes through the egress module of podrunner and the proxy of the environment (HTTPS_PROXY), and that way failed: check the proxy with `podrunner doctor`, or serve the action with --local-repository OWNER/REPO@REF=DIR"
+        }
+        false => "",
+    };
+    format!("{text}{fix}{login}{way}")
 }
 
 /// The static values of each key of the matrix of a job: its vectors and
@@ -336,6 +344,13 @@ mod fix_tests {
         };
         let t = super::with_fix(&e, podrunner_local::store::Mode::Online);
         assert!(t.contains("is not there, or it is private"), "{t}");
+        // T-351: a refused way out names the proxy and the fix.
+        let e = podrunner_local::store::Error::Forge {
+            repo: "actions/upload-artifact".into(),
+            reason: "git ls-remote: fatal: unable to access 'https://github.com/actions/upload-artifact/': CONNECT tunnel failed, response 502".into(),
+        };
+        let t = super::with_fix(&e, podrunner_local::store::Mode::Online);
+        assert!(t.contains("proxy") && t.contains("--local-repository"), "{t}");
     }
 }
 

@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**369 entries: 33 open, 27 partial, 10 blocked, 299 done.**
+**369 entries: 32 open, 28 partial, 10 blocked, 299 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
-| P1 | 3 | 10 | 1 | 58 | 72 |
+| P1 | 2 | 11 | 1 | 58 | 72 |
 | P2 | 3 | 12 | 7 | 152 | 174 |
 | P3 | 27 | 5 | 2 | 89 | 123 |
-| **All** | 33 | 27 | 10 | 299 | 369 |
+| **All** | 32 | 28 | 10 | 299 | 369 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -395,7 +395,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-348](later.md) | P3 | S | later | defect | done | `--validate --json` gives no JSON for a workflow that is not valid |
 | [T-349](later.md) | P3 | S | later | defect | done | A failure before the start of a job names a log in `--log-dir` that is not there |
 | [T-350](later.md) | P2 | M | later | defect | partial | beta.7 pins podnet `0.4.0-beta.13`; the vnet forward of #170 is in `0.4.0-beta.14` |
-| [T-351](later.md) | P1 | M | later | defect | open | The egress module resolves each name itself, so a host with DNS only through its proxy gets 502 for each fetch and each allowed host |
+| [T-351](later.md) | P1 | M | later | defect | partial | The egress module resolves each name itself, so a host with DNS only through its proxy gets 502 for each fetch and each allowed host |
 | [T-352](later.md) | P3 | S | later | defect | open | `image verify` cannot verify the runner image of the release |
 | [T-353](later.md) | P2 | M | later | defect | partial | The runner image has no `less` |
 | [T-354](later.md) | P2 | M | later | defect | blocked | A podvm unit has no devpts: `openpty` fails |
