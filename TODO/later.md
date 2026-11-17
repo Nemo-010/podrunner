@@ -5970,7 +5970,7 @@ State (2026-11-16): the documents (`docs/local-mode.md`, "What a podvm unit hold
 
 2026-11-16: COORD-074 (GitHub #200) asks podvm for a PID namespace on the namespace rung. podvm answered (PodUtils/podvm#458, COORD-165): a PID namespace for `run -d` needs pod-enter first (podvm's COORD-164 to podcrates).
 
-2026-11-17: podcrates `v0.65.0` has `Plan::pid_namespace` of pod-enter (PodUtils/podcrates#215, COORD-125). The entry waits for the podvm release that sets it for `run -d`. podvm measured it (a job sees only its unit) but `run -d` does not return with it on; podvm took `v0.65.0` with the option off and waits for COORD-167 (PodUtils/podvm#460). podvm names the beta on PodUtils/podvm#458.
+2026-11-17: podcrates `v0.65.0` has `Plan::pid_namespace` of pod-enter (PodUtils/podcrates#215, COORD-125). The entry waits for the podvm release that sets it for `run -d`. podvm measured it (a job sees only its unit) but `run -d` does not return with it on; podvm took `v0.65.0` with the option off and waits for COORD-167 (PodUtils/podvm#460). podvm names the beta on PodUtils/podvm#458. 2026-11-17: podcrates `v0.66.0` fixes the init (PodUtils/podcrates#215 → #216, COORD-126); podvm takes it next.
 
 
 # T-319: The egress hold of the local mode lets a job out through a proxy on the loopback
