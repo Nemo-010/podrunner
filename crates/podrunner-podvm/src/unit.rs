@@ -26,6 +26,7 @@ use podrunner_unit::{
 
 use crate::Podvm;
 
+mod cache;
 mod confine;
 mod containers;
 mod hold;
@@ -76,6 +77,8 @@ pub struct PodvmUnit {
     confine: bool,
     /// The rlimits of each unit (T-162).
     limits: podrunner_unit::limits::Limits,
+    /// The cache of image tars, else `STATE/images` (T-242).
+    tars: Option<PathBuf>,
 }
 
 fn host(what: &str, e: std::io::Error) -> UnitError {
@@ -105,6 +108,7 @@ impl PodvmUnit {
             podnet: None,
             confine: false,
             limits: podrunner_unit::limits::Limits::default(),
+            tars: None,
         })
     }
 
@@ -162,10 +166,6 @@ impl PodvmUnit {
         Ok(String::from_utf8_lossy(&out.stdout).into_owned())
     }
 
-    fn tar_of(&self, digest: &str) -> PathBuf {
-        self.state_dir.join("images").join(format!("{}.tar", digest.trim_start_matches("sha256:")))
-    }
-
     fn unit_dir(&self, unit: &UnitId) -> PathBuf {
         self.state_dir.join("units").join(unit.as_str())
     }
@@ -208,7 +208,7 @@ impl UnitDriver for PodvmUnit {
         let tar = self.tar_of(digest);
         if !tar.exists() {
             fs::create_dir_all(tar.parent().expect("a directory")).map_err(|e| host("the image cache", e))?;
-            let part = tar.with_extension("part");
+            let part = tar.with_extension(format!("part-{}", std::process::id()));
             let save = |u: &PodvmUnit| u.podvm(&u.images, &["save", "-o", &part.to_string_lossy(), reference], None);
             if let Err(first) = save(self) {
                 // An image that a digest pins and that the store does not

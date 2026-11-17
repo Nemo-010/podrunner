@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**336 entries: 20 open, 22 partial, 12 blocked, 282 done.**
+**336 entries: 19 open, 23 partial, 12 blocked, 282 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 7 | 8 | 7 | 144 | 166 |
+| P2 | 6 | 9 | 7 | 144 | 166 |
 | P3 | 12 | 5 | 3 | 81 | 101 |
-| **All** | 20 | 22 | 12 | 282 | 336 |
+| **All** | 19 | 23 | 12 | 282 | 336 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -289,7 +289,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-239](later.md) | P2 | S | later | defect | done | `--action-server` on the loopback or a private address is denied |
 | [T-240](later.md) | P3 | S | later | defect | open | `doctor --run --incus` does not try incus |
 | [T-241](later.md) | P3 | S | later | defect | open | The small findings of the second QA report |
-| [T-242](later.md) | P2 | M | later | defect | open | Each run copies the runner image several times into a new directory |
+| [T-242](later.md) | P2 | M | later | defect | partial | Each run copies the runner image several times into a new directory |
 | [T-243](later.md) | P1 | M | later | release | partial | The user-path gate: the files of the release, installed and used as a user |
 | [T-244](later.md) | P1 | M | later | release | blocked | The host lanes of the user-path gate |
 | [T-245](later.md) | P2 | S | later | chore | open | The command line as a contract |

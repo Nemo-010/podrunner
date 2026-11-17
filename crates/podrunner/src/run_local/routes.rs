@@ -128,6 +128,10 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
     };
     let podvm = Podvm { binary: binary.clone() };
     let mut unit = PodvmUnit::new(podvm, state, images).map_err(|e| fail(Class::Config, format!("podvm: {e}")))?;
+    // The tar of an image stays for the next run (T-242).
+    if let Ok(dir) = super::actions::user_cache("image-tars") {
+        unit = unit.with_image_cache(&dir);
+    }
     let mut egress = None;
     if let Some(podnet) = &a.podnet {
         // The fake broker listens on the loopback of the host: the seccomp

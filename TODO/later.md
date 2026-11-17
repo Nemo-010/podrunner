@@ -3794,7 +3794,7 @@ Refuse names that differ only by case in `--env-file`; a JSON form of `--list` a
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -3811,6 +3811,8 @@ Keep the tar of each image in a cache of the user, keyed by its digest, across r
 ## Prove
 
 A measure in `runner-image.yml`: `podrunner run` of one job two times on `--podvm`, and the bytes written (`/proc/self/io` of the run): the second run writes no tar of the image.
+
+State (2026-11-17): the local mode keeps the tar of each image in the cache of the user (`~/.cache/podrunner/image-tars/DIGEST.tar`; `PodvmUnit::with_image_cache`, `unit/cache.rs`; the 4 newest by time of use stay), so a run saves an image once, not once for each run (about 300 MB of writes); a tar is written under a name of its process, then renamed. Proven on a constrained host as a user (`qa5`): two runs, one tar. Next: the load and the extract of each unit (about 1.2 GB for each job), which need one tree of the image for each run and a copy only where the rung needs it: a COORD issue to podvm.
 
 # T-243: The user-path gate: the files of the release, installed and used as a user
 
