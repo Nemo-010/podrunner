@@ -6191,7 +6191,7 @@ The report of agent 1 of the fifth QA (the commands and outputs are in it).
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6208,6 +6208,10 @@ Find the call that fails (strace in a unit). A path of a raw system call that po
 ## Prove
 
 `podrunner run .github/workflows/tests.yaml --job tests --matrix python=3.13` of pallets/markupsafe on the base image as a user.
+
+## Done
+
+2026-11-17: the cause is not podvm. With no gcc, markupsafe's `setup.py` builds again without the C extension in the same process; distutils' cache of made directories (`mkpath`) skips the `egg-info` directory of the new temporary tree, so `os.utime` gets ENOENT. Measured as `qa5` with a wrapper of `os.utime` (`errno=2`, the directory is not there); the unit was on the namespace rung (9 mounts, no volume). The base image keeps no compiler (the call in `docs/decisions.md`); `docs/local-mode.md` and the notes name the case and `--full`, with which the job passes (the fifth QA).
 
 # T-327: A run pulls the images of services: before it refuses the job
 

@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**336 entries: 27 open, 21 partial, 13 blocked, 275 done.**
+**336 entries: 26 open, 21 partial, 13 blocked, 276 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 14 | 8 | 7 | 137 | 166 |
+| P2 | 13 | 8 | 7 | 138 | 166 |
 | P3 | 12 | 4 | 4 | 81 | 101 |
-| **All** | 27 | 21 | 13 | 275 | 336 |
+| **All** | 26 | 21 | 13 | 276 | 336 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -370,7 +370,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-323](later.md) | P3 | M | later | defect | open | The P3 findings of the fourth QA, agent B |
 | [T-324](later.md) | P2 | M | later | defect | open | The base runner image has no make, libatomic1 or python3 |
 | [T-325](later.md) | P2 | M | later | defect | done | A podvm unit needs more scratch disk than doctor says; --jobs 2 fills the disk |
-| [T-326](later.md) | P2 | S | later | defect | open | A uv build in a podvm unit on the base image fails at utime of its cache |
+| [T-326](later.md) | P2 | S | later | defect | done | A uv build in a podvm unit on the base image fails at utime of its cache |
 | [T-327](later.md) | P2 | M | later | defect | done | A run pulls the images of services: before it refuses the job |
 | [T-328](later.md) | P2 | S | later | defect | done | Under the egress hold, a refused host is not named with its fix |
 | [T-329](later.md) | P2 | S | later | defect | done | Each unit under --podnet logs connects that the job did not make |

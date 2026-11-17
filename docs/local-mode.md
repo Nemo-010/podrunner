@@ -66,7 +66,9 @@ into a directory of the job, or use a guest.
 | base (`runner-ARCH.tar`) | bash, curl, git, jq, make, python3, libatomic1, sudo (no password; a guest only), tar, gzip, unzip, zstd, iptables |
 | larger (`runner-full-ARCH.tar`, `--full`) | the base, and `images/runner/full.txt`: build-essential, cmake, pkg-config, libssl-dev, python3 with pip and venv, nodejs, npm, zip, xz-utils, bzip2, rsync, openssh-client, wget, file, patch |
 
-Neither image has Docker, Rust (`cargo`, `rustup`), Go, Java, .NET or
+The base image has no C compiler: a project that builds a C extension
+(a Python package such as pallets/markupsafe) needs the larger image
+(`--full`) (T-326). Neither image has Docker, Rust (`cargo`, `rustup`), Go, Java, .NET or
 yarn: the `setup-*` actions install a toolchain into the tool cache of
 the job. In a podvm unit on the namespace rung of podvm (a user with no
 root on a host with user namespaces), a job runs as the user `runner` of
