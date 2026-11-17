@@ -18,7 +18,7 @@ fn doctor_runs_the_probe_rows_in_children_of_the_binary() {
     }
     let text = Command::new(env!("CARGO_BIN_EXE_podrunner")).arg("doctor").output().unwrap();
     let text = String::from_utf8(text.stdout).unwrap();
-    assert!(text.contains("probe chroot(/tmp): "), "{text}");
+    assert!(text.contains("probe chroot(/tmp) in unshare(NEWUSER+maps): "), "{text}");
 }
 
 /// T-153: `doctor --run` checks the inputs of a local run; a check that
