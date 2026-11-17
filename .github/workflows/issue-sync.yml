@@ -3,8 +3,8 @@ name: issue-sync
 # The issues of podrunner against its record (T-264, the ruling "Issues"
 # of the owner): the workflow of podcrates writes the status block of each
 # issue from the record, closes an issue that the record closes, and fails
-# on drift that it cannot fix. It is a dry run until a session read the
-# output of one: then set the default of `dry_run` to false.
+# on drift that it cannot fix. The dry runs 44096256027 and 44099014996
+# were read; the sync writes (the owner, 2026-11-17).
 
 on:
   push:
@@ -19,7 +19,7 @@ on:
       dry_run:
         description: Print each change and change nothing
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: read
@@ -32,5 +32,4 @@ jobs:
     uses: PodUtils/podcrates/.github/workflows/issue-sync.yml@d85f2d245b9de93b6932124c06463c7f6416203e # v0.69.0
     with:
       podcrates_ref: v0.69.0
-      # A push and the schedule print only, until the first output is read.
-      dry_run: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run }}
+      dry_run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
