@@ -51,8 +51,10 @@ pub(super) fn cpu_held(podvm: &crate::Podvm) -> Result<(), String> {
         .clone()
 }
 
-/// The cgroup of `proc_cgroup` under `root` is a delegated cgroup v2
-/// directory with the `cpu` controller.
+/// The parent of the cgroup of `proc_cgroup` under `root` is a cgroup v2
+/// directory of this user with the `cpu` controller: podvm makes the leaf
+/// of a run beside the cgroup of its caller (a systemd user session: the
+/// parent is `app.slice` of `user@UID.service`).
 fn delegated(proc_cgroup: &std::path::Path, root: &std::path::Path) -> Result<(), String> {
     use std::os::unix::fs::MetadataExt;
     let text = std::fs::read_to_string(proc_cgroup).map_err(|e| format!("{}: {e}", proc_cgroup.display()))?;
@@ -60,8 +62,10 @@ fn delegated(proc_cgroup: &std::path::Path, root: &std::path::Path) -> Result<()
     if text.lines().any(|l| !l.starts_with("0::") && !l.trim().is_empty()) {
         return Err("a host with cgroup v1 controllers".into());
     }
-    let dir = root.join(path.trim().trim_start_matches('/'));
-    let meta = std::fs::metadata(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    let own = root.join(path.trim().trim_start_matches('/'));
+    let dir =
+        own.parent().filter(|p| p.starts_with(root) && *p != root).ok_or("the cgroup of this process is the root")?;
+    let meta = std::fs::metadata(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
     // SAFETY: geteuid has no failure.
     if meta.uid() != unsafe { libc::geteuid() } {
         return Err(format!("{} is not delegated to this user", dir.display()));
@@ -160,17 +164,19 @@ mod tests {
     fn a_cpu_limit_needs_a_delegated_cgroup() {
         let t = std::env::temp_dir().join(format!("podrunner-cgroup-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&t);
+        // The process is in `app/run`; podvm makes its leaf beside it, in `app`.
         let leaf = t.join("root/user.slice/app");
-        std::fs::create_dir_all(&leaf).unwrap();
+        std::fs::create_dir_all(leaf.join("run")).unwrap();
         let proc = t.join("cgroup");
         let check = |proc_text: &str, controllers: &str| {
             std::fs::write(&proc, proc_text).unwrap();
             std::fs::write(leaf.join("cgroup.controllers"), controllers).unwrap();
             super::delegated(&proc, &t.join("root"))
         };
-        assert_eq!(check("0::/user.slice/app\n", "cpu memory pids\n"), Ok(()));
-        assert!(check("0::/user.slice/app\n", "memory pids\n").unwrap_err().contains("no cpu controller"));
-        assert!(check("4:memory:/x\n0::/user.slice/app\n", "cpu\n").unwrap_err().contains("cgroup v1"));
+        assert_eq!(check("0::/user.slice/app/run\n", "cpu memory pids\n"), Ok(()));
+        assert!(check("0::/user.slice/app/run\n", "memory pids\n").unwrap_err().contains("no cpu controller"));
+        assert!(check("4:memory:/x\n0::/user.slice/app/run\n", "cpu\n").unwrap_err().contains("cgroup v1"));
+        assert!(check("0::/top\n", "cpu\n").is_err(), "the parent is the root");
         assert!(check("1:cpu:/\n", "cpu\n").is_err(), "cgroup v1 only");
         let _ = std::fs::remove_dir_all(&t);
     }

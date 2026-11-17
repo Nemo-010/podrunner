@@ -3263,6 +3263,9 @@ History of the blocker:
 
 State (2026-11-17): the podvm kind takes `[unit.podvm] cpus` and the `cpu` of an offer where this process is in a cgroup v2 directory of its user with the `cpu` controller and podvm is `0.2.0-beta.23` or later (`unit/limits.rs`, `cpu_held`); a unit gets `--cpus N`; elsewhere `cpus` is refused with the reason and an offer's `cpu` is not held. `a_cpu_limit_needs_a_delegated_cgroup` holds the detection; `tests/limits.rs` has `a_cpu_limit_holds_in_a_delegated_cgroup`, which the measure of `runner-image.yml` runs in a transient service of systemd with `Delegate=yes`. Next: that measure.
 
+State (2026-11-17, the measure): runner-image 44075936648: in a service of systemd with `Delegate=yes`, podvm refused `--cpus`: it makes the leaf of a run beside the cgroup of its caller (`system.slice/podvm-...`: Permission denied), so the parent must be the delegated directory, as `app.slice` of a systemd user session. `delegated` now checks the parent, and the measure moves the test into a leaf of the service first. Next: that measure.
+
+
 # T-223: `doctor --run` says ok for a store that does not hold `--image`
 
 **Source:** GitHub #172 (a user agent of the local mode, #153, 2026-11-15)
