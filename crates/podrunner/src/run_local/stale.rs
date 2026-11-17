@@ -20,6 +20,15 @@ impl Drop for Gone {
     }
 }
 
+/// The temporary directory of the run: it must exist and take a
+/// directory, or each later step fails with a path only (T-323 F14).
+pub(super) fn tmp_ok(tmp: &Path) -> Result<(), String> {
+    let probe = tmp.join(format!("podrunner-probe-{}", std::process::id()));
+    std::fs::create_dir(&probe)
+        .map(|()| drop(std::fs::remove_dir(&probe)))
+        .map_err(|e| format!("TMPDIR {}: {e}: set TMPDIR to a directory that you can write", tmp.display()))
+}
+
 /// Whether a process `pid` lives. Any process counts, not only one named
 /// podrunner: a run started through a link of another name stays safe.
 fn live_podrunner(pid: u32) -> bool {
@@ -106,5 +115,13 @@ mod tests {
         units_of(&dead, 3, &mut units);
         assert_eq!(units, [(dead.join("default"), "u-1".to_string())]);
         let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    /// T-323 F14: a TMPDIR that is not there is named.
+    #[test]
+    fn a_missing_tmpdir_is_named() {
+        assert!(tmp_ok(&std::env::temp_dir()).is_ok());
+        let e = tmp_ok(Path::new("/nonexistent/podrunner-tmp")).unwrap_err();
+        assert!(e.starts_with("TMPDIR /nonexistent/podrunner-tmp: ") && e.contains("set TMPDIR"), "{e}");
     }
 }
