@@ -61,15 +61,16 @@ fn policy(allow: &[String]) -> String {
     serde_json::json!({ "schema": 1, "mode": "allow", "allow": hosts }).to_string()
 }
 
-/// The line of one job.
+/// The line of one job; a name of several lines (a folded `name: >`) is one.
 pub fn line(l: &Line) -> String {
+    let one = |n: &str| n.split_whitespace().collect::<Vec<_>>().join(" ");
     match l {
-        Line::Ran { name, result: JobResult::Success, .. } => format!("ok      {name}\n"),
-        Line::Ran { name, result, .. } => format!("{:<7} {name}\n", result.as_str()),
-        Line::Refused { name, reason, .. } => format!("failure {name}: {reason}\n"),
+        Line::Ran { name, result: JobResult::Success, .. } => format!("ok      {}\n", one(name)),
+        Line::Ran { name, result, .. } => format!("{:<7} {}\n", result.as_str(), one(name)),
+        Line::Refused { name, reason, .. } => format!("failure {}: {reason}\n", one(name)),
         Line::Skipped { job, condition } => format!("skipped {job}: if: {condition}\n"),
-        Line::NotSelected { name, reason, .. } => format!("skipped {name}: {reason}\n"),
-        Line::Kept { name, result, .. } => format!("kept    {name} ({})\n", result.as_str()),
+        Line::NotSelected { name, reason, .. } => format!("skipped {}: {reason}\n", one(name)),
+        Line::Kept { name, result, .. } => format!("kept    {} ({})\n", one(name), result.as_str()),
     }
 }
 
@@ -150,7 +151,7 @@ pub fn run(args: &[String]) -> Out {
         Ok(t) => t,
         // A workflow that cannot be read is 66, as one that is not there
         // (T-278).
-        Err(e) => return fail(Class::NotFound, format!("{}: {e}", a.file.display())),
+        Err(e) => return fail(Class::NotFound, inspect::missing(&a.file, &e)),
     };
     if a.validate || a.list || a.graph {
         return inspect::answer(&a, &text);

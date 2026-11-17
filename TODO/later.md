@@ -6398,6 +6398,8 @@ The report of agent 1 of the fifth QA (the commands and outputs are in it).
 
 Fix each one; a finding that the code cannot change goes into the documents.
 
+Fixed (2026-11-17): F9, a missing workflow file names the workflows of its directory (`inspect::missing`); F9, a folded `name: >` is one line (`line` of `run_local.rs`); F8, no `failed at connect` line where the fallback to the proxy works (T-329, `Egress::quiet`).
+
 ## Prove
 
 `cargo test -p podrunner -p podrunner-local`
@@ -6629,6 +6631,8 @@ The report of agent 2 of the fifth QA (the commands and outputs are in it).
 ## Approach
 
 Fix each one; a finding that the code cannot change goes into the documents.
+
+Fixed (2026-11-17): 14, `--web localhost:PORT`; 18, `version` refuses an option (exit 64); 19, `print-unit` refuses a `--config` that is not there (exit 66); 12, the egress lines (T-328, T-329, T-332).
 
 ## Prove
 

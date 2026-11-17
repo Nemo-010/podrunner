@@ -54,9 +54,14 @@ fn token() -> Result<String, String> {
     Ok(b.iter().map(|x| format!("{x:02x}")).collect())
 }
 
-/// `ADDR` of `--web`: an address of the loopback with a port (0 for any).
+/// `ADDR` of `--web`: an address of the loopback with a port (0 for any);
+/// `localhost:PORT` is `127.0.0.1:PORT` (T-339).
 pub(super) fn parse_addr(v: &str) -> Result<SocketAddr, String> {
-    let addr: SocketAddr = v.parse().map_err(|_| format!("--web {v:?} is not IP:PORT"))?;
+    let ip = match v.rsplit_once(':') {
+        Some((h, p)) if h.eq_ignore_ascii_case("localhost") => format!("127.0.0.1:{p}"),
+        _ => v.to_string(),
+    };
+    let addr: SocketAddr = ip.parse().map_err(|_| format!("--web {v:?} is not IP:PORT (or localhost:PORT)"))?;
     if !addr.ip().is_loopback() {
         return Err(format!("--web {v:?}: the view binds only an address of the loopback"));
     }
@@ -221,7 +226,8 @@ mod tests {
     #[test]
     fn the_view_serves_the_jobs_under_its_token_only() {
         assert!(parse_addr("0.0.0.0:8080").unwrap_err().contains("loopback"));
-        assert!(parse_addr("localhost").is_err());
+        assert!(parse_addr("localhost").is_err(), "no port");
+        assert_eq!(parse_addr("localhost:0").unwrap().to_string(), "127.0.0.1:0", "T-339");
         let dir = std::env::temp_dir().join(format!("podrunner-web-{}", std::process::id()));
         let store = Arc::new(ArtifactStore::new(&dir, 1 << 20).unwrap());
         assert!(store.zip_of("../etc").is_none() && store.zip_of(".pending").is_none());

@@ -182,7 +182,13 @@ fn run_inner(args: &[String]) -> Result<Out, Out> {
                         .ok_or_else(|| err(Class::Usage, "--watchdog needs a number of seconds"))?,
                 ),
             };
-            Ok(ok(print_unit(&binary, &o.need("--config")?, &o.need("--state")?, watchdog)))
+            // A unit file of a configuration that is not there would fail at
+            // its start, not here (T-339).
+            let config = o.need("--config")?;
+            if !config.is_file() {
+                return Err(err(Class::NotFound, format!("--config {}: no such file", config.display())));
+            }
+            Ok(ok(print_unit(&binary, &config, &o.need("--state")?, watchdog)))
         }
         "audit" => match rest.split_first() {
             Some((sub, rest)) if sub == "verify" => audit_verify(rest),
@@ -389,6 +395,7 @@ mod tests {
         assert_eq!(run(&args(&["stop", "--wait", "--socket", "/x"])).code, 64);
         assert_eq!(run(&args(&["stop", "--wait", "--state", "/x", "--timeout", "soon"])).code, 64);
         assert_eq!(run(&args(&["print-unit", "--config", "c", "--state", "s", "--watchdog", "0"])).code, 64);
+        assert_eq!(run(&args(&["print-unit", "--config", "/nonexistent/c", "--state", "s"])).code, 66, "T-339");
     }
 
     #[test]

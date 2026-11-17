@@ -133,6 +133,28 @@ pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
     super::Out { code: 0, stdout, stderr: String::new() }
 }
 
+/// The text of a workflow file that cannot be read: for a file that is not
+/// there, the workflows of its directory (the quick start names `ci.yml`,
+/// which a project may not have; T-331).
+pub(super) fn missing(file: &std::path::Path, e: &std::io::Error) -> String {
+    if e.kind() != std::io::ErrorKind::NotFound {
+        return format!("{}: {e}", file.display());
+    }
+    let dir = file.parent().filter(|d| !d.as_os_str().is_empty()).unwrap_or(std::path::Path::new("."));
+    let mut names: Vec<String> = std::fs::read_dir(dir)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .filter(|n| n.ends_with(".yml") || n.ends_with(".yaml"))
+        .collect();
+    names.sort();
+    match names.is_empty() {
+        true => format!("{}: no such file, and {} has no workflow", file.display(), dir.display()),
+        false => format!("{}: no such file; the workflows of {}: {}", file.display(), dir.display(), names.join(", ")),
+    }
+}
+
 /// The refusal of a job with containers where podvm gives no container
 /// hooks (T-311): `doctor --run` names the hooks of podvm.
 pub(super) const NO_HOOKS: &str = "the job needs containers, and podvm gives no container hooks on this host (`podrunner doctor --run` names it); run it with --microvm and --engine (a host with /dev/kvm)";

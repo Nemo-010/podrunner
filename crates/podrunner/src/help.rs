@@ -14,7 +14,15 @@ const CLI_DOC: &str = concat!("https://github.com/PodUtils/podrunner/blob/", env
 /// each other command line.
 pub(crate) fn answer(cmd: &str, rest: &[String]) -> Option<Out> {
     match cmd {
-        "version" => return Some(ok(crate::cli::version())),
+        // `version` takes no option but its help (T-339).
+        "version" => {
+            return Some(match rest.iter().find(|a| *a != "--help" && *a != "-h") {
+                None => ok(crate::cli::version()),
+                Some(x) => {
+                    err(Class::Usage, format!("version takes no option: {:?}\nusage: podrunner version", display(x)))
+                }
+            });
+        }
         "help" => {
             return Some(match rest.first().map(String::as_str) {
                 None => ok(USAGE.into()),
@@ -118,6 +126,7 @@ mod tests {
             assert!(o.stdout.contains(want), "{a:?}: {}", o.stdout);
         }
         assert_eq!(run(&args(&["help", "nope"])).code, 64);
+        assert_eq!(run(&args(&["version", "--x"])).code, 64, "T-339");
         // A next line of another command is not the help of check (T-323 F7).
         let o = run(&args(&["check", "--help"]));
         assert!(!o.stdout.contains("audit.jsonl"), "{}", o.stdout);
