@@ -114,6 +114,15 @@ fn the_secrets_and_the_lock_stay_out_of_the_tree() {
     for gone in [".secrets", ".github/workflows/podrunner-actions.lock", "my.env"] {
         assert!(!t.contains_key(gone), "{gone} in {t:?}");
     }
+    // T-339 item 11: a committed lock stays, at its state on disk.
+    let git = |args: &[&str]| {
+        assert!(std::process::Command::new("git").arg("-C").arg(&dir).args(args).status().unwrap().success())
+    };
+    git(&["add", ".github/workflows/podrunner-actions.lock"]);
+    git(&["-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "-qm", "lock"]);
+    std::fs::write(dir.join(".github/workflows/podrunner-actions.lock"), "lock, edited").unwrap();
+    let t = entries(&tarball(&dir, &scratch, o.clone()).unwrap());
+    assert!(t.contains_key(".github/workflows/podrunner-actions.lock"), "{t:?}");
     let plain = dir.with_extension("plain");
     let _ = std::fs::remove_dir_all(&plain);
     std::fs::create_dir_all(plain.join("empty")).unwrap();

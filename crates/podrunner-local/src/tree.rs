@@ -183,7 +183,17 @@ pub fn tarball(dir: &Path, scratch: &Path, o: Options) -> Result<PathBuf, String
             b.append_data(&mut h, path, &mut entry).map_err(fail)?;
         }
     } else {
-        let list = files(dir)?.into_iter().filter(|f| !left_out(f, &o)).collect();
+        // A committed lock stays at its state on disk, as each tracked
+        // file: leaving it out made it deleted in the job (T-339 item 11).
+        let out = git(dir, &["ls-files", "-z", "--cached"])?;
+        let tracked: std::collections::BTreeSet<PathBuf> = out
+            .split(|b| *b == 0)
+            .filter(|p| !p.is_empty())
+            .map(|p| PathBuf::from(String::from_utf8_lossy(p).into_owned()))
+            .collect();
+        let lock = |f: &Path| f.file_name().is_some_and(|n| n == crate::lock::LOCK_FILE) && tracked.contains(f);
+        let list =
+            files(dir)?.into_iter().filter(|f| !left_out(f, &o) || (lock(f) && !o.exclude.contains(f))).collect();
         for f in links_last(dir, list) {
             add(&mut b, &f)?;
         }

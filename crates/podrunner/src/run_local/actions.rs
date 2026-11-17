@@ -188,7 +188,14 @@ fn with_fix(e: &podrunner_local::store::Error, mode: Mode) -> String {
         }
         _ => "",
     };
-    format!("{e}{fix}")
+    // git asks for a login where the forge has no such public repository
+    // (T-339 item 15).
+    let text = e.to_string();
+    let login = match text.contains("terminal prompts disabled") || text.contains("could not read Username") {
+        true => "; the forge asked for a login: the repository of the action is not there, or it is private",
+        false => "",
+    };
+    format!("{text}{fix}{login}")
 }
 
 /// The static values of each key of the matrix of a job: its vectors and
@@ -315,6 +322,20 @@ fn on_local_network(host: &str) -> bool {
         Ok(std::net::IpAddr::V4(ip)) => ip.is_loopback() || ip.is_private() || ip.is_link_local(),
         Ok(std::net::IpAddr::V6(ip)) => ip.is_loopback() || (ip.segments()[0] & 0xfe00) == 0xfc00,
         Err(_) => host.eq_ignore_ascii_case("localhost"),
+    }
+}
+
+#[cfg(test)]
+mod fix_tests {
+    /// T-339 item 15: a login prompt of git names a missing repository.
+    #[test]
+    fn a_login_prompt_names_a_missing_repository() {
+        let e = podrunner_local::store::Error::Forge {
+            repo: "me/none".into(),
+            reason: "fatal: could not read Username for 'https://github.com': terminal prompts disabled".into(),
+        };
+        let t = super::with_fix(&e, podrunner_local::store::Mode::Online);
+        assert!(t.contains("is not there, or it is private"), "{t}");
     }
 }
 
