@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**368 entries: 37 open, 23 partial, 10 blocked, 298 done.**
+**368 entries: 36 open, 24 partial, 10 blocked, 298 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 3 | 9 | 1 | 58 | 71 |
-| P2 | 7 | 9 | 7 | 151 | 174 |
+| P2 | 6 | 10 | 7 | 151 | 174 |
 | P3 | 27 | 5 | 2 | 89 | 123 |
-| **All** | 37 | 23 | 10 | 298 | 368 |
+| **All** | 36 | 24 | 10 | 298 | 368 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -397,7 +397,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-350](later.md) | P2 | M | later | defect | partial | beta.7 pins podnet `0.4.0-beta.13`; the vnet forward of #170 is in `0.4.0-beta.14` |
 | [T-351](later.md) | P1 | M | later | defect | open | The egress module resolves each name itself, so a host with DNS only through its proxy gets 502 for each fetch and each allowed host |
 | [T-352](later.md) | P3 | S | later | defect | open | `image verify` cannot verify the runner image of the release |
-| [T-353](later.md) | P2 | M | later | defect | open | The runner image has no `less` |
+| [T-353](later.md) | P2 | M | later | defect | partial | The runner image has no `less` |
 | [T-354](later.md) | P2 | M | later | defect | blocked | A podvm unit has no devpts: `openpty` fails |
 | [T-355](later.md) | P2 | M | later | defect | open | A failed route of the egress module is reported as a host that the policy refused |
 | [T-356](later.md) | P2 | M | later | defect | open | A run does not check `--toolcache` before its first unit |

@@ -321,7 +321,7 @@ jobs:
         run: |
           set -eu
           PODVM_STORE="$PODRUNNER_PODVM_IMAGES" "$PODRUNNER_PODVM" run --rm "$PODRUNNER_RUNNER_IMAGE" \
-            /bin/sh -c 'make --version | head -1 && python3 --version && ls /usr/lib/*/libatomic.so.1'
+            /bin/sh -c 'make --version | head -1 && python3 --version && ls /usr/lib/*/libatomic.so.1 && command -v less'
       # T-232: GNU tar in a podvm unit extracts a link before its target and
       # a dangling link (PodUtils/podvm#423, podvm 0.2.0-beta.24).
       - name: The links of tar in a podvm unit

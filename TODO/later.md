@@ -7027,7 +7027,7 @@ In `crates/podrunner/src/image.rs`, when `is_image` is true, read `index.json` o
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -7044,6 +7044,8 @@ Add `less` to the base package list in `images/runner/Dockerfile` (it is small).
 ## Prove
 
 `cargo test -p podrunner`; the tool check of `runner-image.yml` in a podvm unit: `command -v less`.
+
+In the code (2026-11-17): `less` is in the base package list of `images/runner/Dockerfile`, and the step "The tools of the base image in a podvm unit" of `runner-image.yml` checks `command -v less`. Open: that step green on a `runner-image.yml` run; the measure `rung:podvm` of the user gate.
 
 # T-354: A podvm unit has no devpts: `openpty` fails
 
