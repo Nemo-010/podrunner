@@ -196,6 +196,12 @@ jobs:
           - lane: proxy-only
             lab: sh scripts/lab/proxy-only.sh -- sh scripts/lab/nonroot.sh --
             executors: podvm,runner-dir
+          # The host of the user QA of beta.7 (T-371, F1, F4): the proxy
+          # asks for a login and resolves each name; the user has no
+          # resolver of its own.
+          - lane: proxy-only-dns
+            lab: env LAB_NO_DNS=1 LAB_PROXY_AUTH=1 sh scripts/lab/proxy-only.sh -- sh scripts/lab/nonroot.sh --
+            executors: podvm,runner-dir
           # podvm 0.2.0-beta.24 makes the class around podrunner only (the
           # local server of the lane binds): the install, then doctor and a
           # run in `podvm lab run` (T-213), and a run with --vnet (T-220, a measure).
@@ -283,7 +289,7 @@ jobs:
           set +e
           # The lanes of the matrix of the job lanes: a lane with no results
           # fails the gate.
-          python3 -I scripts/user-gate.py summary --lanes plain,small-tmp,userns-off,inherited-fds,proxy-only,bind-denied results > table.md
+          python3 -I scripts/user-gate.py summary --lanes plain,small-tmp,userns-off,inherited-fds,proxy-only,proxy-only-dns,bind-denied results > table.md
           rc=$?
           cat table.md | tee -a "$GITHUB_STEP_SUMMARY"
           exit "$rc"

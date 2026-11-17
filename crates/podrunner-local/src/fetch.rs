@@ -108,7 +108,7 @@ impl Fetch {
     pub fn open(host: &str) -> Result<Fetch, String> {
         let upstream = env_proxy(host)?;
         let names = upstream.is_some();
-        let resolve = podrunner_egress::dns::resolver(false, Vec::new());
+        let resolve = podrunner_egress::dns::resolver_via(upstream.as_ref());
         // A failed way out falls back to the proxy: no line (T-331 F8).
         let egress = Egress::host(upstream, names, resolve).map_err(|e| format!("the egress module: {e}"))?.quiet();
         let dir = std::env::temp_dir().join(format!("podrunner-run-fetch-{}", std::process::id()));

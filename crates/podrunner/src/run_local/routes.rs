@@ -181,9 +181,8 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
 /// of the environment is its way out (T-233).
 fn module(a: &Args) -> Result<(std::sync::Arc<podrunner_egress::Egress>, String), Out> {
     let up = podrunner_local::fetch::env_proxy("github.com").map_err(|e| fail(Class::Config, e))?;
-    let e =
-        podrunner_egress::Egress::host(up.clone(), up.is_some(), podrunner_egress::dns::resolver(false, Vec::new()))
-            .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?
-            .quiet();
+    let e = podrunner_egress::Egress::host(up.clone(), up.is_some(), podrunner_egress::dns::resolver_via(up.as_ref()))
+        .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?
+        .quiet();
     Ok((std::sync::Arc::new(e), policy(&a.allow)))
 }

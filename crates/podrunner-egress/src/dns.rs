@@ -29,6 +29,30 @@ pub fn resolver(doh: bool, pins: Vec<(String, IpAddr)>) -> Arc<dyn Resolve> {
     Arc::new(pod_dns::Resolver::new(settings).with_doh(context, dial))
 }
 
+/// The resolver of an egress module whose way out is `proxy` (T-351): on a
+/// host whose only resolver is the proxy, the system has no address, and
+/// the broker refuses each name before it sends the name up. With a proxy,
+/// DNS over HTTPS goes through that proxy, and the CA bundle of the
+/// environment (`SSL_CERT_FILE`, `CURL_CA_BUNDLE`, `REQUESTS_CA_BUNDLE`)
+/// adds to the roots, as a proxy that intercepts TLS needs. The system
+/// resolver stays first.
+pub fn resolver_via(proxy: Option<&pod_proxy::Proxy>) -> Arc<dyn Resolve> {
+    let Some(proxy) = proxy else { return resolver(false, Vec::new()) };
+    let version = env!("CARGO_PKG_VERSION");
+    let settings = pod_dns::Settings { user_agent: format!("podrunner/{version}"), ..Default::default() };
+    let plain: Arc<dyn Resolve> = Arc::new(pod_dns::Resolver::new(settings.clone()));
+    let provider = Arc::new(rustls::crypto::ring::default_provider());
+    let mut tls = pod_tls::Settings::new(pod_tls::Words::new("podrunner"));
+    tls.extra_bundle = ["SSL_CERT_FILE", "CURL_CA_BUNDLE", "REQUESTS_CA_BUNDLE"]
+        .iter()
+        .find_map(|v| std::env::var_os(v).filter(|p| !p.is_empty()))
+        .map(std::path::PathBuf::from);
+    let context = Arc::new(pod_tls::Context::new(provider, tls));
+    let way = pod_proxy::Settings::new("podrunner", ProxyChoice::Via(proxy.clone()));
+    let dial = Arc::new(Dialer::new(way, plain));
+    Arc::new(pod_dns::Resolver::new(settings).with_doh(context, dial))
+}
+
 /// A blocking lookup through `resolve`, for a caller with no runtime (the
 /// dial of a remote mint): the addresses of `host` at `port`, or why not.
 pub fn lookup(resolve: Arc<dyn Resolve>) -> impl Fn(&str, u16) -> Result<Vec<SocketAddr>, String> + Send + Sync {

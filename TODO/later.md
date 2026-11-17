@@ -7001,6 +7001,8 @@ The report and its logs (not in the repository), read on 2026-11-17; the triage 
 
 In the code (2026-11-17): step 3: a fetch whose way out fails (`CONNECT tunnel failed`) names the egress module, the proxy of the environment, `podrunner doctor` and `--local-repository OWNER/REPO@REF=DIR` (`actions::with_fix`); measured here with a dead proxy. Open: the root fix (COORD-078, #215), the lane of T-371, and the line of `doctor`.
 
+In the code (2026-11-17): step 2, the fix in podrunner: an egress module with a proxy of the environment (the fetch of actions, `--podnet`, `--vnet`, a guest) takes `dns::resolver_via(proxy)`: the system resolver first, then DNS over HTTPS through that proxy, with the CA bundle of the environment added to the roots. Proven on a constrained host as a user: on this sandbox, a user with no resolver (port 53 refused by the firewall, `getent hosts github.com` fails), behind a proxy that intercepts TLS, gave the 502 before the fix and pins `actions/upload-artifact@v4` after it (`run --dry-run`). Not proven: a proxy that asks for a login (the lane `proxy-only-dns`, T-371), and a proxy that refuses a CONNECT to the address of a DoH server. The ask of #215 stays: a broker that sends a name it cannot resolve.
+
 # T-352: `image verify` cannot verify the runner image of the release
 
 **Source:** a user QA report of `v0.1.0-beta.7` (2026-11-17), finding F2; the triage of the report against `main` at `b752051`
