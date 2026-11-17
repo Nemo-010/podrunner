@@ -88,12 +88,29 @@ pub fn start_runner_in(
         // The console of the runner goes to stderr: stdout has the lines of
         // the jobs, and their JSON with `--json` (T-134).
         .stdout(match console {
-            true => std::process::Stdio::from(std::io::stderr()),
+            true => std::process::Stdio::piped(),
             false => std::process::Stdio::null(),
         })
         // The errors of the runner stay on stderr: a crash names its cause.
         .spawn()
+        .map(|mut child| {
+            if let Some(out) = child.stdout.take() {
+                std::thread::spawn(move || {
+                    use std::io::BufRead;
+                    for line in std::io::BufReader::new(out).lines().map_while(Result::ok) {
+                        eprintln!("{}", console_line(&line));
+                    }
+                });
+            }
+            child
+        })
         .map_err(|e| format!("{}: run.sh: {}", dir.display(), e.kind()))
+}
+
+/// A line of the console of the runner: the runner names GitHub where it
+/// reached the fake broker of the run (T-331).
+pub fn console_line(line: &str) -> String {
+    line.replace("Connected to GitHub", "Connected to the fake broker of podrunner (not GitHub)")
 }
 
 /// Run the runner in `dir` once against `broker`, with the extra
@@ -105,6 +122,13 @@ pub fn run_once(dir: &Path, broker: &Broker, env: &[(&str, String)]) -> std::pro
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// T-331: the console does not claim GitHub.
+    #[test]
+    fn the_console_names_the_fake_broker() {
+        assert_eq!(console_line("√ Connected to GitHub"), "√ Connected to the fake broker of podrunner (not GitHub)");
+        assert_eq!(console_line("other"), "other");
+    }
 
     /// Each number has the length that .NET takes, with no sign byte.
     #[test]

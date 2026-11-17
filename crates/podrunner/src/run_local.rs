@@ -146,7 +146,7 @@ pub fn run(args: &[String]) -> Out {
     let a = match parse(args).map(args::default_checkout) {
         Ok(Ok(a)) => a,
         Ok(Err(e)) => return fail(Class::Usage, e),
-        Err(e) => return fail(Class::Usage, format!("{e}\n{USAGE}")),
+        Err(e) => return fail(Class::Usage, args::with_usage(e)),
     };
     // A directory: each of its workflows that takes the event (T-125).
     if a.file.is_dir() {

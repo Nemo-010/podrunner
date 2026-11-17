@@ -49,6 +49,16 @@ pub struct RunnerDir {
     _lock: Arc<std::fs::File>,
 }
 
+/// A work directory out of the runner directory (`BASE/podrunner-work`,
+/// T-255) goes with the run, and its parent when it is empty (T-331 F10).
+impl Drop for RunnerDir {
+    fn drop(&mut self) {
+        if self.work != self.dir.join("_work") && crate::work::clear(&self.work).is_ok() {
+            let _ = self.work.parent().map(std::fs::remove_dir);
+        }
+    }
+}
+
 /// The runner does not quote the path of a step script, so each `run:`
 /// step fails in a runner directory whose path has a space (T-281).
 pub fn space_refusal(dir: &std::path::Path) -> Option<String> {

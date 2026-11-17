@@ -208,3 +208,13 @@ fn two_executors_name_the_clash_first() {
     let e = parse(&args(&["w.yml", "--podvm", "/p", "--runner-dir", "/r"])).unwrap_err();
     assert!(e.contains("two executors"), "{e}");
 }
+
+/// T-331: a wrong value names its flag with no usage; a wrong form of the
+/// line gives the usage.
+#[test]
+fn the_usage_comes_with_a_wrong_form_only() {
+    let out = run(&args(&["w.yml", "--runner-dir", "/r", "--event", "nope"]));
+    assert!(out.stderr.contains("--event nope") && !out.stderr.contains("usage:"), "{}", out.stderr);
+    let out = run(&args(&["w.yml", "--no-such-flag"]));
+    assert!(out.stderr.contains("usage:"), "{}", out.stderr);
+}

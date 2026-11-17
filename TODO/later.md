@@ -6405,7 +6405,7 @@ The report of agent 1 of the fifth QA (the commands and outputs are in it).
 
 Fix each one; a finding that the code cannot change goes into the documents.
 
-Fixed (2026-11-17): F9, a missing workflow file names the workflows of its directory (`inspect::missing`); F9, a folded `name: >` is one line (`line` of `run_local.rs`); F8, no `failed at connect` line where the fallback to the proxy works (T-329, `Egress::quiet`).
+Fixed (2026-11-17): F9, a missing workflow file names the workflows of its directory (`inspect::missing`); F9, a folded `name: >` is one line (`line` of `run_local.rs`); F8, no `failed at connect` line where the fallback to the proxy works (T-329, `Egress::quiet`). Also fixed: F9, a wrong value of a flag (`--event nope`) names its flag with no usage; the usage comes with a wrong form of the line only (`args::with_usage`); F9, the console of `--runner-dir` says `Connected to the fake broker of podrunner (not GitHub)` (`runner::console_line`); F10, a work directory out of the runner directory (`BASE/podrunner-work`) goes with the run. Open: F9, `--validate` points at the job, not at `needs:` (the mark is in `pod-actions-workflow` of podcrates: ask with T-264); F10, a socket of podnet after a `kill -9` of podrunner (the socket is podnet's); a failed pull ends the run, also for the jobs that need no image (T-327).
 
 ## Prove
 

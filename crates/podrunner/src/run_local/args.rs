@@ -163,6 +163,19 @@ fn project_of(file: &std::path::Path) -> Option<PathBuf> {
     github.parent().map(std::path::Path::to_path_buf)
 }
 
+/// A refusal of the command line, with the usage when the form of the line
+/// is wrong; a wrong value names its flag only (T-331).
+pub(super) fn with_usage(e: String) -> String {
+    let form = e.starts_with("an unknown option")
+        || e.ends_with("needs a value")
+        || e.starts_with("a second file")
+        || e == "the workflow file is necessary";
+    match form {
+        true => format!("{e}\n{}", super::USAGE),
+        false => e,
+    }
+}
+
 pub(super) fn parse(args: &[String]) -> Result<Args, String> {
     let mut a = Args { event: "push".into(), ..Args::default() };
     let mut it = args.iter();

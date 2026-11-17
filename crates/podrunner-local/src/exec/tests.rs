@@ -294,3 +294,22 @@ fn a_vnet_unit_needs_the_socket_volume() {
     assert!(e.contains("--vnet needs the socket volume of podvm"), "{e}");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-331 F10: a work directory out of the runner directory goes with the
+/// run.
+#[test]
+fn the_work_directory_out_of_the_runner_goes_with_the_run() {
+    let base = std::env::temp_dir().join(format!("podrunner-local-dotwork-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&base);
+    let dir = base.join(".share/runner");
+    std::fs::create_dir_all(dir.join("bin")).unwrap();
+    std::fs::write(dir.join("run.sh"), "").unwrap();
+    std::fs::write(dir.join("bin/Runner.Listener"), "").unwrap();
+    let r = RunnerDir::new(dir.clone()).unwrap();
+    let work = r.work.clone();
+    assert!(work.starts_with(base.join("podrunner-work")), "{}", work.display());
+    std::fs::create_dir_all(work.join("x")).unwrap();
+    drop(r);
+    assert!(!base.join("podrunner-work").exists(), "the work directory stays");
+    let _ = std::fs::remove_dir_all(&base);
+}
