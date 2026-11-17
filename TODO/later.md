@@ -6640,3 +6640,278 @@ Fixed (2026-11-17): 5, `--env`, `--var` and `--input` name their flag in a bad p
 ## Prove
 
 `cargo test -p podrunner -p podrunner-local`
+
+# T-340: A workflow file whose symbolic link leads out of the project is followed
+
+**Source:** GitHub #203 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A workflow file under `.github/workflows` that is a symbolic link to a file out of the project is read, planned and run, in file mode and in directory mode. The default checkout then becomes the project of the target. The documents say that a project file whose link leads out of the project fails the run.
+
+## Premise
+
+The report of #203 (the commands and outputs are in it).
+
+## Approach
+
+Resolve each workflow file (given or found in a directory) with the project rule of `.podrunner/run.toml` and `.actrc`. Refuse a link out of the project with the path and its target. The default checkout comes from the given path, not from the target.
+
+## Prove
+
+`cargo test -p podrunner`; A test: a link to a valid workflow out of the project is refused in file mode and in directory mode (also `--validate`, `--list`).
+
+# T-341: The `.secrets` file of the tree skips the checks of `--secret-file`
+
+**Source:** GitHub #204 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The `.secrets` of the tree is read with no check of mode, kind, format or link at plan time. The same file as `--secret-file` is refused.
+
+## Premise
+
+The report of #204 (the commands and outputs are in it).
+
+## Approach
+
+Give `.secrets` the checks of `--secret-file` (a regular file, mode 0600 or narrower, `NAME=VALUE` or `NAME<<DELIM`, the project link rule), in the dry run too. The error names `.secrets` and the line.
+
+## Prove
+
+`cargo test -p podrunner`; Tests: mode 0644, a bad line, a directory and a link out of the project each fail a dry run with the name of `.secrets`.
+
+# T-342: `doctor --run --json` gives no JSON; `doctor --json --run` is an unknown option
+
+**Source:** GitHub #205 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`doctor --run FILE --json` writes text rows only. With `--json` before `--run`, `--run` is an unknown option.
+
+## Premise
+
+The report of #205 (the commands and outputs are in it).
+
+## Approach
+
+Parse the options of `doctor` in any order. With `--run`, `--json` gives one object with the rows and the verdict.
+
+## Prove
+
+`cargo test -p podrunner`; Tests of both orders; the JSON form parses.
+
+# T-343: `print-unit` writes values in `ExecStart` with no quotes, and takes a relative or empty `--binary`
+
+**Source:** GitHub #206 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+A path with a space splits the command of systemd. A relative or empty `--binary` gives a bad `ExecStart`. (The missing `--config` is fixed by T-339 item 19.)
+
+## Premise
+
+The report of #206 (the commands and outputs are in it).
+
+## Approach
+
+Quote each value as systemd needs (double quotes, escape `\\`, `"`, `%` and `$`); refuse a value with a control character. Refuse a relative or empty `--binary`.
+
+## Prove
+
+`cargo test -p podrunner`; Tests: a path with a space is quoted; `--binary ./x` and `--binary ''` exit 64.
+
+# T-344: `image verify` refuses the runner image of the release, and the error does not name the file it takes
+
+**Source:** GitHub #207 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`image verify --tarball runner-x86_64.tar` fails with a hash mismatch. The command checks the official runner tarball only, and neither the help nor the error says so.
+
+## Premise
+
+The report of #207 (the commands and outputs are in it).
+
+## Approach
+
+The help and the mismatch error name the file that the command takes (`actions-runner-linux-ARCH-VERSION.tar.gz`) and the pin. The error of an image tarball (an `index.json` in it) says that `sha256sum -c` with the `.sha256` file of the release checks the image.
+
+## Prove
+
+`cargo test -p podrunner`; A test of the error text for an OCI tarball and for a bad runner tarball.
+
+# T-345: A dry run writes the artifact and cache directories, and skips the checks of some executor paths
+
+**Source:** GitHub #208 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+A dry run with `--state DIR` makes `DIR/artifacts`, and the default cache makes its directories. `--runner-dir` of an empty directory or of a path with a space, `--actions /nope`, `--incus /nope` and `--podnet /nope` give `planned`, but the run fails.
+
+## Premise
+
+The report of #208 (the commands and outputs are in it).
+
+## Approach
+
+A dry run makes no directory. It checks each path that the run will use, as the start of the run does: the runner directory, `--actions`, `--incus`, `--podnet`.
+
+## Prove
+
+`cargo test -p podrunner`; Tests: a dry run leaves no new directory; each bad path fails the dry run with its flag.
+
+# T-346: Nested `uses:` of a local composite action are not pinned; the refusal says offline mode with no `--offline`
+
+**Source:** GitHub #209 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+A dry run, also with `--offline`, plans a job whose local composite action uses an action that is not in the lock or the store. For a remote composite, the refusal says "the offline mode refuses a change" with no `--offline`, and it does not give the fix.
+
+## Premise
+
+The report of #209 (the commands and outputs are in it).
+
+## Approach
+
+Read each local composite action (`./PATH/action.yml`) of each job, and pin its `uses:` as a direct `uses:`, recursively, with a depth limit. Word the refusal from the real cause (`--offline`, `--frozen`, or no fetch), and name the fix (`--local-repository NAME@REF=DIR`, or a run with no `--offline`).
+
+## Prove
+
+`cargo test -p podrunner`; Tests: a nested reference of a local composite is in the lock after a dry run; with `--offline` and no pin, the dry run fails; the refusal text names the cause.
+
+# T-347: `--watch` and `--schedule` with a one-shot mode wait for ever; `--schedule` of a workflow with no `on.schedule` gives a bad message
+
+**Source:** GitHub #210 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`--watch --list` and `--schedule --dry-run` wait. A workflow with no `on.schedule` gets `on.schedule has no cron time`. `--watch` writes no line while it waits.
+
+## Premise
+
+The report of #210 (the commands and outputs are in it).
+
+## Approach
+
+Refuse `--watch` and `--schedule` with `--list`, `--graph`, `--validate` and `--dry-run` (exit 64). Say `the workflow has no on.schedule trigger` when there is none. Write one line `watching FILES for a change` on stderr when a watch waits.
+
+## Prove
+
+`cargo test -p podrunner`; Tests of each pair and of the message.
+
+# T-348: `--validate --json` gives no JSON for a workflow that is not valid
+
+**Source:** GitHub #211 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+For a bad workflow, `--validate --json` writes nothing on stdout.
+
+## Premise
+
+The report of #211 (the commands and outputs are in it).
+
+## Approach
+
+Write `{"file":...,"valid":false,"warnings":[],"error":"..."}` on stdout, and keep the line on stderr.
+
+## Prove
+
+`cargo test -p podrunner`; A test: a bad YAML file gives the object and exit 78.
+
+# T-349: A failure before the start of a job names a log in `--log-dir` that is not there
+
+**Source:** GitHub #212 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** open
+
+## Problem
+
+When a job fails before the runner starts, no log is written, but the end line says `its log is above (and in --log-dir DIR)`.
+
+## Premise
+
+The report of #212 (the commands and outputs are in it).
+
+## Approach
+
+Write `DIR/JOB/job.log` with the failure line when a job fails before it starts. The end line names `--log-dir` only when a log file is there.
+
+## Prove
+
+`cargo test -p podrunner`; A test: a failure before the start writes `job.log` with the cause.
+
+# T-350: beta.7 pins podnet `0.4.0-beta.13`; the vnet forward of #170 is in `0.4.0-beta.14`
+
+**Source:** GitHub #213 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** M
+**Status:** open
+
+## Problem
+
+The forward of the broker into a unit (#170, COORD-089, the answer PodUtils/podnet#582: the IPv4 name of a mapped address and `PODNET_VNET_FORWARD`) needs podnet `0.4.0-beta.14` or later. The release pins beta.13. With beta.15 and `PODNET_VNET_FORWARD` to the inbound socket of the hold, the broker closes the connection: the forward needs a listener of the broker on a unix socket (#170 step 1).
+
+## Premise
+
+The report of #213 (the commands and outputs are in it).
+
+## Approach
+
+Pin podnet `0.4.0-beta.15` (`images/podnet.toml`) after the gate passes with it. Then do #170 step 1 (the broker listens on a unix socket too) and pass `PODNET_VNET_FORWARD` to the hold (T-220).
+
+## Prove
+
+`cargo test -p podrunner`; The gate and the user-gate with podnet beta.15; a podvm job in `podnet pod --backend seccomp` connects to the broker on a host that refuses a bind of the loopback.
