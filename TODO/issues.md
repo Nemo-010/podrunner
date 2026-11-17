@@ -126,7 +126,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #124 | Live run 2026-11-15: podrunner check refuses each key of a mint file | closed (T-171 is done) | T-171 |
 | #125 | Live run 2026-11-15: check says a configuration is usable when no unit kind serves its source | closed (T-185 is done) | T-185 |
 | #126 | Live run 2026-11-15: doctor says egress_hold unknown for the podvm kind while serve says enforced or advisory | open (T-181 is partial) | T-181 |
-| #127 | Live run 2026-11-15: the tree-kill self-test of a held podvm unit fails, and its units stay after a stop | open (T-183 is partial) | T-183 |
+| #127 | Live run 2026-11-15: the tree-kill self-test of a held podvm unit fails, and its units stay after a stop | closed (fixed; the entries are done) | T-183 |
 | #128 | Live run 2026-11-15: status and stop --wait answer busy while the supervisor waits on a source | closed (T-184 is done) | T-184 |
 | #129 | Live run 2026-11-15: the unit host calls next of a remote mint about 10 times each second | closed (T-164 is done) | T-164 |
 | #130 | Live run 2026-11-15: the audit of sign is kept in memory only | closed (T-172 is done) | T-172 |
@@ -146,7 +146,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #144 | Live run 2026-11-15: serve stops after a unit ends unit-failed | open (T-192 is partial) | T-192 |
 | #145 | Live run 2026-11-15: a refused offer of a program source is not withdrawn to the source | closed (T-189 is done) | T-189 |
 | #146 | Live run 2026-11-15: an aarch64 host under QEMU user mode serves no tier | closed (T-194 is done) | T-194 |
-| #147 | Live run 2026-11-15: a podvm unit has the host name of the host | open (T-182 is blocked) | T-182 |
+| #147 | Live run 2026-11-15: a podvm unit has the host name of the host | closed (fixed; the entries are done) | T-182 |
 | #148 | [gh action] requested | closed (gate 43690748922 and secrets green on `ba24d0e`; runner-image 43690754546 red at the limits measure, T-162; level2 red at the corpus, T-196 fixed after it) | T-162, T-183, T-192 |
 | #149 | Live run 2026-11-15: on an emulated aarch64 host, start_s (120 s) kills the first unit, and nothing names the deadline | open | T-197 |
 | #150 | [gh action] requested | closed (gate 43704598372, level2 43704604467, runner-image 43704601731 green on `88cc4d7`; release 43708786078 of `v0.1.0-beta.6`) | T-162, T-169, T-198 |
@@ -154,28 +154,28 @@ numbers. `TODO/RULES.md` gives the rules.
 | #152 | COORD-055: podrunner takes podcrates v0.51.0 at 800f6d4 (the answer to PodUtils/podcrates#172) (to podcrates) | closed (podcrates closed PodUtils/podcrates#172) | T-118 |
 | #153 | LIVE-3: a user agent of the local mode: run real workflows with `podrunner run` and report (T-199) | open (the report of 2026-11-15: no job ran on its host; 12 issues #155 to #166 and nits, T-206 to T-219) | T-199, T-218, T-219 |
 | #154 | [gh action] requested | closed (replaced by #179; the gate, runner-image and level2 on `2f56267`, then the release of `v0.1.0-beta.7`) | T-162, T-169, T-198, T-200, T-201 |
-| #155 | Local mode 2026-11-15: --platform turns off every later flag check, so nine refusals run and two executors can be given at once | open (fixed on `main`; closes with the next beta) | T-206 |
-| #156 | Local mode 2026-11-15: doctor answers a missing --podvm or --incus binary with a podvm version bump, which cannot fix a wrong path | open (fixed on `main`; closes with the next beta) | T-212 |
-| #157 | Local mode 2026-11-15: "one of --runner-dir DIR, or a unit kind ... is necessary" is printed while --runner-dir is given | open (fixed on `main`; closes with the next beta) | T-207 |
-| #158 | Local mode 2026-11-15: no subcommand has help, `run --help` is an unknown option, and an unhandled short option becomes a file | open (fixed on `main`; closes with the next beta) | T-208 |
-| #159 | Local mode 2026-11-15: --validate says valid for a dangling needs and a needs cycle that --graph and --dry-run refuse | open (fixed on `main`; closes with the next beta) | T-209 |
-| #160 | Local mode 2026-11-15: --break takes a job that the workflow does not have, a step that does not exist, and an id that is not a step | open (fixed on `main`; closes with the next beta) | T-210 |
-| #161 | Local mode 2026-11-15: --local-repository still opens the fetch relay, so a run with no forge fails unless --offline is also given | open (fixed on `main`; closes with the next beta) | T-211 |
-| #162 | Local mode 2026-11-15: a loopback bind failure is a raw os error, and doctor preflights neither the bind nor the read of the hierarchy above the runner directory | open (fixed on `main`; closes with the next beta) | T-213 |
-| #163 | Local mode 2026-11-15: status, drain, stop, check and audit verify do not name the path that is missing | open (fixed on `main`; closes with the next beta) | T-214 |
-| #164 | Local mode 2026-11-15: stop --wait prints stopped and exits 0 for a state directory that does not exist, while stop exits 69 | open (fixed on `main`; closes with the next beta) | T-215 |
-| #165 | Local mode 2026-11-15: mint-serve reports a TOML type error at host for a run configuration, and check calls the same file usable | open (fixed on `main`; closes with the next beta) | T-216 |
-| #166 | Live run 2026-11-15: the published runner-x86_64 artifact cannot be imported by the pinned podvm, and it carries no ref name | open (fixed on `main`; holds from the next runner-image run and beta) | T-217 |
+| #155 | Local mode 2026-11-15: --platform turns off every later flag check, so nine refusals run and two executors can be given at once | closed (fixed; the entries are done) | T-206 |
+| #156 | Local mode 2026-11-15: doctor answers a missing --podvm or --incus binary with a podvm version bump, which cannot fix a wrong path | closed (fixed; the entries are done) | T-212 |
+| #157 | Local mode 2026-11-15: "one of --runner-dir DIR, or a unit kind ... is necessary" is printed while --runner-dir is given | closed (fixed; the entries are done) | T-207 |
+| #158 | Local mode 2026-11-15: no subcommand has help, `run --help` is an unknown option, and an unhandled short option becomes a file | closed (fixed; the entries are done) | T-208 |
+| #159 | Local mode 2026-11-15: --validate says valid for a dangling needs and a needs cycle that --graph and --dry-run refuse | closed (fixed; the entries are done) | T-209 |
+| #160 | Local mode 2026-11-15: --break takes a job that the workflow does not have, a step that does not exist, and an id that is not a step | closed (fixed; the entries are done) | T-210 |
+| #161 | Local mode 2026-11-15: --local-repository still opens the fetch relay, so a run with no forge fails unless --offline is also given | closed (fixed; the entries are done) | T-211 |
+| #162 | Local mode 2026-11-15: a loopback bind failure is a raw os error, and doctor preflights neither the bind nor the read of the hierarchy above the runner directory | closed (fixed; the entries are done) | T-213 |
+| #163 | Local mode 2026-11-15: status, drain, stop, check and audit verify do not name the path that is missing | closed (fixed; the entries are done) | T-214 |
+| #164 | Local mode 2026-11-15: stop --wait prints stopped and exits 0 for a state directory that does not exist, while stop exits 69 | closed (fixed; the entries are done) | T-215 |
+| #165 | Local mode 2026-11-15: mint-serve reports a TOML type error at host for a run configuration, and check calls the same file usable | closed (fixed; the entries are done) | T-216 |
+| #166 | Live run 2026-11-15: the published runner-x86_64 artifact cannot be imported by the pinned podvm, and it carries no ref name | closed (fixed; the entries are done) | T-217 |
 | #167 | Local mode 2026-11-15: a host that denies AF_INET bind cannot serve the fake broker, and the static binary keeps podnet's shim out | open (T-220 waits for podnet, #170) | T-220, T-228 |
 | #168 | COORD-056: a store flag of `load` and `images`, and an attestation of each release (to podvm) | open (podvm answered on PodUtils/podvm#417: `--store` in its next beta; attestations since beta.22) | T-218 |
 | #169 | COORD-057: podrunner takes podcrates v0.52.0 at 45bd964 (the answer to PodUtils/podcrates#176) (to podcrates) | closed (podcrates closed PodUtils/podcrates#176) | T-118 |
 | #170 | COORD-058: a TCP address of the vnet that connects to a unix socket, for a payload in a podvm unit (to podnet) | open | T-220 |
 | #171 | Local mode 2026-11-15: the run should pick its own transport and environment, instead of leaving that to the reader of four documents | open (T-229 is open) | T-229 |
-| #172 | Local mode 2026-11-15: `doctor --run` reports `ok store` for an empty store and never checks that `--image` is in it | open (fixed on `main`; closes with the next beta) | T-223 |
-| #173 | Local mode 2026-11-15: a run that hangs prints nothing until it ends, so the phase it is stuck in is invisible | open (T-224 is open) | T-224 |
-| #174 | Local mode 2026-11-15: the unit store is built under `$TMPDIR`, and the error tells the user to set `$PODVM_STORE`, which podrunner overrides | open (fixed on `main`; closes with the next beta) | T-225 |
-| #175 | Local mode 2026-11-15: a `--podvm` run never says what egress hold the unit has, and here the only hold podnet offers is the advisory one | open (fixed on `main`; closes with the next beta) | T-226 |
-| #176 | Local mode 2026-11-15: podnet's supervision makes podvm refuse the unit start (a passed descriptor goes onto 17) | open (T-227 waits for podvm, #177) | T-227 |
+| #172 | Local mode 2026-11-15: `doctor --run` reports `ok store` for an empty store and never checks that `--image` is in it | closed (fixed; the entries are done) | T-223 |
+| #173 | Local mode 2026-11-15: a run that hangs prints nothing until it ends, so the phase it is stuck in is invisible | closed (fixed; the entries are done) | T-224 |
+| #174 | Local mode 2026-11-15: the unit store is built under `$TMPDIR`, and the error tells the user to set `$PODVM_STORE`, which podrunner overrides | closed (fixed; the entries are done) | T-225 |
+| #175 | Local mode 2026-11-15: a `--podvm` run never says what egress hold the unit has, and here the only hold podnet offers is the advisory one | closed (fixed; the entries are done) | T-226 |
+| #176 | Local mode 2026-11-15: podnet's supervision makes podvm refuse the unit start (a passed descriptor goes onto 17) | closed (fixed; the entries are done) | T-227 |
 | #177 | COORD-059: `podvm run -d` refuses "a passed descriptor goes onto 17" when podrunner runs under `podnet pod` (to podvm) | closed (podvm `0.2.0-beta.24`; T-227 done) | T-227 |
 | #178 | COORD-060: on the userland rung, `tar -x` fails when a symbolic link comes before its target (to podvm) | closed (podvm `0.2.0-beta.24`; T-232 done) | T-232 |
 | #179 | [gh action] requested | closed (the block of #154 ran on `037cb35`: gate 43730995552 red at shellcheck, T-251; runner-image 43730998943 green; no release) | T-251 |
@@ -205,7 +205,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #203 | Local mode: a workflow symlink that points out of the project is followed, not refused | closed (fixed on `main`; the entry is done) | T-340 |
 | #204 | Local mode: .secrets in the tree bypasses the validation an explicit --secret-file gets | closed (fixed on `main`; the entry is done) | T-341 |
 | #205 | doctor: doctor --run --json emits no JSON, and doctor --json --run is an unknown option | closed (fixed on `main`; the entry is done) | T-342 |
-| #206 | print-unit: unquoted/relative/empty ExecStart values, and a nonexistent --config is accepted | closed (fixed on `main`; the entry is done) | T-343, T-339 |
+| #206 | print-unit: unquoted/relative/empty ExecStart values, and a nonexistent --config is accepted | closed (fixed on `main`; the entry is done) | T-343 |
 | #207 | image verify: the release's runner-x86_64.tar asset is rejected, and the error does not name the expected tarball | closed (fixed on `main`; the entry is done) | T-344 |
 | #208 | run: a dry run writes --state/artifacts and the cache, and does not validate executor paths | closed (fixed on `main`; the entry is done) | T-345 |
 | #209 | run: nested uses: of a local composite action are not pinned, and a local-repository composite misreports the refusal as offline | closed (fixed on `main`; the entry is done) | T-346 |

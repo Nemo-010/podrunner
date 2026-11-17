@@ -24,3 +24,6 @@ root_files = [
 documents = ["README.md", "AGENTS.md", "SECURITY.md", "crates/*/README.md"]
 document_dirs = ["TODO", "docs"]
 readings = ["docs/reports/", "docs/research/", "docs/design/"]
+
+# The rules of the state of an issue against its entries (T-264).
+issue_rules = "on"
