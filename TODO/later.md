@@ -3197,7 +3197,7 @@ A test of `run`: an unknown event and a missing payload file each fail with thei
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** blocked
+**Status:** partial
 
 ## Problem
 
@@ -3218,7 +3218,7 @@ The report of GitHub #167, read on 2026-11-15: `podnet net doctor` and a control
 
 A test of the guest kinds with the broker on a unix socket only. On a host that refuses AF_INET bind (a seccomp filter in the test), `run --podvm` with the shim of podnet runs a canned job.
 
-## Blocker
+History of the blocker:
 
 2026-11-15: podnet: the release of PodUtils/podnet@T-356 (a mapped IPv6 address gives the IPv4 name of the vnet, and `PODNET_VNET_FORWARD`), PodUtils/podnet#582 (COORD-058, GitHub #170). Steps 1 and 2 (the unix socket of the broker, and the front of the guest kinds) need no other project.
 
@@ -3230,6 +3230,7 @@ State (2026-11-16): the state block of PodUtils/podnet#582 says PodUtils/podnet@
 
 State (2026-11-17): the state block names the tag `v0.4.0-beta.14` for PodUtils/podnet@T-356 and PodUtils/podnet@T-357; the newest release is still `v0.4.0-beta.13`. podnet did not measure a podvm unit, the real runner or .NET. Waits for the release of `v0.4.0-beta.14`.
 
+State (2026-11-17): podnet `v0.4.0-beta.14` is released with PodUtils/podnet@T-356 and PodUtils/podnet@T-357 (`PODNET_VNET_FORWARD`); `beta.15` is the newest. Steps 1 and 2 are in the code: a guest reaches the broker on a unix socket through its front (`Broker::start_unix`, `exec.rs`). Next, step 3: the runner of a podvm unit under the vnet shim (`podnet net shim --out DIR`), with `PODNET_VNET_FORWARD=127.0.0.1:PORT=unix:SOCK` to the broker. The library and the socket must reach the unit with no volume, or the unit leaves the namespace rung (T-261): a design question first. Measure it in the lane `bind-denied` of the user-path gate.
 
 # T-221: `cpus` on the podvm kind
 
