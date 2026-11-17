@@ -3234,6 +3234,8 @@ State (2026-11-17): podnet `v0.4.0-beta.14` is released with PodUtils/podnet@T-3
 
 State (2026-11-17): step 3 is in the code, after the measure of a user on #170 (the podvm kind on the unix broker and the front ran a hello job on a host that refuses the loopback bind). `--vnet PATH` (with `--podvm`, not with `--podnet`): the broker of each job on a unix socket, the front in the socket directory of the unit (the broker, and the egress module for `--allow`), the shim `libpodnet-vnet.so` copied into that directory, and `LD_PRELOAD`, `PODNET_VNET_FORWARD=127.0.0.1:3128=unix:MOUNT/egress.sock` and the proxy variables in the unit (`exec/vnet.rs`, `run_local/vnet.rs`); the container hooks stay. PATH is the shim or a podnet binary that builds it (`podnet net shim --json --out DIR`). Proven in CI on GitHub-hosted runners: the environment, the shim path and the refusal with no socket volume (unit tests). Not run: a job under `--vnet`. Next: a step of the lane `bind-denied` of the user-gate with `--vnet`; step 4 (`doctor --run` names `--vnet` on a host that refuses the bind).
 
+State (2026-11-17): step 4: the fix of a refused bind (`doctor --run` and the error of the broker) names `--podvm` with `--vnet PODNET`; with `--vnet` or a guest, the `loopback` row of `doctor --run` says that the broker needs no bind (`exec::BIND_FIX`). Open: a run with `--vnet` (the `lab:vnet` measure of the user-gate, and a user on #170).
+
 # T-221: `cpus` on the podvm kind
 
 **Source:** T-162 (the cgroup half of COORD-050, GitHub #110)

@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-pub use errors::broker_error;
+pub use errors::{BIND_FIX, broker_error};
 use errors::{Gone, start_error};
 use hooks::Hooks;
 use std::sync::Arc;

@@ -154,12 +154,16 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
             .map_err(|e| format!("{}: {e}", a.file.display()))
             .and_then(|t| pod_actions_workflow::parse(&t).map(|_| "it parses".to_string()).map_err(|e| e.to_string())),
     ));
-    // Each job needs a fake broker on the loopback (T-213).
+    // Each job needs a fake broker on the loopback (T-213), but under the
+    // vnet and in a guest, where it listens on a unix socket (T-220).
     out.push(check(
         "loopback",
-        std::net::TcpListener::bind("127.0.0.1:0")
-            .map(|_| "a bind of 127.0.0.1:0 holds".to_string())
-            .map_err(|e| format!("bind 127.0.0.1:0: {e}; fix: allow a bind of the loopback on this host")),
+        match a.vnet.is_some() || a.guest.is_some() {
+            true => Ok("not needed: the broker of each job listens on a unix socket".to_string()),
+            false => std::net::TcpListener::bind("127.0.0.1:0")
+                .map(|_| "a bind of 127.0.0.1:0 holds".to_string())
+                .map_err(|e| format!("bind 127.0.0.1:0: {e}; {}", podrunner_local::exec::BIND_FIX)),
+        },
     ));
     // Each path of a flag (T-321): a file to read, or a directory to use.
     let files = [

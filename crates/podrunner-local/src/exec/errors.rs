@@ -38,8 +38,11 @@ impl Drop for Gone {
 }
 
 /// A fake broker that did not start: the address and the fix (T-213).
+/// The fix of a refused bind of the loopback (T-213, T-220).
+pub const BIND_FIX: &str = "fix: allow a bind of the loopback on this host, or run with --podvm and --vnet PODNET, whose broker listens on a unix socket (docs/local-mode.md)";
+
 pub fn broker_error(e: std::io::Error) -> String {
-    format!("the fake broker: bind 127.0.0.1:0: {e}; fix: allow a bind of the loopback on this host")
+    format!("the fake broker: bind 127.0.0.1:0: {e}; {BIND_FIX}")
 }
 
 #[cfg(test)]
