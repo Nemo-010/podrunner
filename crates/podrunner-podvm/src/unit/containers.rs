@@ -128,6 +128,7 @@ impl PodvmUnit {
         }
         let (store, tag, _, egress) = self.container_base(unit)?;
         let mut args: Vec<String> = vec!["exec".into()];
+        args.extend(super::labels::fixup_args(&self.podvm).iter().map(|a| a.to_string()));
         if let Some(w) = &spec.workdir {
             args.extend(["-w".into(), w.clone()]);
         }
@@ -157,7 +158,7 @@ impl PodvmUnit {
     pub(super) fn enter_unit(&self, unit: &UnitId, argv: &[String], tty: bool) -> Result<Command, UnitError> {
         let (store, tag, _, egress) = self.container_base(unit)?;
         let mut c = self.command(egress.as_deref());
-        c.args(["exec", "-i"]);
+        c.args(["exec", "-i"]).args(super::labels::fixup_args(&self.podvm));
         if tty {
             c.arg("-t");
         }

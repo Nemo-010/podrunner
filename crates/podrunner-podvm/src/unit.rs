@@ -257,7 +257,7 @@ impl UnitDriver for PodvmUnit {
         // host (T-182): `--hostname` of podvm 0.2.0-beta.22 or later.
         let name = format!("podrunner-{}", spec.unit);
         args.extend(["--hostname".into(), name.clone()]);
-        args.extend(labels::label_args(spec.unit.as_str()));
+        args.extend(labels::run_args(&self.podvm, spec.unit.as_str()));
         args.extend(["--report".into(), dir.join(labels::REPORT).display().to_string()]);
         let guest = spec.sockets.as_ref().and(self.socket_mount());
         args.extend(self.confine_args(&rootfs, guest));

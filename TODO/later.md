@@ -6351,7 +6351,7 @@ Fix each one; a finding that the code cannot change goes into the documents.
 **Milestone:** later
 **Priority:** P3
 **Effort:** S
-**Status:** blocked
+**Status:** done
 
 ## Problem
 
@@ -6369,9 +6369,13 @@ podvm stops the connects or gives a flag that turns them off (COORD-076, GitHub 
 
 `podrunner run hello.yml --podvm PATH --podnet PATH` as a user: no refused host in the egress of the unit.
 
-## Blocker
+History of the blocker:
 
-2026-11-17: COORD-076 (GitHub #202) asks podvm.
+2026-11-17: COORD-076 (GitHub #202) asks podvm. 2026-11-17: podvm answered (PodUtils/podvm#464, COORD-171): the connects are the source fixup of podvm; `--no-source-fixup` turns it off.
+
+## Done
+
+2026-11-17: each `run -d` and `exec` of a podvm unit passes `--no-source-fixup` to a podvm of `0.2.0-beta.30` or later (`labels::fixup_args`; the version of each binary is probed once). Proven on a constrained host as a user (`qa5`, `--podnet`, podvm `0.2.0-beta.30`): `podnet pod -v` shows no connect through the egress socket for `hello.yml` (it showed six before), and the run ends `ok`.
 
 # T-333: A dry run with --state writes success for each job; --dry-run --json says success
 

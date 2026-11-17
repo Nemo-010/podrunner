@@ -79,7 +79,9 @@ A podvm unit is a boundary for files only on the namespace rung of podvm:
 a mount namespace of its own, where the job sees only the image and its
 work directory. On that rung a unit also has a PID namespace and a
 `/proc` of its own (podvm `0.2.0-beta.30` or later): a job sees only the
-processes of its unit (T-318). Where podvm cannot take that rung (a host
+processes of its unit (T-318). podrunner turns off the source fixup of podvm
+(`--no-source-fixup`, podvm `0.2.0-beta.30` or later): a unit asks no
+host of the package sources of the image before the job (T-332). Where podvm cannot take that rung (a host
 with no user namespace, or with user namespaces that AppArmor restricts,
 as on Ubuntu 24.04), podvm runs the unit on a userland rung: a static
 binary of a job (Go up to 1.20, for example) can reach the files of your

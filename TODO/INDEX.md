@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**336 entries: 29 open, 21 partial, 14 blocked, 272 done.**
+**336 entries: 29 open, 21 partial, 13 blocked, 273 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
 | P2 | 16 | 8 | 7 | 135 | 166 |
-| P3 | 12 | 4 | 5 | 80 | 101 |
-| **All** | 29 | 21 | 14 | 272 | 336 |
+| P3 | 12 | 4 | 4 | 81 | 101 |
+| **All** | 29 | 21 | 13 | 273 | 336 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -376,7 +376,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-329](later.md) | P2 | S | later | defect | done | Each unit under --podnet logs connects that the job did not make |
 | [T-330](later.md) | P2 | S | later | defect | done | The refusals of services: send the user in a circle |
 | [T-331](later.md) | P3 | M | later | defect | open | The P3 findings of the fifth QA, agent 1 |
-| [T-332](later.md) | P3 | S | later | defect | blocked | podvm connects to the hosts of the image at the start of a unit |
+| [T-332](later.md) | P3 | S | later | defect | done | podvm connects to the hosts of the image at the start of a unit |
 | [T-333](later.md) | P2 | S | later | defect | done | A dry run with --state writes success for each job; --dry-run --json says success |
 | [T-334](later.md) | P2 | S | later | defect | done | --artifacts DIR or --state DIR of an earlier run makes each upload of the same name fail with 409 |
 | [T-335](later.md) | P2 | S | later | defect | done | --state DIR with --artifacts DIR2 keeps no artifact, and --rerun fails |

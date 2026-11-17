@@ -25,6 +25,29 @@ pub(super) fn label_args(unit: &str) -> [String; 2] {
     ["--label".into(), format!("{LABEL}={unit}")]
 }
 
+/// The arguments of `run -d` of `unit`: its label and `fixup_args`.
+pub(super) fn run_args(podvm: &crate::Podvm, unit: &str) -> Vec<String> {
+    label_args(unit).into_iter().chain(fixup_args(podvm).iter().map(|a| a.to_string())).collect()
+}
+
+/// The first podvm that is known to take `--no-source-fixup`.
+const NO_SOURCE_FIXUP: &str = "0.2.0-beta.30";
+
+/// `--no-source-fixup` for `run` and `exec` of `podvm`: with the fixup,
+/// podvm asks each host of the package sources of the image before the
+/// payload, also under the egress hold of a unit (T-332,
+/// PodUtils/podvm#464). The answer of each binary is kept.
+pub(super) fn fixup_args(podvm: &crate::Podvm) -> &'static [&'static str] {
+    static SEEN: std::sync::Mutex<std::collections::BTreeMap<std::path::PathBuf, bool>> =
+        std::sync::Mutex::new(std::collections::BTreeMap::new());
+    let mut seen = SEEN.lock().unwrap_or_else(|e| e.into_inner());
+    let takes = *seen.entry(podvm.binary.clone()).or_insert_with(|| {
+        let low = crate::probe::Version::parse(NO_SOURCE_FIXUP).expect("a version");
+        podvm.version().is_some_and(|v| v >= low)
+    });
+    if takes { &["--no-source-fixup"] } else { &[] }
+}
+
 impl PodvmUnit {
     /// podvm's report of the `run -d` of `unit`, when podvm wrote it (at
     /// the start, or at a refusal). It holds no value of the environment.

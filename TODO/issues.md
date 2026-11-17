@@ -201,7 +201,7 @@ numbers. `TODO/RULES.md` gives the rules.
 | #199 | COORD-073: the machine tier as a user with no root: alpine boots, the runner image (initrd 1348 MiB) closes its console after 2.6 s (to podvm) | closed (PodUtils/podvm#454: 8 GiB; T-291 done) | T-291 |
 | #200 | COORD-074: a PID namespace for run -d on the namespace rung: a job sees and signals the processes of the host (to podvm) | closed (podvm `0.2.0-beta.30` pinned; T-318 done) | T-318 |
 | #201 | COORD-075: the seccomp hold of podnet pod lets a job connect to each port on the loopback, also a proxy (to podnet) | closed (PodUtils/podnet#605: `--loopback-rules`; podnet `0.4.0-beta.13` pinned; T-319 done) | T-319 |
-| #202 | COORD-076: podvm run connects to help, archive and security.ubuntu.com:443 at the start of each unit (to podvm) | open | T-332 |
+| #202 | COORD-076: podvm run connects to help, archive and security.ubuntu.com:443 at the start of each unit (to podvm) | closed (PodUtils/podvm#464: the source fixup; `--no-source-fixup` passed; T-332 done) | T-332 |
 | #65 | cfb asks: tracker for the 2 asks of cfb owned by podrunner (from podcrates#35) | open (a tracker; each ask maps to the entries of its line) | T-001 |
 | #66 | githome asks: tracker for the 12 asks owned by podrunner (from podcrates#36) | open (a tracker; each ask maps to the entries of its line) | T-001, T-101, T-102, T-103, T-104, T-105, T-106, T-107, T-108, T-162 |
 | #67 | CI plan items: tracker for the 26 items owned by podrunner (from podcrates#47) | open (a tracker; P0-4 is T-081, the others map to the entries of their lines) | T-001, T-081 |

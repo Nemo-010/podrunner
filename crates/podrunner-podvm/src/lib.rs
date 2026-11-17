@@ -69,6 +69,11 @@ impl Podvm {
         Ok(version.to_string())
     }
 
+    /// The version that `podvm probe` gives, or `None`.
+    pub fn version(&self) -> Option<probe::Version> {
+        probe::Version::parse(self.probe_json().ok()?["podvm"].as_str()?)
+    }
+
     fn probe_json(&self) -> Result<serde_json::Value, UnitError> {
         let out = Command::new(&self.binary)
             .args(["probe", "--json"])
