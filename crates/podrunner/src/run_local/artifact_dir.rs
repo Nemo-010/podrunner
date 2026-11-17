@@ -16,15 +16,16 @@ const POINTER: &str = "artifacts-dir";
 /// `--state` or `--rerun`; `scratch` the scratch directory of the run.
 pub(super) fn dir(a: &Args, state: Option<&Path>, scratch: &Path) -> PathBuf {
     let noted = || state.and_then(|d| std::fs::read_to_string(d.join(POINTER)).ok()).map(|p| PathBuf::from(p.trim()));
+    // A dry run uploads nothing: its store is in the scratch (T-345).
+    if a.dry_run {
+        return scratch.join("artifacts");
+    }
     let dir = match (&a.artifacts, state) {
         (Some(d), _) => d.clone(),
         (None, Some(s)) if a.rerun.is_some() => noted().unwrap_or_else(|| s.join("artifacts")),
         (None, Some(s)) => s.join("artifacts"),
         (None, None) => scratch.join("artifacts"),
     };
-    if a.dry_run {
-        return dir;
-    }
     if let (Some(s), Some(d)) = (state, &a.artifacts) {
         let d = std::fs::canonicalize(d).unwrap_or_else(|_| d.clone());
         let _ = std::fs::create_dir_all(s).and_then(|()| std::fs::write(s.join(POINTER), d.display().to_string()));

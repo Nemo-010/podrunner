@@ -13,6 +13,7 @@ mod concurrency;
 mod containers;
 mod context;
 mod doctor;
+mod dry;
 mod guest;
 mod inspect;
 mod logs;
@@ -346,7 +347,9 @@ pub fn run(args: &[String]) -> Out {
         Ok(s) => std::sync::Arc::new(s),
         Err(e) => return fail(Class::Config, format!("--artifacts {}: {e}", kept.display())),
     };
-    let cache = match (a.no_cache, a.cache.clone().map(Ok).unwrap_or_else(|| actions::user_cache("cache"))) {
+    // A dry run runs no job: it makes no cache (T-345).
+    let cache = match (a.no_cache || a.dry_run, a.cache.clone().map(Ok).unwrap_or_else(|| actions::user_cache("cache")))
+    {
         (true, _) => None,
         (false, Err(e)) => return fail(Class::Config, e),
         (false, Ok(dir)) => match podrunner_local::cache::CacheStore::new(&dir, podrunner_local::cache::LIMIT) {

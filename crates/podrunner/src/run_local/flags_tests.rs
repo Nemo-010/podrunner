@@ -155,7 +155,8 @@ fn the_nits_of_the_user_run() {
             "on: push\njobs:\n  db:\n    runs-on: x\n    services:\n      r:\n        image: {pin}\n    steps: [{{run: a}}]\n"
         ),
     );
-    let out = run(&args(&[&w, "--runner-dir", "/nonexistent", "--dry-run", "--no-cache"]));
+    let r = super::qa6_tests::runner_dir("nits");
+    let out = run(&args(&[&w, "--runner-dir", &r, "--dry-run", "--no-cache"]));
     assert_eq!(out.code, 1, "{}{}", out.stdout, out.stderr);
     assert!(out.stdout.contains("failure db:") && out.stdout.contains("needs containers"), "{}", out.stdout);
     let _ = std::fs::remove_dir_all(&dir);
@@ -382,10 +383,24 @@ fn a_file_that_is_not_a_workflow_is_named() {
 fn a_dry_run_writes_no_state() {
     let (dir, w) = workflow("dry-state", "on: push\njobs:\n  a:\n    runs-on: x\n    steps: [{run: a}]\n");
     let st = dir.join("st").display().to_string();
-    let out = run(&args(&[&w, "--runner-dir", "/nonexistent", "--dry-run", "--json", "--no-cache", "--state", &st]));
+    let r = super::qa6_tests::runner_dir("dry-state");
+    let out = run(&args(&[&w, "--runner-dir", &r, "--dry-run", "--json", "--no-cache", "--state", &st]));
     assert_eq!(out.code, 0, "{}", out.stderr);
     assert!(out.stdout.contains(r#""result":"planned""#), "{}", out.stdout);
-    assert!(!dir.join("st/state.json").exists(), "a dry run wrote the state");
+    assert!(!dir.join("st").exists(), "a dry run made the state or its artifacts (T-345)");
+    // T-345: each path of the run is checked, by its flag.
+    let empty = dir.join("empty").display().to_string();
+    std::fs::create_dir_all(&empty).unwrap();
+    for (flags, why) in [
+        (vec!["--runner-dir", empty.as_str()], "--runner-dir"),
+        (vec!["--runner-dir", r.as_str(), "--log-dir", "/proc/podrunner-nope"], "--log-dir"),
+    ] {
+        let mut x = vec![w.as_str(), "--dry-run", "--no-cache"];
+        x.extend(flags);
+        let out = run(&args(&x));
+        assert_eq!(out.code, 78, "{why}: {}{}", out.stdout, out.stderr);
+        assert!(out.stderr.contains(why), "{}", out.stderr);
+    }
     let _ = std::fs::remove_dir_all(&dir);
 }
 

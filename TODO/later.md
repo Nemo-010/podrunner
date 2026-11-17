@@ -6795,7 +6795,7 @@ The help and the mismatch error name the file that the command takes (`actions-r
 **Milestone:** later
 **Priority:** P3
 **Effort:** M
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6812,6 +6812,10 @@ A dry run makes no directory. It checks each path that the run will use, as the 
 ## Prove
 
 `cargo test -p podrunner`; Tests: a dry run leaves no new directory; each bad path fails the dry run with its flag.
+
+## Done
+
+2026-11-17: a dry run keeps its artifact store in the scratch and opens no cache, so `--state` and the cache get no directory; it checks the runner directory (its files, a space), the binaries of `--microvm`, `--incus`, `--podnet` and `--vnet`, `--toolcache`, and that `--actions`, `--artifacts`, `--cache`, `--log-dir` and `--export` take files, each by its flag (`dry::paths`). A dry run that resolves a new action still writes the lock and the store of actions, as it pins. Proven in CI on GitHub-hosted runners by `flags_tests::a_dry_run_writes_no_state`.
 
 # T-346: Nested `uses:` of a local composite action are not pinned; the refusal says offline mode with no `--offline`
 

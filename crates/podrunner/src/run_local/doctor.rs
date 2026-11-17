@@ -302,7 +302,7 @@ pub(super) fn checks(a: &Args) -> Vec<Check> {
 
 /// A directory that exists and takes files, or that can be made (its
 /// nearest existing parent takes files); nothing is made.
-fn writable(d: &Path) -> Result<String, String> {
+pub(super) fn writable(d: &Path) -> Result<String, String> {
     let near = d.ancestors().find(|p| p.exists()).unwrap_or(Path::new("/"));
     let probe = near.join(format!(".podrunner-doctor-{}", std::process::id()));
     match std::fs::create_dir(&probe) {

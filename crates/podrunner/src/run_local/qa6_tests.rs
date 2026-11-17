@@ -16,6 +16,16 @@ fn scratch(tag: &str) -> PathBuf {
     dir
 }
 
+/// An unpacked runner for a dry run, which checks the runner directory
+/// (T-345).
+pub(super) fn runner_dir(tag: &str) -> String {
+    let dir = std::env::temp_dir().join(format!("podrunner-qa6-runner-{tag}-{}", std::process::id()));
+    std::fs::create_dir_all(dir.join("bin")).unwrap();
+    std::fs::write(dir.join("run.sh"), "").unwrap();
+    std::fs::write(dir.join("bin/Runner.Listener"), "").unwrap();
+    dir.display().to_string()
+}
+
 const WORKFLOW: &str = "on: push\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps: [{run: a}]\n";
 
 /// T-340: a workflow file whose link leads out of its project is refused,
@@ -62,7 +72,8 @@ fn the_secrets_of_the_tree_are_checked_in_a_dry_run() {
     let w = dir.join("w.yml").display().to_string();
     let t = tree.display().to_string();
     let secrets = tree.join(".secrets");
-    let dry = || run(&args(&[&w, "--runner-dir", "/r", "--dry-run", "--no-cache", "--checkout", &t]));
+    let r = runner_dir("secrets");
+    let dry = || run(&args(&[&w, "--runner-dir", &r, "--dry-run", "--no-cache", "--checkout", &t]));
     let set = |text: &str, mode: u32| {
         std::fs::write(&secrets, text).unwrap();
         std::fs::set_permissions(&secrets, std::fs::Permissions::from_mode(mode)).unwrap();
