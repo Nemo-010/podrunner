@@ -6455,7 +6455,7 @@ The state names the artifact directory of its run, and a rerun reads it; or `--s
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6473,6 +6473,10 @@ With no `--checkout`, a workflow that uses `actions/checkout` takes the current 
 
 `cargo test -p podrunner`; the run as a user in a plain directory.
 
+## Done
+
+2026-11-17: out of a git tree the default checkout takes the project whose `.github/workflows` holds the file; with neither, the run is refused before the first job: `the workflow uses actions/checkout, and DIR is in no git tree: give --checkout DIR, the tree of the project` (exit 64). Proven on a constrained host as a user (`qa5`): a plain project gets its tree; a file in no project is refused.
+
 # T-337: From a subdirectory of a git tree, the checkout holds only that subdirectory
 
 **Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 2, as the user `qa7` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
@@ -6480,7 +6484,7 @@ With no `--checkout`, a workflow that uses `actions/checkout` takes the current 
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6497,6 +6501,10 @@ The default checkout of T-203 takes the top of the git tree (`git rev-parse --sh
 ## Prove
 
 `cargo test -p podrunner`; the run as a user from a subdirectory.
+
+## Done
+
+2026-11-17: the default checkout takes `git rev-parse --show-toplevel` of the current directory (`args::default_checkout`). Proven on a constrained host as a user (`qa5`): from `PROJECT/.github`, `it gets the tree of PROJECT`.
 
 # T-338: --no-cache makes each actions/cache step retry for about a minute
 

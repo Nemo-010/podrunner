@@ -103,20 +103,43 @@ pub(super) fn pair(v: &str) -> Result<(String, String), String> {
     Ok((k.to_string(), v.to_string()))
 }
 
-/// With no `--checkout`, a workflow that uses `actions/checkout` takes the
-/// git tree of the current directory, as act does, and a line says so
-/// (T-203); out of a git tree nothing changes.
-pub(super) fn default_checkout(mut a: Args) -> Args {
+/// With no `--checkout`, a workflow that uses `actions/checkout@` takes
+/// the top of the git tree of the current directory, as GitHub checks out
+/// the repository (T-203, T-337); out of a git tree, the project whose
+/// `.github/workflows` holds the file (T-336). With neither, the run is
+/// refused with the fix: a checkout of nothing fails in the job.
+pub(super) fn default_checkout(mut a: Args) -> Result<Args, String> {
     let uses = std::fs::read_to_string(&a.file).is_ok_and(|t| t.contains("actions/checkout@"));
-    let cwd = std::env::current_dir().ok().filter(|d| podrunner_local::tree::is_git_tree(d));
-    if let (None, true, Some(cwd)) = (&a.checkout, uses, cwd) {
-        eprintln!(
-            "podrunner: the workflow uses actions/checkout: it gets the tree of {} (--checkout .)",
-            cwd.display()
-        );
-        a.checkout = Some(cwd);
+    if a.checkout.is_some() || !uses {
+        return Ok(a);
     }
-    a
+    let cwd = std::env::current_dir().map_err(|e| format!("the current directory: {e}"))?;
+    let Some(root) = toplevel(&cwd).or_else(|| project_of(&a.file)) else {
+        return Err(format!(
+            "{}: the workflow uses actions/checkout, and {} is in no git tree: give --checkout DIR, the tree of the project",
+            a.file.display(),
+            cwd.display()
+        ));
+    };
+    eprintln!("podrunner: the workflow uses actions/checkout: it gets the tree of {} (--checkout DIR)", root.display());
+    a.checkout = Some(root);
+    Ok(a)
+}
+
+/// The top of the git tree that holds `dir`.
+fn toplevel(dir: &std::path::Path) -> Option<PathBuf> {
+    let out =
+        std::process::Command::new("git").arg("-C").arg(dir).args(["rev-parse", "--show-toplevel"]).output().ok()?;
+    let top = String::from_utf8(out.stdout).ok()?;
+    (out.status.success() && !top.trim().is_empty()).then(|| PathBuf::from(top.trim()))
+}
+
+/// The project of a workflow file at `PROJECT/.github/workflows/FILE`.
+fn project_of(file: &std::path::Path) -> Option<PathBuf> {
+    let file = std::fs::canonicalize(file).ok()?;
+    let workflows = file.parent().filter(|d| d.file_name().is_some_and(|n| n == "workflows"))?;
+    let github = workflows.parent().filter(|d| d.file_name().is_some_and(|n| n == ".github"))?;
+    github.parent().map(std::path::Path::to_path_buf)
 }
 
 pub(super) fn parse(args: &[String]) -> Result<Args, String> {
@@ -390,5 +413,22 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
             "one of --runner-dir DIR, or a unit kind (--podvm, --microvm, --incus) with --images and --image, is necessary"
                 .into(),
         ),
+    }
+}
+
+#[cfg(test)]
+mod checkout_tests {
+    /// T-336: a workflow file of `.github/workflows` names its project.
+    #[test]
+    fn the_project_of_a_workflow_file() {
+        let dir = std::env::temp_dir().join(format!("podrunner-project-of-{}", std::process::id()));
+        let wf = dir.join("p/.github/workflows/c.yml");
+        std::fs::create_dir_all(wf.parent().unwrap()).unwrap();
+        std::fs::write(&wf, "on: push\n").unwrap();
+        std::fs::write(dir.join("c.yml"), "on: push\n").unwrap();
+        let canon = std::fs::canonicalize(dir.join("p")).unwrap();
+        assert_eq!(super::project_of(&wf), Some(canon));
+        assert_eq!(super::project_of(&dir.join("c.yml")), None, "not in .github/workflows");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
