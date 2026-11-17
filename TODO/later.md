@@ -4331,7 +4331,9 @@ State (2026-11-16): podvm `v0.2.0-beta.25` (PodUtils/podvm#439, PodUtils/podvm@T
 
 State (2026-11-17): the rows `click-py313` and `rq-lint` on podvm are still xfail in each lane of user-gate 44051472680 (podvm `0.2.0-beta.30`): a unit with a volume (the socket directory where the hooks give containers, `--export`) leaves the namespace rung until PodUtils/podvm@T-1740; GitHub #189 names it (PodUtils/podvm#466).
 
-State (2026-11-17): the premise above is most likely wrong. As uid 30036 on this sandbox, podvm `0.2.0-beta.30` keeps `run -d` on the namespace rung with no volume, with the socket directory and with a read-only volume (`namespace fresh-chroot`). The podvm tests of runner-image 44085737348 on the hosted `ubuntu-24.04` runner say `entered rung: userland` (AppArmor restricts user namespaces). So the rows most likely fail because each unit there is on the userland rung, where `tempfile` issues `renameat2` as a raw system call. #189 gives podvm the three facts that PodUtils/podvm#466 asked for. Next: the user gate logs `podvm inspect UNIT --format '{{.Rung}} {{.Exec.Mode}}'` for the rows of podvm.
+State (2026-11-17): the premise above is most likely wrong. As uid 30036 on this sandbox, podvm `0.2.0-beta.30` keeps `run -d` on the namespace rung with no volume, with the socket directory and with a read-only volume (`namespace fresh-chroot`). The podvm tests of runner-image 44085737348 on the hosted `ubuntu-24.04` runner say `entered rung: userland` (AppArmor restricts user namespaces). So the rows most likely fail because each unit there is on the userland rung, where `tempfile` issues `renameat2` as a raw system call. #189 gives podvm the three facts that PodUtils/podvm#466 asked for. The user gate has the measure `rung:podvm` (the rung and the mode of a detached unit with a volume, a pty and `less`) in each lane with podvm.
+
+State (2026-11-17): podvm confirmed the cause (PodUtils/podvm#470): on the userland rung, `rustix` issues a raw `renameat2`, `rename` and `link`, which the interposer does not see (EACCES in `/root`). No workaround in podvm `0.2.0-beta.31`; PodUtils/podvm@T-1935 (P1) makes the syscall tier serve `run -d`. podvm asks for the rung of a failing unit for the Node error of T-262.
 
 # T-262: In a podvm unit, Node sometimes reads an invalid package.json
 
@@ -7071,6 +7073,8 @@ Ask podvm by a COORD issue `(to podvm)` to mount a new `devpts` instance (`newin
 ## Blocker
 
 2026-11-17: waits for podvm: COORD-079 (GitHub #216) asks for a devpts in each unit.
+
+State (2026-11-17): podvm answered (PodUtils/podvm#470, COORD-177): the namespace rung binds the host's `/dev/pts` and makes no `/dev/ptmx`; the userland rung gives a pty now. The fix is in pod-enter of podcrates (PodUtils/podvm#469, COORD-176), then PodUtils/podvm@T-1934 takes the tag. podrunner waits for that podvm release.
 
 # T-355: A failed route of the egress module is reported as a host that the policy refused
 

@@ -452,6 +452,31 @@ class Lane:
             raise GateError(f"a job under --podnet --allow github.com: {detail}")
         return "under --podnet, the job reached github.com and not example.com"
 
+    def rung(self):
+        """A measure for podvm (PodUtils/podvm#466, #470): the rung and the
+        mode of a detached unit of the runner image with a volume, as a
+        unit of podrunner has (T-261), and whether it gives a pty and has
+        `less` (T-353, T-354). It fails only when no unit starts."""
+        podvm = self.data / "bin" / "podvm"
+        env = self.env(self.home, PODVM_STORE=str(self.data / "images"))
+        sock = self.work / "rung-sock"
+        sock.mkdir(parents=True, exist_ok=True)
+        name = f"gate-rung-{os.getpid()}"
+        argv = [podvm, "run", "-d", "--name", name, "-v", f"{sock}:/run/podrunner", self.image, "sleep", "120"]
+        rc, _ = self.run(argv, env, self.work, "rung-run", timeout=600)
+        if rc:
+            self.show("rung-run")
+            raise GateError(f"podvm run -d of the runner image: exit {rc}")
+        try:
+            _, rung = self.run([podvm, "inspect", name, "--format", "{{.Rung}} {{.Exec.Mode}}"], env, self.work, "rung-inspect")
+            probe = "python3 -c 'import os; os.openpty()' >/dev/null 2>&1 && echo pty=yes || echo pty=no; command -v less >/dev/null && echo less=yes || echo less=no"
+            _, tools = self.run([podvm, "exec", name, "sh", "-c", probe], env, self.work, "rung-exec")
+        finally:
+            self.run([podvm, "rm", "-f", name], env, self.work, "rung-rm")
+        words = " ".join(tools.split())
+        detail = f"rung of a unit with a volume: {rung.strip() or 'unknown'}; {words}"
+        return ("xfail", f"{detail} (T-353, T-354)") if "=no" in words else detail
+
     def microvm_probe(self) -> str:
         """`podvm run --verbose` of the runner image on the machine tier, as
         the unit does it: the last lines name the cause of an early end
@@ -580,7 +605,7 @@ def lane(a) -> int:
         rows, errors = read_table(TABLE)
         if errors:
             raise SystemExit("\n".join(errors))
-    later = [f"hello:{e}" for e in g.executors] + (["confine:podvm", "pids:podvm", "hold:podvm"] if "podvm" in g.executors else [])
+    later = [f"hello:{e}" for e in g.executors] + (["rung:podvm", "confine:podvm", "pids:podvm", "hold:podvm"] if "podvm" in g.executors else [])
     later += [f"corpus:{r['id']}:{r['executor']}" for r in rows if g.wants(r)]
     try:
         if not g.check("serve", g.serve):
@@ -601,6 +626,7 @@ def lane(a) -> int:
                 for e in g.executors:
                     g.check(f"hello:{e}", functools.partial(g.hello, e))
                 if "podvm" in g.executors:
+                    g.check("rung:podvm", g.rung)
                     g.check("confine:podvm", functools.partial(g.confine, "podvm"))
                     g.check("pids:podvm", functools.partial(g.pids, "podvm"))
                     g.check("hold:podvm", g.hold)
