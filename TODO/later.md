@@ -3269,6 +3269,7 @@ State (2026-11-17): the podvm kind takes `[unit.podvm] cpus` and the `cpu` of an
 
 State (2026-11-17, the measure): runner-image 44075936648: in a service of systemd with `Delegate=yes`, podvm refused `--cpus`: it makes the leaf of a run beside the cgroup of its caller (`system.slice/podvm-...`: Permission denied), so the parent must be the delegated directory, as `app.slice` of a systemd user session. `delegated` now checks the parent, and the measure moves the test into a leaf of the service first. Next: that measure.
 
+State (2026-11-17): the measure of runner-image 44085737348 (`8a4ad2f`) did not reach its test: the shell of the delegated unit ended at `echo: I/O error` before the test (a write to the cgroup files). The step now writes each controller alone, and prints the cgroup, its controllers and the modes, so the next run names the cause.
 
 # T-223: `doctor --run` says ok for a store that does not hold `--image`
 
