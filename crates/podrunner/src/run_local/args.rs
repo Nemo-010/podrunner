@@ -82,6 +82,8 @@ pub(super) struct Args {
     /// `--no-git`: no `.git` in the checkout of a git tree (T-267).
     pub(super) no_git: bool,
     pub(super) podnet: Option<PathBuf>,
+    /// `--vnet PODNET`: the podvm kind on the vnet shim of podnet (T-220).
+    pub(super) vnet: Option<PathBuf>,
     pub(super) allow: Vec<String>,
     pub(super) event: String,
     pub(super) event_path: Option<PathBuf>,
@@ -278,6 +280,7 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
             "--with-git" => a.with_git = true,
             "--no-git" => a.no_git = true,
             "--podnet" => a.podnet = Some(PathBuf::from(value()?)),
+            "--vnet" => a.vnet = Some(PathBuf::from(value()?)),
             "--allow" => a.allow.push(value()?),
             "--event" => a.event = value()?,
             "--event-path" => a.event_path = Some(PathBuf::from(value()?)),
@@ -398,15 +401,23 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
                 .into(),
         );
     }
-    if !a.environment_allow.is_empty() && a.podnet.is_none() && a.guest.is_none() {
+    if !a.environment_allow.is_empty() && a.podnet.is_none() && a.vnet.is_none() && a.guest.is_none() {
         return Err("--environment-allow needs an egress hold: --podnet with --podvm, or --microvm or --incus".into());
     }
     if a.podnet.is_some() && a.podvm.is_none() {
         return Err("--podnet needs --podvm".into());
     }
+    // The vnet holds the egress in the front: the hold of `podnet pod`
+    // is not taken with it (T-220).
+    if a.vnet.is_some() && a.podvm.is_none() {
+        return Err("--vnet needs --podvm".into());
+    }
+    if a.vnet.is_some() && a.podnet.is_some() {
+        return Err("--vnet and --podnet exclude each other: the vnet holds the egress of the unit".into());
+    }
     // A guest has no NIC: the egress module holds --allow with no podnet.
-    if !a.allow.is_empty() && a.podnet.is_none() && a.guest.is_none() {
-        return Err("--allow needs --podnet with --podvm, or --microvm or --incus".into());
+    if !a.allow.is_empty() && a.podnet.is_none() && a.vnet.is_none() && a.guest.is_none() {
+        return Err("--allow needs --podnet or --vnet with --podvm, or --microvm or --incus".into());
     }
     if a.engine.is_some() && !matches!(a.guest, Some((true, _))) {
         return Err("--engine needs --microvm".into());

@@ -151,17 +151,20 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
                 format!("--podnet: the hold is {hold:?}; the local mode takes only the seccomp hold (advisory) now"),
             ));
         }
-        // The proxy of the environment is the way out of the module (T-233).
-        let up = podrunner_local::fetch::env_proxy("github.com").map_err(|e| fail(Class::Config, e))?;
-        let e = podrunner_egress::Egress::host(
-            up.clone(),
-            up.is_some(),
-            podrunner_egress::dns::resolver(false, Vec::new()),
-        )
-        .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?
-        .quiet();
-        egress = Some((std::sync::Arc::new(e), policy(&a.allow)));
+        egress = Some(module(a)?);
     }
+    // The vnet: the front holds the egress, and a host that refuses each
+    // AF_INET bind runs the unit (T-220). With no --allow, the unit reaches
+    // the broker only.
+    let shim = match &a.vnet {
+        Some(v) => {
+            if !a.allow.is_empty() || !a.environment_allow.is_empty() {
+                egress = Some(module(a)?);
+            }
+            Some(super::vnet::shim(v, &state.join("vnet")).map_err(|e| fail(Class::Config, format!("--vnet: {e}")))?)
+        }
+        None => None,
+    };
     // The runner image comes from the store only: a missing one is named,
     // and no registry is asked (T-272).
     super::doctor::image_in_store(binary, images, image).map_err(|e| fail(Class::Config, e))?;
@@ -169,6 +172,18 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
     let prepared = unit.prepare(image, platform, false).map_err(|e| fail(Class::Config, format!("{image}: {e}")))?;
     let mut exec = InUnit::new(std::sync::Arc::new(unit), prepared);
     exec.egress = egress;
+    exec.vnet = shim;
     exec.credential_dir = Some(podrunner_podvm::CREDENTIAL_DIR.to_string());
     Ok(exec)
+}
+
+/// The egress module of a podvm run and the policy of `--allow`: the proxy
+/// of the environment is its way out (T-233).
+fn module(a: &Args) -> Result<(std::sync::Arc<podrunner_egress::Egress>, String), Out> {
+    let up = podrunner_local::fetch::env_proxy("github.com").map_err(|e| fail(Class::Config, e))?;
+    let e =
+        podrunner_egress::Egress::host(up.clone(), up.is_some(), podrunner_egress::dns::resolver(false, Vec::new()))
+            .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?
+            .quiet();
+    Ok((std::sync::Arc::new(e), policy(&a.allow)))
 }

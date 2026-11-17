@@ -1,0 +1,52 @@
+//! The vnet of podnet for a podvm unit (T-220): on a host that refuses each
+//! AF_INET bind and connect, the runner of a unit runs under the vnet shim
+//! of podnet (`podnet net shim`). The shim maps one loopback address of the
+//! unit to the front of its socket directory (`PODNET_VNET_FORWARD`,
+//! podnet 0.4.0-beta.14 or later), and the front gives the fake broker on a
+//! unix socket and the egress module. The host binds no AF_INET socket.
+
+use std::collections::BTreeMap;
+use std::path::Path;
+
+/// The loopback port of the unit that the shim forwards to the front.
+pub const PORT: u16 = 3128;
+
+/// The file name of the shim in the socket directory.
+pub const SHIM: &str = "libpodnet-vnet.so";
+
+/// Copy the shim `lib` into the socket directory `dir` of a unit.
+pub(super) fn place(lib: &Path, dir: &Path) -> Result<(), String> {
+    std::fs::copy(lib, dir.join(SHIM)).map(|_| ()).map_err(|e| format!("the vnet shim {}: {e}", lib.display()))
+}
+
+/// The environment of a runner under the shim; `mount` is the socket
+/// directory in the unit. Each request goes through the front as a proxy:
+/// the name of the broker is not a loopback name.
+pub(super) fn env(env: &mut BTreeMap<String, String>, mount: &str) {
+    let proxy = format!("http://127.0.0.1:{PORT}");
+    env.insert("LD_PRELOAD".into(), format!("{mount}/{SHIM}"));
+    env.insert(
+        "PODNET_VNET_FORWARD".into(),
+        format!("127.0.0.1:{PORT}=unix:{mount}/{}", podrunner_unit::EGRESS_SOCKET),
+    );
+    for k in ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"] {
+        env.insert(k.into(), proxy.clone());
+    }
+    for k in ["NO_PROXY", "no_proxy"] {
+        env.insert(k.into(), String::new());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    /// T-220: the runner of a unit reaches the front through the shim.
+    #[test]
+    fn the_environment_of_a_runner_under_the_vnet_shim() {
+        let mut env = std::collections::BTreeMap::new();
+        super::env(&mut env, "/run/podrunner");
+        assert_eq!(env["LD_PRELOAD"], "/run/podrunner/libpodnet-vnet.so");
+        assert_eq!(env["PODNET_VNET_FORWARD"], "127.0.0.1:3128=unix:/run/podrunner/egress.sock");
+        assert_eq!(env["HTTPS_PROXY"], "http://127.0.0.1:3128");
+        assert_eq!(env["NO_PROXY"], "");
+    }
+}

@@ -276,3 +276,21 @@ fn a_runner_directory_with_a_space_is_refused() {
     assert!(e.contains("has a space") && e.contains("fix:"), "{e}");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-220: `--vnet` needs the socket volume of the driver; with none, the job
+/// fails by that cause.
+#[test]
+fn a_vnet_unit_needs_the_socket_volume() {
+    let dir = std::env::temp_dir().join(format!("podrunner-local-vnet-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join(vnet::SHIM), "").unwrap();
+    let driver: Arc<dyn UnitDriver> = Arc::new(FakeUnit::new(&dir.join("units"), capability(), "linux/amd64"));
+    let image = driver.prepare(&format!("img@sha256:{}", "a".repeat(64)), "linux/amd64", false).unwrap();
+    let mut exec = InUnit::new(driver, image);
+    exec.run_sh = "true".into();
+    exec.vnet = Some(dir.join(vnet::SHIM));
+    let e = exec.run(&JobId::new("a.0").unwrap(), Job::scripts("a", &["true"]), Duration::from_secs(60)).unwrap_err();
+    assert!(e.contains("--vnet needs the socket volume of podvm"), "{e}");
+    let _ = std::fs::remove_dir_all(&dir);
+}

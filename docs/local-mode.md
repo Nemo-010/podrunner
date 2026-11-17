@@ -83,6 +83,30 @@ for the base image and 4 GiB for the larger one, for each job at a time
 `unit u-N starts` names it. `podrunner doctor --run` gives the need of the
 image of the run (T-325).
 
+## A host that refuses each AF_INET bind
+
+On a host whose sandbox refuses `bind(2)` (and `connect(2)`) of AF_INET,
+also on the loopback, the fake broker of `--podvm` cannot listen, and a
+unit cannot reach it. Give `--vnet PATH` with `--podvm` (T-220):
+
+* The broker of each job listens on a unix socket only. The front of the
+  socket directory of the unit gives the broker, and the hosts of
+  `--allow` through the egress module; each other host gets 403.
+* The runner of the unit runs under the vnet shim of podnet
+  (`libpodnet-vnet.so`, podnet `0.4.0-beta.14` or later). The shim sends
+  a connect to `127.0.0.1:3128` to the front
+  (`PODNET_VNET_FORWARD`), and the proxy variables of the unit name that
+  address.
+* PATH is the shim, or a podnet binary that builds it with
+  `podnet net shim` (a C compiler on the host). The shim loads in the
+  runner image: build it for glibc.
+* The shim reaches the unit in its socket directory: podvm must give the
+  socket volume (the rung of its container hooks; `podrunner doctor --run`
+  names it). `--vnet` and `--podnet` exclude each other.
+
+Proof level: not run in CI. A user measured the same transport on a host
+that refuses the loopback bind (GitHub #170).
+
 ## What a podvm unit holds
 
 A podvm unit is a boundary for files only on the namespace rung of podvm:

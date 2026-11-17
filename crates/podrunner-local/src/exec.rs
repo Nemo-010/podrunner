@@ -9,6 +9,7 @@ use std::path::PathBuf;
 
 pub use errors::broker_error;
 use errors::{Gone, start_error};
+use hooks::Hooks;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -22,15 +23,16 @@ use crate::drive::{End, Executor, result_of};
 
 pub mod docker;
 mod errors;
+mod hooks;
 mod host;
 mod images;
 mod proxy;
 mod toolcache;
+pub mod vnet;
 
 pub use host::{PASSED, RunnerDir, space_refusal};
 #[cfg(test)]
-use images::images;
-use images::registries;
+use images::{images, registries};
 pub use toolcache::{TOOLCACHE_MOUNT, toolcache_argv};
 
 /// The count of the units of the process.
@@ -88,6 +90,10 @@ pub struct InUnit {
     /// Where the unit sees its credential files: a unit with the network of
     /// the host gets the proxy and the CA files of the caller there (T-284).
     pub credential_dir: Option<String>,
+    /// The vnet shim of podnet for a podvm unit (T-220): the runner
+    /// reaches the broker and the egress module through the front of its
+    /// socket directory, and the host binds no AF_INET socket.
+    pub vnet: Option<PathBuf>,
 }
 
 impl InUnit {
@@ -115,74 +121,8 @@ impl InUnit {
             toolcache: None,
             logs: Vec::new(),
             credential_dir: None,
+            vnet: None,
         }
-    }
-}
-
-/// The container hooks of one unit (T-093): the relay and the control
-/// socket in its socket directory, served by a thread until [`Hooks::stop`].
-struct Hooks {
-    dir: PathBuf,
-    env: std::collections::BTreeMap<String, String>,
-    stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
-    unit: std::sync::Arc<std::sync::Mutex<podrunner_hook::unit::HookUnit>>,
-    thread: std::thread::JoinHandle<()>,
-}
-
-impl Hooks {
-    /// End the server; the refusals of the hook calls.
-    fn stop(self) -> Vec<String> {
-        self.stop.store(true, std::sync::atomic::Ordering::SeqCst);
-        // The server checks its flag at each connection: wake it.
-        let _ = std::os::unix::net::UnixStream::connect(self.dir.join("ctl.sock"));
-        let _ = self.thread.join();
-        self.unit
-            .lock()
-            .map(|u| {
-                let codes = u.refusals.iter().map(|r| format!("{r:?}"));
-                // The cause of each refusal of the driver, for the log of the run.
-                codes.chain(u.driver_errors.iter().map(|e| format!("the driver: {e}"))).collect()
-            })
-            .unwrap_or_default()
-    }
-}
-
-impl InUnit {
-    fn hooks(&self, dir: &std::path::Path, message: &Job, id: &podrunner_schema::UnitId) -> Result<Hooks, String> {
-        use podrunner_hook::policy::Policy;
-        use podrunner_hook::server::{Unit, bind, serve_until};
-        use std::os::unix::fs::PermissionsExt;
-        let Some(guest) = self.driver.socket_mount().map(str::to_string) else {
-            return Err("the job needs containers, and this unit kind has no container hooks here; run it with --microvm and --engine".into());
-        };
-        let dir = dir.to_path_buf();
-        std::fs::create_dir_all(dir.join("logs")).map_err(|e| format!("{}: {e}", dir.display()))?;
-        let relay = dir.join("podrunner-hook.sh");
-        std::fs::write(&relay, podrunner_hook::RELAY).map_err(|e| format!("the relay: {e}"))?;
-        std::fs::set_permissions(&relay, std::fs::Permissions::from_mode(0o755))
-            .map_err(|e| format!("the relay: {e}"))?;
-        let policy = Policy {
-            container: podrunner_schema::ContainerRoute::Hooks,
-            shared_host_net: true,
-            registries: registries(message),
-            work_root: "/home/runner".into(),
-        };
-        let unit = std::sync::Arc::new(std::sync::Mutex::new(podrunner_hook::unit::HookUnit::new(
-            self.driver.clone(),
-            id.clone(),
-            policy,
-            None,
-            dir.join("logs"),
-        )));
-        let listener = bind(&dir.join("ctl.sock")).map_err(|e| format!("the control socket: {e}"))?;
-        let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
-        let (u, s): (std::sync::Arc<std::sync::Mutex<dyn Unit>>, _) = (unit.clone(), stop.clone());
-        let thread = std::thread::spawn(move || serve_until(listener, u, s));
-        let env = std::collections::BTreeMap::from([
-            ("ACTIONS_RUNNER_CONTAINER_HOOKS".to_string(), format!("{guest}/podrunner-hook.sh")),
-            ("PODRUNNER_CTL".to_string(), format!("{guest}/ctl.sock")),
-        ]);
-        Ok(Hooks { dir, env, stop, unit, thread })
     }
 }
 
@@ -256,8 +196,9 @@ impl Executor for InUnit {
         // A guest reaches the broker through its front: a unix socket, so
         // the host needs no AF_INET bind (T-220).
         let broker_sock = std::env::temp_dir().join(format!("podrunner-local-broker-{}-{n}.sock", std::process::id()));
-        let _gone = Gone(self.guest.then(|| broker_sock.clone()));
-        let broker = match self.guest {
+        let fronted = self.guest || self.vnet.is_some();
+        let _gone = Gone(fronted.then(|| broker_sock.clone()));
+        let broker = match fronted {
             true => Broker::start_unix(&broker_sock, crate::front::BROKER)
                 .map_err(|e| format!("the fake broker: {}: {e}", broker_sock.display()))?,
             false => Broker::start().map_err(broker_error)?,
@@ -293,7 +234,7 @@ impl Executor for InUnit {
         .map(|(name, text)| CredentialFile { name, content: Secret::new(text) })
         .collect();
         let mut proxy_env = Vec::new();
-        if let (false, Some(dir)) = (self.guest, &self.credential_dir) {
+        if let (false, Some(dir)) = (fronted, &self.credential_dir) {
             let (env, more) = proxy::unit_env(dir, std::env::vars(), self.egress.is_some())?;
             proxy_env = env;
             files.extend(more);
@@ -301,7 +242,7 @@ impl Executor for InUnit {
         // One socket directory for each unit: the container hooks and the
         // egress socket of the hold (T-095).
         let containers = needs_containers(&message_copy) && !self.guest;
-        let sockets = (containers || self.egress.is_some() || self.guest)
+        let sockets = (containers || self.egress.is_some() || fronted)
             .then(|| std::env::temp_dir().join(format!("podrunner-local-unit-{}-{id}", std::process::id())));
         if let Some(dir) = &sockets {
             let _ = std::fs::remove_dir_all(dir);
@@ -316,7 +257,7 @@ impl Executor for InUnit {
             }
         };
         // A guest: the egress module on an inner socket, behind the front.
-        let egress_socket = |dir: &PathBuf| match self.guest {
+        let egress_socket = |dir: &PathBuf| match fronted {
             true => dir.join("egress-inner.sock"),
             false => dir.join(podrunner_unit::EGRESS_SOCKET),
         };
@@ -328,7 +269,24 @@ impl Executor for InUnit {
             end_sockets(&sockets);
             return Err(format!("the egress of {id}: {e}"));
         }
-        let _front = match (&sockets, self.guest) {
+        // The vnet shim reaches the unit in its socket directory.
+        let vnet_mount = match (&self.vnet, &sockets) {
+            (Some(lib), Some(dir)) => {
+                let placed = self.driver.socket_mount().map(str::to_string).ok_or_else(|| {
+                    "--vnet needs the socket volume of podvm (the rung of its container hooks; `podrunner doctor --run` names it)"
+                        .to_string()
+                });
+                match placed.and_then(|m| vnet::place(lib, dir).map(|()| m)) {
+                    Ok(m) => Some(m),
+                    Err(e) => {
+                        end_sockets(&sockets);
+                        return Err(e);
+                    }
+                }
+            }
+            _ => None,
+        };
+        let _front = match (&sockets, fronted) {
             (Some(dir), true) => {
                 let inner = self.egress.as_ref().map(|_| egress_socket(dir));
                 let up = crate::front::Upstream::Unix(broker_sock.clone());
@@ -376,6 +334,9 @@ impl Executor for InUnit {
         };
         let mut env = hooks.as_ref().map(|h| h.env.clone()).unwrap_or_default();
         proxy::unit_extra(&mut env, self.guest, self.egress.is_some().then_some(broker.base.as_str()));
+        if let Some(m) = &vnet_mount {
+            vnet::env(&mut env, m);
+        }
         env.extend(proxy_env);
         let spec = podrunner_unit::StartSpec {
             unit: id.clone(),
