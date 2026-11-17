@@ -109,6 +109,9 @@ pub(super) fn pair(v: &str) -> Result<(String, String), String> {
 /// `.github/workflows` holds the file (T-336). With neither, the run is
 /// refused with the fix: a checkout of nothing fails in the job.
 pub(super) fn default_checkout(mut a: Args) -> Result<Args, String> {
+    if let Some(e) = link_out(&a.file) {
+        return Err(e);
+    }
     let uses = std::fs::read_to_string(&a.file).is_ok_and(|t| t.contains("actions/checkout@"));
     if a.checkout.is_some() || !uses {
         return Ok(a);
@@ -134,9 +137,25 @@ fn toplevel(dir: &std::path::Path) -> Option<PathBuf> {
     (out.status.success() && !top.trim().is_empty()).then(|| PathBuf::from(top.trim()))
 }
 
-/// The project of a workflow file at `PROJECT/.github/workflows/FILE`.
+/// The refusal of a workflow file whose symbolic link leads out of its
+/// project: the run would read, and check out, another project (T-340).
+pub(super) fn link_out(file: &std::path::Path) -> Option<String> {
+    if !std::fs::symlink_metadata(file).is_ok_and(|m| m.file_type().is_symlink()) {
+        return None;
+    }
+    let dir =
+        std::fs::canonicalize(file.parent().filter(|d| !d.as_os_str().is_empty()).unwrap_or(".".as_ref())).ok()?;
+    let root = project_of(file).or_else(|| toplevel(&dir)).unwrap_or(dir);
+    let real = std::fs::canonicalize(file).unwrap_or_else(|_| std::fs::read_link(file).unwrap_or_default());
+    (!real.starts_with(&root))
+        .then(|| format!("{}: the symbolic link leads out of the project ({})", file.display(), real.display()))
+}
+
+/// The project of a workflow file at `PROJECT/.github/workflows/FILE`; the
+/// file itself is not followed.
 fn project_of(file: &std::path::Path) -> Option<PathBuf> {
-    let file = std::fs::canonicalize(file).ok()?;
+    let dir = file.parent().filter(|d| !d.as_os_str().is_empty()).unwrap_or(".".as_ref());
+    let file = std::fs::canonicalize(dir).ok()?.join(file.file_name()?);
     let workflows = file.parent().filter(|d| d.file_name().is_some_and(|n| n == "workflows"))?;
     let github = workflows.parent().filter(|d| d.file_name().is_some_and(|n| n == ".github"))?;
     github.parent().map(std::path::Path::to_path_buf)

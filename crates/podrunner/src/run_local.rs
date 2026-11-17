@@ -488,4 +488,6 @@ pub fn run(args: &[String]) -> Out {
 #[cfg(test)]
 mod flags_tests;
 #[cfg(test)]
+mod qa6_tests;
+#[cfg(test)]
 mod tests;

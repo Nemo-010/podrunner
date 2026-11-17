@@ -21,6 +21,9 @@ fn workflows(dir: &std::path::Path) -> Result<Vec<PathBuf>, String> {
         .filter(|p| p.is_file() && matches!(p.extension().and_then(|x| x.to_str()), Some("yml" | "yaml")))
         .collect();
     out.sort();
+    if let Some(e) = out.iter().find_map(|f| super::args::link_out(f)) {
+        return Err(e);
+    }
     Ok(out)
 }
 

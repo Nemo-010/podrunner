@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**347 entries: 29 open, 21 partial, 10 blocked, 287 done.**
+**347 entries: 27 open, 21 partial, 10 blocked, 289 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 1 | 58 | 69 |
-| P2 | 9 | 7 | 6 | 148 | 170 |
+| P2 | 7 | 7 | 6 | 150 | 170 |
 | P3 | 19 | 5 | 3 | 81 | 108 |
-| **All** | 29 | 21 | 10 | 287 | 347 |
+| **All** | 27 | 21 | 10 | 289 | 347 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -384,8 +384,8 @@ acceptance, later The crate dependencies later than v1.
 | [T-337](later.md) | P2 | S | later | defect | done | From a subdirectory of a git tree, the checkout holds only that subdirectory |
 | [T-338](later.md) | P2 | S | later | defect | done | --no-cache makes each actions/cache step retry for about a minute |
 | [T-339](later.md) | P3 | M | later | defect | open | The P3 findings of the fifth QA, agent 2 |
-| [T-340](later.md) | P2 | S | later | defect | open | A workflow file whose symbolic link leads out of the project is followed |
-| [T-341](later.md) | P2 | S | later | defect | open | The `.secrets` file of the tree skips the checks of `--secret-file` |
+| [T-340](later.md) | P2 | S | later | defect | done | A workflow file whose symbolic link leads out of the project is followed |
+| [T-341](later.md) | P2 | S | later | defect | done | The `.secrets` file of the tree skips the checks of `--secret-file` |
 | [T-342](later.md) | P3 | S | later | defect | open | `doctor --run --json` gives no JSON; `doctor --json --run` is an unknown option |
 | [T-343](later.md) | P3 | S | later | defect | open | `print-unit` writes values in `ExecStart` with no quotes, and takes a relative or empty `--binary` |
 | [T-344](later.md) | P3 | S | later | defect | open | `image verify` refuses the runner image of the release, and the error does not name the file it takes |

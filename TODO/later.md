@@ -6648,7 +6648,7 @@ Fixed (2026-11-17): 5, `--env`, `--var` and `--input` name their flag in a bad p
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6666,6 +6666,10 @@ Resolve each workflow file (given or found in a directory) with the project rule
 
 `cargo test -p podrunner`; A test: a link to a valid workflow out of the project is refused in file mode and in directory mode (also `--validate`, `--list`).
 
+## Done
+
+2026-11-17: a workflow file (given, or of a directory) that is a symbolic link out of its project is refused with the link and its target (`args::link_out`); the project of a link is that of the link, not of its target. Proven in CI on GitHub-hosted runners by `qa6_tests::a_workflow_link_out_of_the_project_is_refused`.
+
 # T-341: The `.secrets` file of the tree skips the checks of `--secret-file`
 
 **Source:** GitHub #204 (a user QA of `v0.1.0-beta.7`, 2026-11-17)
@@ -6673,7 +6677,7 @@ Resolve each workflow file (given or found in a directory) with the project rule
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6690,6 +6694,10 @@ Give `.secrets` the checks of `--secret-file` (a regular file, mode 0600 or narr
 ## Prove
 
 `cargo test -p podrunner`; Tests: mode 0644, a bad line, a directory and a link out of the project each fail a dry run with the name of `.secrets`.
+
+## Done
+
+2026-11-17: `.secrets` of the checkout, else of the current directory, is read with each check of `--secret-file` (a file, mode 0600, the format, the link rule), also in a dry run. Proven in CI on GitHub-hosted runners by `qa6_tests::the_secrets_of_the_tree_are_checked_in_a_dry_run`.
 
 # T-342: `doctor --run --json` gives no JSON; `doctor --json --run` is an unknown option
 

@@ -150,7 +150,7 @@ the entry that closes the gap, or the entry that did the work.
 | Event payload | `-e FILE` | `--payload` | `--event-path FILE`, or a minimal payload of the event | T-125 |
 | `github` facts from the git tree | yes | yes | yes, and flags over each fact | T-125 |
 | Filters of `on:`, a directory of workflows | event names, `-W DIR` | yes | yes: the filters of `on:` (`pod-actions-workflow`), `--changed-since`, a directory of workflows | T-125 |
-| Secrets | `-s`, `.secrets`, mask | `--secret`, `--secret-file`, mask | `--secret NAME` from the environment, `--secret-file` at mode 0600, `.secrets` of the checkout (never copied into the workspace), mask; no value in argv | T-121, T-276 |
+| Secrets | `-s`, `.secrets`, mask | `--secret`, `--secret-file`, mask | `--secret NAME` from the environment, `--secret-file` at mode 0600, `.secrets` of the checkout, else of the current directory (never copied into the workspace; checked as a secret file, T-341), mask; no value in argv | T-121, T-276, T-341 |
 | `GITHUB_TOKEN` | the token of the GitHub CLI of the user | configured | a made-up token; an action that gives it to a real API fails with "Bad credentials", and the run names `--github-token-env` (T-254); a real one only by `--github-token-env NAME`, never to `permissions: {}` | T-122 |
 | Vars | `--var`, `.vars` | `--var`, `--var-file` | `--var`, `--var-file` | T-089, T-126 |
 | Inputs, defaults of `workflow_dispatch` | `--input`, `.input` | `--input`, `--input-file` | `--input`, `--input-file`; the defaults, types, `required` and `choice` of GitHub | T-126 |

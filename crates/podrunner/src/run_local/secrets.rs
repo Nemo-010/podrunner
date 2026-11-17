@@ -26,7 +26,10 @@ pub(super) fn secrets(a: &Args) -> Result<Secrets, String> {
             out.push((k, v));
         }
     };
-    if let Some(dir) = a.checkout.as_ref().filter(|d| d.join(".secrets").is_file()) {
+    // `.secrets` of the checkout, else of the current directory, gets each
+    // check of `--secret-file`, also in a dry run (T-341).
+    let dir = a.checkout.clone().or_else(|| std::env::current_dir().ok());
+    if let Some(dir) = dir.filter(|d| std::fs::symlink_metadata(d.join(".secrets")).is_ok()) {
         // A link of the project must not read a file out of it (T-275).
         let file = dir.join(".secrets");
         match (file.canonicalize(), dir.canonicalize()) {
