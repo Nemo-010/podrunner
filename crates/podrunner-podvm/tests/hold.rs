@@ -186,9 +186,7 @@ fn the_tree_kill_self_test_of_a_held_unit_passes() {
         .unwrap();
     let id = UnitId::parse("u-999").unwrap();
     assert!(unit.verify_tree_kill(&env("PODRUNNER_PODVM_IMAGE"), id.clone()).unwrap(), "the tree kill is not proven");
-    assert!(
-        unit.destroy(&id).is_err() || unit.destroy(&id).is_ok_and(|r| r.is_clean()),
-        "a unit of the self-test stays"
-    );
+    let gone = unit.destroy(&id);
+    assert!(gone.as_ref().map_or(true, |r| r.is_clean()), "a unit of the self-test stays: {gone:?}");
     let _ = std::fs::remove_dir_all(&state);
 }
