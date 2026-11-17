@@ -3228,6 +3228,8 @@ State (2026-11-15, podnet answered on PodUtils/podnet#582): under the shim each 
 
 State (2026-11-16): the state block of PodUtils/podnet#582 says PodUtils/podnet@T-356 and PodUtils/podnet@T-357 are done and go into the next tag of podnet. Waits for that tag.
 
+State (2026-11-17): the state block names the tag `v0.4.0-beta.14` for PodUtils/podnet@T-356 and PodUtils/podnet@T-357; the newest release is still `v0.4.0-beta.13`. podnet did not measure a podvm unit, the real runner or .NET. Waits for the release of `v0.4.0-beta.14`.
+
 
 # T-221: `cpus` on the podvm kind
 
