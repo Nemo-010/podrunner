@@ -385,6 +385,8 @@ impl Executor for InUnit {
             mounts,
             limits: Default::default(),
         };
+        // The image unpacks first: half a minute or more, with no line of the job.
+        self.live.as_ref().inspect(|_| eprintln!("podrunner: {}: unit {id} starts (its image unpacks)", job.as_str()));
         let started = self.driver.start(&spec).map_err(|e| start_error(&id, &e.to_string()));
         if let Err(e) = started {
             if let Some(h) = hooks {

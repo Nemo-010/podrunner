@@ -73,6 +73,14 @@ root on a host with user namespaces), a job runs as the user `runner` of
 the image with `HOME=/root`, in a user namespace of one uid; `sudo` of the
 image does not work there (T-317).
 
+## The disk of a unit
+
+A podvm unit unpacks its image under `TMPDIR` at its start: about 2.5 GiB
+for the base image and 4 GiB for the larger one, for each job at a time
+(`--jobs`). The unpack takes half a minute or more; the line
+`unit u-N starts` names it. `podrunner doctor --run` gives the need of the
+image of the run (T-325).
+
 ## What a podvm unit holds
 
 A podvm unit is a boundary for files only on the namespace rung of podvm:

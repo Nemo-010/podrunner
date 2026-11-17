@@ -6162,7 +6162,7 @@ State (2026-11-17): `make`, `python3` and `libatomic1` are in the base image (`i
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6179,6 +6179,10 @@ The report of agent 1 of the fifth QA (the commands and outputs are in it).
 ## Prove
 
 `cargo test -p podrunner`; `doctor --run` on a small tmpfs as a user.
+
+## Done
+
+2026-11-17: `doctor --run` needs eight times the size of the image in the store (at least 2 GiB), times `--jobs`, and fails below it with the fix; an ENOSPC at the start of a unit names TMPDIR, the need and `--jobs`, with no reference into the record of podvm; a line `unit u-N starts (its image unpacks)` comes before the unpack (not with `-q`); `docs/local-mode.md`, "The disk of a unit". Proven on a constrained host as a user (`qa5`, podvm, 6 GiB free): `--jobs 1` gives `ok ... needs about 2.3 GiB`, `--jobs 4` gives `FAIL ... needs about 9.2 GiB` with the fix.
 
 # T-326: A uv build in a podvm unit on the base image fails at utime of its cache
 

@@ -37,8 +37,25 @@ fn file_size_limit() -> Result<String, String> {
     Err(format!("{} bytes: the runner dies by SIGXFSZ; fix: ulimit -f unlimited", r.rlim_cur))
 }
 
-/// The free bytes of the file system of `dir`.
-fn free_disk(dir: &Path) -> Result<String, String> {
+/// The scratch disk of a run: a podvm unit unpacks its image under TMPDIR,
+/// about eight times the size of the image in the store (2.4 GiB for the
+/// base image), for each job at a time (T-325); at least 2 GiB.
+fn need(a: &Args) -> u64 {
+    let size = || {
+        let (podvm, store, image) = (a.podvm.as_ref()?, a.images.as_ref()?, a.image.as_ref()?);
+        let out = std::process::Command::new(podvm)
+            .args(["inspect", "--format", "{{.Size}}", image])
+            .env("PODVM_STORE", store)
+            .stdin(std::process::Stdio::null())
+            .output()
+            .ok()?;
+        String::from_utf8(out.stdout).ok()?.trim().parse::<u64>().ok()
+    };
+    (size().map_or(0, |s| s * 8)).max(2 << 30) * a.parallel.max(1) as u64
+}
+
+/// The free bytes of the file system of `dir`, against `need` bytes.
+fn free_disk(dir: &Path, need: u64) -> Result<String, String> {
     let c = std::ffi::CString::new(dir.as_os_str().as_encoded_bytes()).map_err(|e| e.to_string())?;
     // SAFETY: statvfs writes into a zeroed struct that this function owns.
     let mut s: libc::statvfs = unsafe { std::mem::zeroed() };
@@ -52,13 +69,14 @@ fn free_disk(dir: &Path) -> Result<String, String> {
     let free = s.f_bavail as u64 * s.f_frsize as u64;
     // Below 1 GiB, in MiB: "0 GiB" reads as no space at all (T-218).
     let size = if free >> 30 == 0 { format!("{} MiB", free >> 20) } else { format!("{} GiB", free >> 30) };
-    if free >> 30 < 2 {
+    let want = format!("{:.1} GiB", need as f64 / f64::from(1u32 << 30));
+    if free < need {
         return Err(format!(
-            "{}: {size} free; a run needs about 2 GiB; fix: free the disk or set TMPDIR",
+            "{}: {size} free; this run needs about {want} (each job at a time unpacks its image); fix: free the disk, set TMPDIR, or give a lower --jobs",
             dir.display()
         ));
     }
-    Ok(format!("{}: {size} free", dir.display()))
+    Ok(format!("{}: {size} free; this run needs about {want}", dir.display()))
 }
 
 /// `podvm inspect IMAGE` in `store`: the image is there.
@@ -126,8 +144,10 @@ pub(super) fn proxy_line(vars: impl Iterator<Item = (String, String)>) -> String
 }
 
 pub(super) fn checks(a: &Args) -> Vec<Check> {
-    let mut out =
-        vec![check("file-size-limit", file_size_limit()), check("scratch-disk", free_disk(&std::env::temp_dir()))];
+    let mut out = vec![
+        check("file-size-limit", file_size_limit()),
+        check("scratch-disk", free_disk(&std::env::temp_dir(), need(a))),
+    ];
     out.push(check(
         "workflow",
         std::fs::read_to_string(&a.file)
