@@ -8,14 +8,13 @@ is done.
 
 ## Where podrunner stands
 
-- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.27`
+- Pins: podcrates `v0.52.0` (`Cargo.toml`); podvm `v0.2.0-beta.30`
   (`images/podvm.toml`; the podvm kind takes `probe::LOWEST` and later,
   the microvm kind `LOWEST_GUEST` (beta.10), the incus kind
   `LOWEST_INCUS` (beta.13), and an engine of the microvm kind needs
   beta.14, T-112); podnet `v0.4.0-beta.15` (`images/podnet.toml`); the
   official runner v2.338.2 (`images/runner/runner.toml`). Last beta of
-  podrunner: `v0.1.0-beta.6` (release run 43708786078, `88cc4d7`); the
-  next is `v0.1.0-beta.7` (below).
+  podrunner: `v0.1.0-beta.7` (release run 44066276664, `129310e`).
 - The record: `cargo todo check` gives the counts. The last green
   `runner-image.yml` run is 43704601731 (`88cc4d7`, the tag
   `v0.1.0-beta.6`): the podvm suites,
@@ -168,9 +167,17 @@ with no P1 or P2 finding (`docs/qa-brief.md`, T-246).
   on podvm in a delegated cgroup; the measure in `runner-image.yml`),
   T-242 (the tar cache of the user), T-183 (the held self-test test),
   T-179 (`hold:podvm` of the user-path gate; the lane userns-off is H0),
-  T-220 (podnet beta.14 is out; step 3 is a design question). Then the
+  T-220 (steps 3 and 4 in the code: `--vnet`; not run). Then the
   P3 groups T-331, T-339, T-308, T-316, T-323, and T-264 (podcrates
   `v0.68.0`, COORD-129).
+- A user QA of beta.7 (#203 to #213) gave T-340 to T-350. Each is done
+  but T-350 (podnet `0.4.0-beta.15` is pinned on `main`; the forward is
+  T-220). #203 to #212 are closed. The user measured the podvm kind on
+  the unix broker and the front on a host that refuses the loopback bind
+  (#170): that is `--vnet PATH` now (`docs/local-mode.md`). The
+  user-gate lane `bind-denied` measures it (`lab:vnet`, an xfail until it
+  passes). The CI runs of these commits were queued for an hour or more:
+  read their results first.
 - The fourth QA: agent B found T-318 to T-323 and T-203 (each P1 and P2
   done). Agent A (user
   `qa3`) stopped before its report: it gave no findings. The adversarial
