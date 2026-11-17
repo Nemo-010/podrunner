@@ -350,3 +350,19 @@ fn the_image_needs_a_full_digest() {
         assert!(e.contains("--image: the image") && e.contains("not pinned by digest"), "{e}");
     }
 }
+
+/// T-323 F16: with `--json`, each view is JSON.
+#[test]
+fn the_views_print_json() {
+    let text = "on: push\njobs:\n  a:\n    runs-on: x\n    steps: [{run: a}]\n  b:\n    needs: a\n    runs-on: x\n    foo: 1\n    steps: [{run: b}]\n";
+    let (dir, w) = workflow("views-json", text);
+    let first = |flag: &str| {
+        let out = run(&args(&[&w, flag, "--json"]));
+        serde_json::from_str::<serde_json::Value>(out.stdout.lines().next().unwrap_or_default()).unwrap()
+    };
+    let v = first("--validate");
+    assert_eq!((v["valid"].as_bool(), v["warnings"].as_array().map(Vec::len)), (Some(true), Some(1)), "{v}");
+    assert_eq!(first("--list")["job"], "a");
+    assert_eq!(first("--graph")["edges"], serde_json::json!([["a", "b"]]));
+    let _ = std::fs::remove_dir_all(&dir);
+}

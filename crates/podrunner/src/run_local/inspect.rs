@@ -27,20 +27,33 @@ fn runs_on(n: Option<&Node>) -> String {
     }
 }
 
+/// Each job: its id, its name, whether it has a matrix, its `runs-on` and
+/// its needs.
+fn rows(w: &Workflow) -> Vec<(String, String, bool, String, Vec<String>)> {
+    let row = |j: &pod_actions_workflow::Job| {
+        let name = j.name.clone().unwrap_or_else(|| j.id.clone());
+        let matrix = j.strategy.as_ref().and_then(|s| s.matrix.as_ref()).is_some();
+        (j.id.clone(), name, matrix, runs_on(j.runs_on.as_ref()), j.needs.clone())
+    };
+    w.jobs.iter().map(row).collect()
+}
+
 /// One line for each job: its id, its name, its `runs-on` and its needs.
 pub(super) fn list(w: &Workflow) -> String {
     let mut out = String::new();
-    for j in &w.jobs {
-        let name = j.name.as_deref().unwrap_or(&j.id);
-        let needs = if j.needs.is_empty() { "-".to_string() } else { j.needs.join(", ") };
-        let matrix = if j.strategy.as_ref().and_then(|s| s.matrix.as_ref()).is_some() { " (a matrix)" } else { "" };
-        out.push_str(&format!("{}\t{name}{matrix}\truns-on: {}\tneeds: {needs}\n", j.id, runs_on(j.runs_on.as_ref())));
+    for (id, name, matrix, runs_on, needs) in rows(w) {
+        let needs = if needs.is_empty() { "-".to_string() } else { needs.join(", ") };
+        let matrix = if matrix { " (a matrix)" } else { "" };
+        out.push_str(&format!("{id}\t{name}{matrix}\truns-on: {runs_on}\tneeds: {needs}\n"));
     }
     out
 }
 
-/// The stages of `needs`: a job is one stage after its last need.
-pub(super) fn graph(w: &Workflow) -> Result<String, String> {
+/// The stages of `needs` (a job is one stage after its last need), and
+/// each edge.
+type Stages = (Vec<Vec<String>>, Vec<(String, String)>);
+
+fn stages(w: &Workflow) -> Result<Stages, String> {
     let g = Graph::new(w).map_err(|e| e.to_string())?;
     let mut stage: std::collections::BTreeMap<String, usize> = Default::default();
     let mut stages: Vec<Vec<String>> = Vec::new();
@@ -52,11 +65,17 @@ pub(super) fn graph(w: &Workflow) -> Result<String, String> {
         }
         stages[s].push(job.to_string());
     }
+    Ok((stages, g.edges().into_iter().map(|(n, j)| (n.to_string(), j.to_string())).collect()))
+}
+
+/// The stages and the edges as text.
+pub(super) fn graph(w: &Workflow) -> Result<String, String> {
+    let (stages, edges) = stages(w)?;
     let mut out = String::new();
     for (i, jobs) in stages.iter().enumerate() {
         out.push_str(&format!("stage {}: {}\n", i + 1, jobs.join(", ")));
     }
-    for (need, job) in g.edges() {
+    for (need, job) in edges {
         out.push_str(&format!("{need} -> {job}\n"));
     }
     Ok(out)
@@ -64,7 +83,9 @@ pub(super) fn graph(w: &Workflow) -> Result<String, String> {
 
 /// `--validate`, `--list` and `--graph` of one file. `--validate` checks the
 /// needs as a plan reads them: a need that is not a job, or a cycle (T-209).
+/// With `--json`, each view is one JSON object on stdout (T-323 F16).
 pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
+    use serde_json::json;
     let fail = |e: String| super::fail(super::Class::Config, format!("{}: {e}", a.file.display()));
     let p = match pod_actions_workflow::parse(text) {
         Ok(p) => p,
@@ -75,21 +96,36 @@ pub(super) fn answer(a: &super::args::Args, text: &str) -> super::Out {
     if let Err(e) = Graph::new(&p.workflow) {
         return fail(e.to_string());
     }
+    let file = a.file.display().to_string();
     if a.validate {
         // Each cron of on.schedule, as `--schedule` reads it (T-279).
         if let Err(e) = super::watch::crons(&p.workflow.on) {
             return fail(e);
         }
-        for w in &p.warnings {
-            stdout.push_str(&format!("warning: {w}\n"));
+        if a.json {
+            let warnings: Vec<String> = p.warnings.iter().map(|w| w.to_string()).collect();
+            stdout.push_str(&format!("{}\n", json!({"file": file, "valid": true, "warnings": warnings})));
+        } else {
+            for w in &p.warnings {
+                stdout.push_str(&format!("warning: {w}\n"));
+            }
+            stdout.push_str(&format!("valid: {file}\n"));
         }
-        stdout.push_str(&format!("valid: {}\n", a.file.display()));
     }
-    if a.list {
+    if a.list && a.json {
+        for (id, name, matrix, runs_on, needs) in rows(&p.workflow) {
+            let row = json!({"job": id, "name": name, "matrix": matrix, "runs_on": runs_on, "needs": needs});
+            stdout.push_str(&format!("{row}\n"));
+        }
+    } else if a.list {
         stdout.push_str(&list(&p.workflow));
     }
     if a.graph {
-        match graph(&p.workflow) {
+        let out = match a.json {
+            true => stages(&p.workflow).map(|(s, e)| format!("{}\n", json!({"stages": s, "edges": e}))),
+            false => graph(&p.workflow),
+        };
+        match out {
             Ok(g) => stdout.push_str(&g),
             Err(e) => return fail(e),
         }
