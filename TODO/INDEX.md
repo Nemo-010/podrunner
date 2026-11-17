@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**328 entries: 29 open, 21 partial, 13 blocked, 265 done.**
+**329 entries: 27 open, 21 partial, 14 blocked, 267 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 17 | 8 | 7 | 128 | 160 |
-| P3 | 11 | 4 | 4 | 80 | 99 |
-| **All** | 29 | 21 | 13 | 265 | 328 |
+| P2 | 15 | 8 | 7 | 130 | 160 |
+| P3 | 11 | 4 | 5 | 80 | 100 |
+| **All** | 27 | 21 | 14 | 267 | 329 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -372,7 +372,8 @@ acceptance, later The crate dependencies later than v1.
 | [T-325](later.md) | P2 | M | later | defect | open | A podvm unit needs more scratch disk than doctor says; --jobs 2 fills the disk |
 | [T-326](later.md) | P2 | S | later | defect | open | A uv build in a podvm unit on the base image fails at utime of its cache |
 | [T-327](later.md) | P2 | M | later | defect | done | A run pulls the images of services: before it refuses the job |
-| [T-328](later.md) | P2 | S | later | defect | open | Under the egress hold, a refused host is not named with its fix |
-| [T-329](later.md) | P2 | S | later | defect | open | Each unit under --podnet logs connects that the job did not make |
+| [T-328](later.md) | P2 | S | later | defect | done | Under the egress hold, a refused host is not named with its fix |
+| [T-329](later.md) | P2 | S | later | defect | done | Each unit under --podnet logs connects that the job did not make |
 | [T-330](later.md) | P2 | S | later | defect | done | The refusals of services: send the user in a circle |
 | [T-331](later.md) | P3 | M | later | defect | open | The P3 findings of the fifth QA, agent 1 |
+| [T-332](later.md) | P3 | S | later | defect | blocked | podvm connects to the hosts of the image at the start of a unit |

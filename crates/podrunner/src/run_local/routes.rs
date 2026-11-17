@@ -141,7 +141,8 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
             ));
         }
         let e = podrunner_egress::Egress::host(None, true, podrunner_egress::dns::resolver(false, Vec::new()))
-            .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?;
+            .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?
+            .quiet();
         egress = Some((std::sync::Arc::new(e), policy(&a.allow)));
     }
     // The runner image comes from the store only: a missing one is named,

@@ -166,6 +166,12 @@ impl Egress {
         dropped
     }
 
+    /// Write no line on stderr for each failed connection (the local mode).
+    pub fn quiet(self) -> Self {
+        self.denials.quiet();
+        self
+    }
+
     /// `HOST:PORT (RULE)` of each connection of `job` that its policy
     /// refused, once each.
     pub fn denials(&self, job: &str) -> Vec<String> {

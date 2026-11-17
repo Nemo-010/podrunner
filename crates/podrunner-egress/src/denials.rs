@@ -6,6 +6,7 @@
 
 use std::collections::VecDeque;
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use pod_broker::{Audit, Line, Tracing};
 
@@ -16,9 +17,17 @@ const KEEP: usize = 1000;
 #[derive(Default)]
 pub struct Denials {
     last: Mutex<VecDeque<(String, String)>>,
+    /// No line on stderr for each failed connection: the local mode names
+    /// the refused hosts of a failed job at its end (T-328, T-329).
+    quiet: AtomicBool,
 }
 
 impl Denials {
+    /// Write no line for each failed connection.
+    pub fn quiet(&self) {
+        self.quiet.store(true, Ordering::Relaxed);
+    }
+
     /// `HOST:PORT (RULE)` of each denial of `job`, once each, in order.
     pub fn of(&self, job: &str) -> Vec<String> {
         let mut out: Vec<String> = Vec::new();
@@ -50,7 +59,7 @@ pub fn failure_text(line: &Line) -> Option<String> {
 impl Audit for Denials {
     fn line(&self, line: &Line) {
         Tracing.line(line);
-        if let Some(t) = failure_text(line) {
+        if let Some(t) = failure_text(line).filter(|_| !self.quiet.load(Ordering::Relaxed)) {
             eprintln!("{t}");
         }
         let f = &line.fields;

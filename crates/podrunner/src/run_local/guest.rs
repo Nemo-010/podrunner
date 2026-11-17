@@ -43,7 +43,8 @@ pub(super) fn in_guest(a: &Args, state: &std::path::Path) -> Result<InUnit, Out>
     exec.guest = true;
     if !a.allow.is_empty() || !a.environment_allow.is_empty() {
         let e = podrunner_egress::Egress::host(None, true, podrunner_egress::dns::resolver(false, Vec::new()))
-            .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?;
+            .map_err(|e| fail(Class::Unavailable, format!("the egress module: {e}")))?
+            .quiet();
         exec.egress = Some((std::sync::Arc::new(e), policy(&a.allow)));
     }
     Ok(exec)

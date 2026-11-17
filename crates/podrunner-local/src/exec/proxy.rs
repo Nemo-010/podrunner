@@ -87,6 +87,26 @@ pub(crate) fn unit_extra(env: &mut std::collections::BTreeMap<String, String>, g
     }
 }
 
+/// The hosts that the egress hold refused for unit `id` of `job`, into its
+/// log; for a failed job also on stderr, with the fix (T-328).
+pub(crate) fn denials(log: &mut String, job: &str, id: &str, denied: &[String], failed: bool) {
+    for d in denied {
+        log.push_str(&format!("\npodrunner: the egress policy of {id} denied {d}"));
+    }
+    let mut hosts: Vec<&str> = denied
+        .iter()
+        .filter_map(|d| d.split_once(':').map(|(h, _)| h))
+        .filter(|h| !h.is_empty() && *h != "null")
+        .collect();
+    hosts.dedup();
+    if failed && !hosts.is_empty() {
+        eprintln!(
+            "podrunner: {job}: the egress hold refused {}; if the job needs one, allow it: --allow HOST, or `allow` in run.toml",
+            hosts.join(", ")
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -122,6 +142,15 @@ mod tests {
         let (env, files) = unit_env("/d", std::iter::empty(), false).unwrap();
         assert!(env.is_empty() && files.is_empty(), "no proxy, nothing");
         let _ = std::fs::remove_file(&ca);
+    }
+
+    /// T-328: the log names each refused host; the hosts are a list.
+    #[test]
+    fn the_refused_hosts_go_into_the_log() {
+        let mut log = String::new();
+        let denied = [":0 (usage)".to_string(), "nodejs.org:443 (policy:no-rule)".to_string()];
+        denials(&mut log, "j.0", "u-1", &denied, true);
+        assert!(log.contains("u-1 denied nodejs.org:443"), "{log}");
     }
 
     /// T-319: a held unit names the port of its broker.

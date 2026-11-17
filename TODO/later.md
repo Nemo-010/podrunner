@@ -6239,7 +6239,7 @@ Refuse each job that the host cannot run (no hooks; no KVM) before the pull of i
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6257,6 +6257,10 @@ At the end of the run, name each host that the hold refused for a failed job, wi
 
 `cargo test -p podrunner`; the run as a user under `--podnet`.
 
+## Done
+
+2026-11-17: a failed job names the hosts that the egress hold refused, once, on stderr, with the fix (`--allow HOST`, or `allow` in run.toml); the job log keeps each denial (`exec/proxy.rs`, `denials`). Proven on a constrained host as a user (`qa5`, `--podnet`): a job that fetched `https://nodejs.org` failed with `podrunner: n.0: the egress hold refused ..., nodejs.org; if the job needs one, allow it: --allow HOST, or `allow` in run.toml`.
+
 # T-329: Each unit under --podnet logs connects that the job did not make
 
 **Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 1, as the user `qa6` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
@@ -6264,7 +6268,7 @@ At the end of the run, name each host that the hold refused for a failed job, wi
 **Milestone:** later
 **Priority:** P2
 **Effort:** S
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6281,6 +6285,10 @@ Find the process that makes the connects (the image, the runner or podnet). Stop
 ## Prove
 
 The hello run under `--podnet` as a user: no egress line.
+
+## Done
+
+2026-11-17: the local mode writes no line on stderr for each failed connection (`Egress::quiet`); T-328 names the refused hosts of a failed job once. The connects come from podvm itself: `podvm run` of the image with `/bin/true` under `podnet pod` makes them (COORD-076, GitHub #202); their hosts in the list of a failed job are T-332. Proven on a constrained host as a user (`qa5`, `--podnet`): `hello.yml` prints no egress line and ends `ok`.
 
 # T-330: The refusals of services: send the user in a circle
 
@@ -6335,3 +6343,32 @@ Fix each one; a finding that the code cannot change goes into the documents.
 ## Prove
 
 `cargo test -p podrunner -p podrunner-local`
+
+# T-332: podvm connects to the hosts of the image at the start of a unit
+
+**Source:** T-329 (the fifth QA, agent 1), measured by the lead session as `qa5` with podvm `0.2.0-beta.30` (2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** S
+**Status:** blocked
+
+## Problem
+
+`podvm run` of the runner image with a payload of `/bin/true`, under `podnet pod`, makes an empty request and CONNECTs to `help.ubuntu.com:443`, `archive.ubuntu.com:443` and `security.ubuntu.com:443` (IPv4 and IPv6). Under `--podnet` the hold refuses them, and T-328 lists them among the refused hosts of a failed job, before the host of the job.
+
+## Premise
+
+The measurement of T-329 (the listener on the egress socket logs each CONNECT).
+
+## Approach
+
+podvm stops the connects or gives a flag that turns them off (COORD-076, GitHub #202); podrunner passes that flag.
+
+## Prove
+
+`podrunner run hello.yml --podvm PATH --podnet PATH` as a user: no refused host in the egress of the unit.
+
+## Blocker
+
+2026-11-17: COORD-076 (GitHub #202) asks podvm.

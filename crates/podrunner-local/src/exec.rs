@@ -447,9 +447,8 @@ impl Executor for InUnit {
         if let Some(e) = exported {
             log.push_str(&format!("\npodrunner: {e}"));
         }
-        for d in &denied {
-            log.push_str(&format!("\npodrunner: the egress policy of {id} denied {d}"));
-        }
+        let failed = !broker.completions().iter().any(|c| c.conclusion == "succeeded");
+        proxy::denials(&mut log, job.as_str(), id.as_str(), &denied, failed);
         // A job that did not succeed: the last requests of its broker.
         if !broker.completions().iter().any(|c| c.conclusion == "succeeded") {
             let seen = broker.seen();
