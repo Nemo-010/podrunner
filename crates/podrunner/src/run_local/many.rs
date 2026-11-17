@@ -56,7 +56,8 @@ pub(super) fn run_dir(args: &[String], a: &Args) -> Out {
             match context::takes(a, &facts, &w) {
                 Ok(true) => {}
                 Ok(false) => {
-                    super::emit(&mut out.stdout, &format!("--- {name}: `on:` does not take the event {:?}\n", a.event));
+                    let why = format!("`on:` does not take the event {:?}", a.event);
+                    super::emit(&mut out.stdout, &head(a.json, &name, Some(&why)));
                     continue;
                 }
                 Err(e) => {
@@ -68,13 +69,25 @@ pub(super) fn run_dir(args: &[String], a: &Args) -> Out {
         }
         let mut one = args.to_vec();
         one[at] = file.display().to_string();
-        super::emit(&mut out.stdout, &format!("--- {name}\n"));
+        super::emit(&mut out.stdout, &head(a.json, &name, None));
         let o = run(&one);
-        out.stdout.push_str(&o.stdout);
+        // The text of `--list`, `--graph` and `--validate` after its own
+        // line, not after the last workflow (T-339).
+        super::emit(&mut out.stdout, &o.stdout);
         out.stderr.push_str(&o.stderr);
         out.code = out.code.max(o.code);
     }
     out
+}
+
+/// The line of one workflow of a directory: `--- NAME`, or a JSON object
+/// with `--json` (T-339).
+fn head(json: bool, name: &str, skipped: Option<&str>) -> String {
+    match (json, skipped) {
+        (true, why) => format!("{}\n", serde_json::json!({ "event": "workflow", "file": name, "skipped": why })),
+        (false, Some(why)) => format!("--- {name}: {why}\n"),
+        (false, None) => format!("--- {name}\n"),
+    }
 }
 
 #[cfg(test)]
