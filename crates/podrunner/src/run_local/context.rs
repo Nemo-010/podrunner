@@ -212,7 +212,11 @@ pub(super) fn github(a: &Args, f: &Facts) -> Result<Value, String> {
         Some(p) => std::fs::read_to_string(p).map_err(|e| format!("--event-path {}: {e}", p.display()))?,
         None => payload(&a.event, f).to_string(),
     };
-    let event = Value::from_json(&event).map_err(|e| format!("the event payload: {e}"))?;
+    let at = a
+        .event_path
+        .as_ref()
+        .map_or_else(|| "the event payload".to_string(), |p| format!("--event-path {}", p.display()));
+    let event = Value::from_json(&event).map_err(|e| format!("{at}: {e}"))?;
     let workflow = a.file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
     let owner = f.repository.split('/').next().unwrap_or("local").to_string();
     let pull = matches!(a.event.as_str(), "pull_request" | "pull_request_target");

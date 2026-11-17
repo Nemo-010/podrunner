@@ -126,6 +126,13 @@ fn in_podvm(a: &Args, state: &std::path::Path) -> Result<InUnit, Out> {
     let (Some(binary), Some(images), Some(image)) = (&a.podvm, &a.images, &a.image) else {
         return Err(fail(Class::Usage, USAGE));
     };
+    // A binary that is not there, by its flag (T-339).
+    if !binary.is_file() {
+        return Err(fail(
+            Class::NotFound,
+            format!("--podvm {}: not a file; fix: the path of a podvm binary", binary.display()),
+        ));
+    }
     let podvm = Podvm { binary: binary.clone() };
     let mut unit = PodvmUnit::new(podvm, state, images).map_err(|e| fail(Class::Config, format!("podvm: {e}")))?;
     // The tar of an image stays for the next run (T-242).

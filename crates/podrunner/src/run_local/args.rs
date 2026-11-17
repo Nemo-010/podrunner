@@ -211,7 +211,7 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
             "--var-file" => a.var_file = Some(PathBuf::from(value()?)),
             "--input-file" => a.input_file = Some(PathBuf::from(value()?)),
             "--env-file" => a.env_file = Some(PathBuf::from(value()?)),
-            "--env" => a.env.push(pair(&value()?)?),
+            "--env" => a.env.push(pair(&value()?).map_err(|e| format!("--env {e}"))?),
             "--matrix" => {
                 let v = value()?;
                 let (k, val) = v
@@ -268,8 +268,8 @@ pub(super) fn parse(args: &[String]) -> Result<Args, String> {
             "--sha" => a.sha = Some(value()?),
             "--repository" => a.repository = Some(value()?),
             "--actor" => a.actor = Some(value()?),
-            "--var" => a.vars.push(pair(&value()?)?),
-            "--input" => a.inputs.push(pair(&value()?)?),
+            "--var" => a.vars.push(pair(&value()?).map_err(|e| format!("--var {e}"))?),
+            "--input" => a.inputs.push(pair(&value()?).map_err(|e| format!("--input {e}"))?),
             // A short option that run does not have is not a file (T-208).
             o if o.starts_with('-') && o.len() > 1 => return Err(format!("an unknown option {o:?}")),
             f if file.is_none() => file = Some(PathBuf::from(f)),

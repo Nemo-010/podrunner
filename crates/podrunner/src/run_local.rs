@@ -253,7 +253,9 @@ pub fn run(args: &[String]) -> Out {
     if let Some(dir) = &a.rerun {
         let kept = std::fs::read_to_string(dir.join("state.json"))
             .map_err(|e| format!("{}: {e}", dir.join("state.json").display()))
-            .and_then(|t| podrunner_local::rerun::parse_state(&t))
+            .and_then(|t| {
+                podrunner_local::rerun::parse_state(&t).map_err(|e| format!("--rerun {}: {e}", dir.display()))
+            })
             .and_then(|(was, ends)| {
                 if was != digest && !a.refresh {
                     return Err(format!(
@@ -338,7 +340,7 @@ pub fn run(args: &[String]) -> Out {
     let artifacts = match podrunner_local::artifacts::ArtifactStore::new(&kept, podrunner_local::artifacts::LIMIT) {
         Ok(s) if a.rerun.is_some() => std::sync::Arc::new(s.replacing()),
         Ok(s) => std::sync::Arc::new(s),
-        Err(e) => return fail(Class::Config, format!("{}: {e}", kept.display())),
+        Err(e) => return fail(Class::Config, format!("--artifacts {}: {e}", kept.display())),
     };
     let cache = match (a.no_cache, a.cache.clone().map(Ok).unwrap_or_else(|| actions::user_cache("cache"))) {
         (true, _) => None,
@@ -348,7 +350,7 @@ pub fn run(args: &[String]) -> Out {
             Ok(s) => Some(std::sync::Arc::new(
                 s.with_scopes(vec![facts.git_ref.clone(), format!("refs/heads/{}", facts.default_branch)]),
             )),
-            Err(e) => return fail(Class::Config, format!("{}: {e}", dir.display())),
+            Err(e) => return fail(Class::Config, format!("--cache {}: {e}", dir.display())),
         },
     };
     let mut stdout = String::new();
