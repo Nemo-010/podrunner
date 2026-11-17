@@ -6372,3 +6372,178 @@ podvm stops the connects or gives a flag that turns them off (COORD-076, GitHub 
 ## Blocker
 
 2026-11-17: COORD-076 (GitHub #202) asks podvm.
+
+# T-333: A dry run with --state writes success for each job; --dry-run --json says success
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 2, as the user `qa7` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner run ci.yml --rerun DIR --dry-run` writes `success` for `test.1`, which was `failure`, into `DIR/state.json`; a later `--rerun --failed` keeps the job as `success`. `--state DIR --dry-run` writes `success` for each planned cell. `--dry-run --json` gives `"result":"success"` for a planned job.
+
+## Premise
+
+The report of agent 2 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+A dry run writes no state; its JSON gives `planned`.
+
+## Prove
+
+`cargo test -p podrunner`
+
+# T-334: --artifacts DIR or --state DIR of an earlier run makes each upload of the same name fail with 409
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 2, as the user `qa7` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+The second `podrunner run art.yml --artifacts DIR` (or `--state DIR` with no `--rerun`) fails each `upload-artifact@v4` of a name of the first run: `(409) Conflict: an artifact with the name "dup" already exists on the workflow run`.
+
+## Premise
+
+The report of agent 2 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+A new run (no `--rerun`) replaces the artifacts of a name that it uploads again, as a rerun does.
+
+## Prove
+
+`cargo test -p podrunner -p podrunner-local`
+
+# T-335: --state DIR with --artifacts DIR2 keeps no artifact, and --rerun fails
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 2, as the user `qa7` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner run ci.yml --artifacts ~/arts --state ~/st1`: `st1` has only `state.json`; `--rerun ~/st1 --failed` fails at `Artifact not found for name: art1`.
+
+## Premise
+
+The report of agent 2 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+The state names the artifact directory of its run, and a rerun reads it; or `--state` with `--artifacts` is refused with the fix.
+
+## Prove
+
+`cargo test -p podrunner`
+
+# T-336: actions/checkout outside a git tree with no --checkout fails with a curl 404
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 2, as the user `qa7` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+In a directory with no `.git`, a workflow with `actions/checkout@v4` and no `--checkout` fails in the job: `curl: (22) The requested URL returned error: 404`, `tar: This does not look like a tar archive`. The dry run says `planned`.
+
+## Premise
+
+The report of agent 2 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+With no `--checkout`, a workflow that uses `actions/checkout` takes the current directory also out of a git tree (each file), with the line of T-203.
+
+## Prove
+
+`cargo test -p podrunner`; the run as a user in a plain directory.
+
+# T-337: From a subdirectory of a git tree, the checkout holds only that subdirectory
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 2, as the user `qa7` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`cd ~/proj/.github && podrunner run workflows/co.yml`: `it gets the tree of /home/qa7/proj/.github (--checkout .)`; in the job `git status` shows ` D README.md`.
+
+## Premise
+
+The report of agent 2 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+The default checkout of T-203 takes the top of the git tree (`git rev-parse --show-toplevel`), as on GitHub.
+
+## Prove
+
+`cargo test -p podrunner`; the run as a user from a subdirectory.
+
+# T-338: --no-cache makes each actions/cache step retry for about a minute
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 2, as the user `qa7` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P2
+**Effort:** S
+**Status:** open
+
+## Problem
+
+`podrunner run cache.yml --no-cache`: `Attempt 1 of 5 ... Unexpected end of JSON input` about 8 times, `Failed to restore`, `Failed to save`, ten lines of `no route of the fake broker: ...CacheService/...`; the job takes 95 s (30 s with the cache).
+
+## Premise
+
+The report of agent 2 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+With `--no-cache`, the broker answers the CacheService as a miss (no entry; a save is refused at once), with no retry and no line of a missing route.
+
+## Prove
+
+`cargo test -p podrunner-broker-fake`; the run as a user.
+
+# T-339: The P3 findings of the fifth QA, agent 2
+
+**Source:** the fifth adversarial QA of the release files of `a238f8d` (user-gate 44025228142, podvm `0.2.0-beta.30`), agent 2, as the user `qa7` with no root behind a proxy that intercepts TLS, no KVM (T-246, 2026-11-17)
+**Category:** defect
+**Milestone:** later
+**Priority:** P3
+**Effort:** M
+**Status:** open
+
+## Problem
+
+1 `--jobs N` and the disk of a unit (T-325). 2 a cancel of queued cells has no matrix label; jobs that `--job` left out get `cancelled`. 3 a signal during the start of a unit gives `failure`. 4 a refusal of `on:` names `--ref` for an event that the workflow does not take; a refusal of `paths` or `types` does not name its filter. 5 errors with no flag or file: `--podvm /nonexist`, `--artifacts`, `--cache`, `--env =x`, `--var novalue`, `--event-path` of bad JSON, a bad state, `quiet = "yes"` of run.toml, `--incus /nonexist`, `--state /etc`. 6 the dry run and `doctor --run` miss checks of the run (`--log-dir`, `--export`, `--toolcache`, `--incus`, `.secrets`, no executor; `--cache`, `--artifacts`; the lock of `/nonexist.yml`; `--json`). 7 `--list` of a directory mixes the files; `--json` gets `--- NAME` lines. 8 `--validate --watch` waits; `--list --web`, `--list --rerun` are taken. 9 `.actrc` and a project `run.toml` treat a host flag in two ways; the warnings do not name `trusted` and `--platform`. 10 `.secrets` of the current directory with no checkout gets no line. 11 a committed lock with local edits is left out of the checkout (` D` in the job). 12 the egress lines (T-329, T-331). 13 `a job failed; its log is above` with `--json` or with no job; a cancel of a concurrency group says a signal; SIGINT while `--watch` waits says a job ends; the console of `--runner-dir`. 14 `--web localhost:0` is refused. 15 a missing repository of an action gives a git prompt error. 16 `--validate` passes `timeout-minutes: abc`. 17 `--podvm X --runner-dir Y` says `--podvm needs --images STORE`. 18 `version --x` exits 0; the usage of `run` is one line of 2 KB. 19 `print-unit --config /nonexist` exits 0; `serve` makes DIR before it fails; `audit verify --file /etc/hostname`; `entity not found` against `No such file or directory`. 20 `cli.md` and `run --help` differ (`--toolcache`, `--podnet`).
+
+## Premise
+
+The report of agent 2 of the fifth QA (the commands and outputs are in it).
+
+## Approach
+
+Fix each one; a finding that the code cannot change goes into the documents.
+
+## Prove
+
+`cargo test -p podrunner -p podrunner-local`
