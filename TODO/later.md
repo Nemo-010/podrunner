@@ -3299,7 +3299,7 @@ A row `image`: `podvm inspect IMAGE` in the store, with a fix that names the loa
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -3316,6 +3316,10 @@ The report of GitHub #173 (2026-11-15): 180 s with no byte on stdout or stderr.
 ## Prove
 
 A test of `run` with a fake unit that never takes its job: a phase line on stderr before the end, and the `--json` events in order.
+
+## Done
+
+2026-11-17: the live sink writes `podrunner: no line for 60 s; the run waits for its job (N s so far; Ctrl-C ends it)` (with `--json`, `{"event":"quiet",...}`) after each 60 s with no line of a job, until the run ends (`logs::watch_quiet`); `-q` writes none. Each line of a step comes live since T-310, and the start of a unit has its line since T-325. Proven on a constrained host as a user (`qa5`, podvm): a step `sleep 75` gave one such line between `before` and `after`.
 
 # T-225: A unit that has no room says `PODVM_STORE`, which podrunner sets itself
 

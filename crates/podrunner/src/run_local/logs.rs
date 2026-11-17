@@ -39,11 +39,23 @@ pub(super) fn mask(text: &str, secrets: &[String]) -> String {
     out
 }
 
-/// The live sink: one line on stderr for each line of a log.
+/// How long a run is quiet before a line says that it still runs (T-224).
+const QUIET: std::time::Duration = std::time::Duration::from_secs(60);
+
+/// The live sink: one line on stderr for each line of a log. After each
+/// `QUIET` with no line, a line says that the run still waits, so a run
+/// that hangs (a runner that does not reach its broker, a long step with
+/// no output) is not silent until its timeout (T-224).
 pub(super) fn live(secrets: Vec<String>, as_json: bool) -> Live {
+    let last = Arc::new(std::sync::Mutex::new(std::time::Instant::now()));
+    // The sink holds the token; the watcher ends when the sink goes.
+    let token = Arc::new(());
+    watch_quiet(Arc::downgrade(&token), last.clone(), as_json);
     // The fix of a refused token comes at once, not after the run (T-305).
     let hinted = std::sync::atomic::AtomicBool::new(false);
     Arc::new(move |job: &JobId, text: &str| {
+        let _ = &token;
+        *last.lock().unwrap_or_else(|e| e.into_inner()) = std::time::Instant::now();
         for line in mask(text, &secrets).lines() {
             if refused(line) && !hinted.swap(true, std::sync::atomic::Ordering::Relaxed) {
                 eprintln!("{TOKEN_HINT}");
@@ -55,6 +67,29 @@ pub(super) fn live(secrets: Vec<String>, as_json: bool) -> Live {
             }
         }
     })
+}
+
+/// Write a line for each `QUIET` with no line of a job, while `token` lives.
+fn watch_quiet(token: std::sync::Weak<()>, last: Arc<std::sync::Mutex<std::time::Instant>>, as_json: bool) {
+    let start = std::time::Instant::now();
+    std::thread::spawn(move || {
+        while token.upgrade().is_some() {
+            std::thread::sleep(std::time::Duration::from_secs(1));
+            let mut l = last.lock().unwrap_or_else(|e| e.into_inner());
+            if l.elapsed() < QUIET || token.upgrade().is_none() {
+                continue;
+            }
+            *l = std::time::Instant::now();
+            let s = start.elapsed().as_secs();
+            match as_json {
+                true => eprintln!("{}", json!({ "event": "quiet", "seconds": QUIET.as_secs(), "run_seconds": s })),
+                false => eprintln!(
+                    "podrunner: no line for {} s; the run waits for its job ({s} s so far; Ctrl-C ends it)",
+                    QUIET.as_secs()
+                ),
+            }
+        }
+    });
 }
 
 /// One JSON object for the end of a job.

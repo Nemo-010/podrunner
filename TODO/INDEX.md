@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**336 entries: 19 open, 24 partial, 11 blocked, 282 done.**
+**336 entries: 18 open, 24 partial, 11 blocked, 283 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 2 | 57 | 69 |
-| P2 | 6 | 10 | 6 | 144 | 166 |
+| P2 | 5 | 10 | 6 | 145 | 166 |
 | P3 | 12 | 5 | 3 | 81 | 101 |
-| **All** | 19 | 24 | 11 | 282 | 336 |
+| **All** | 18 | 24 | 11 | 283 | 336 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -271,7 +271,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-221](later.md) | P3 | S | later | feature | partial | `cpus` on the podvm kind |
 | [T-222](live.md) | P1 | S | M-C | defect | done | A refusal of one source holds the job for each source of the host |
 | [T-223](later.md) | P2 | S | later | defect | done | `doctor --run` says ok for a store that does not hold `--image` |
-| [T-224](later.md) | P2 | M | later | feature | open | A run that hangs prints nothing until it ends |
+| [T-224](later.md) | P2 | M | later | feature | done | A run that hangs prints nothing until it ends |
 | [T-225](later.md) | P2 | S | later | defect | done | A unit that has no room says `PODVM_STORE`, which podrunner sets itself |
 | [T-226](later.md) | P2 | S | later | defect | done | A run does not say what egress hold its units have |
 | [T-227](later.md) | P2 | S | later | defect | partial | `podvm run -d` refuses a passed descriptor when podrunner runs under `podnet pod` |
