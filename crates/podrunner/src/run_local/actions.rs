@@ -54,7 +54,14 @@ pub(super) fn pin(
     // The errors of `pod-actions-store` as the text of a run.
     let s = |e: podrunner_local::store::Error| e.to_string();
     let workflow = pod_actions_workflow::parse(text).map_err(|e| e.to_string())?.workflow;
-    let uses = workflow_uses(&workflow);
+    let mut uses = workflow_uses(&workflow);
+    // The local composite actions of the tree (T-346).
+    let base = a.checkout.clone().or_else(|| std::env::current_dir().ok()).unwrap_or_default();
+    for u in super::composites::local_uses(&workflow, &base)? {
+        if !uses.contains(&u) {
+            uses.push(u);
+        }
+    }
     let mut trees = workflow_trees(&workflow, self_repo).map_err(s)?;
     // The repository of each remote called workflow (T-131): its tree goes
     // into the store at the commit of the lock, as an action.
@@ -108,34 +115,35 @@ pub(super) fn pin(
                 a.local_repos.iter().any(|(k, _)| *k == format!("{}@{r}", repo.join("/")))
             })
         };
-        let mode = match uses.iter().chain(&trees).all(local) {
-            true => Mode::Offline,
-            false => mode,
+        // A run whose references are each local asks no forge first; a
+        // reference that a local composite names then takes the mode of
+        // the run (T-346).
+        let local_only = !matches!(mode, Mode::Offline) && uses.iter().chain(&trees).all(local);
+        let store = Store { dir: dir.clone() };
+        let attempt = |mode: Mode| -> Result<podrunner_local::store::Resolved, podrunner_local::store::Error> {
+            // The fetch goes through one egress grant of the forge host
+            // only (T-154); `--offline` fetches nothing and opens none.
+            let fetch = match mode {
+                Mode::Offline => None,
+                _ => open_fetch(a, &base)
+                    .map_err(|reason| podrunner_local::store::Error::Forge { repo: String::new(), reason })?,
+            };
+            let mut git = Git::new(base.clone(), std::env::temp_dir());
+            git.proxy = fetch.as_ref().map(|f| f.proxy.clone());
+            let forge = Local::new(a.local_repos.iter().cloned().collect(), &git);
+            let r = resolve(&uses, &lock, &store, &forge, mode, &name)?;
+            add_trees(&trees, r, &store, &forge, mode, &name)
         };
-        // The fetch goes through one egress grant of the forge host only
-        // (T-154); `--offline` fetches nothing and opens none.
-        let fetch = match mode {
-            Mode::Offline => None,
-            _ => {
-                let host = podrunner_local::fetch::host_of(&base).ok_or_else(|| format!("{base}: no host"))?;
-                match a.action_server.is_some() && on_local_network(&host) {
-                    // The egress module refuses the loopback and a private
-                    // network; the user named this forge (T-239).
-                    true => {
-                        eprintln!(
-                            "podrunner: --action-server {host} is on the loopback or a private network: git reaches it directly, with no egress grant"
-                        );
-                        None
-                    }
-                    false => Some(podrunner_local::fetch::Fetch::open(&host)?),
-                }
-            }
+        let r = match local_only {
+            true => match attempt(Mode::Offline) {
+                Err(
+                    podrunner_local::store::Error::NotLocked { .. } | podrunner_local::store::Error::NotStored { .. },
+                ) => attempt(mode),
+                r => r,
+            },
+            false => attempt(mode),
         };
-        let mut git = Git::new(base, std::env::temp_dir());
-        git.proxy = fetch.as_ref().map(|f| f.proxy.clone());
-        let (store, forge) = (Store { dir: dir.clone() }, Local::new(a.local_repos.iter().cloned().collect(), &git));
-        let r = resolve(&uses, &lock, &store, &forge, mode, &name).map_err(s)?;
-        (add_trees(&trees, r, &store, &forge, mode, &name).map_err(s)?, Some(dir))
+        (r.map_err(|e| with_fix(&e, mode))?, Some(dir))
     };
     if let (Some(source), false) = (images, tags.is_empty()) {
         let (pins, changed) = podrunner_local::images::resolve(&tags, &mut r.lock, source, mode, &name).map_err(s)?;
@@ -148,6 +156,39 @@ pub(super) fn pin(
         note = format!("podrunner: {name} pins {} references\n", r.lock.pins.len() + r.lock.images.len());
     }
     Ok(Some(Pinned { dir, commits: r.commits, note }))
+}
+
+/// The grant of the forge for a fetch, or `None` for a forge on a local
+/// network.
+fn open_fetch(a: &Args, base: &str) -> Result<Option<podrunner_local::fetch::Fetch>, String> {
+    let host = podrunner_local::fetch::host_of(base).ok_or_else(|| format!("{base}: no host"))?;
+    match a.action_server.is_some() && on_local_network(&host) {
+        // The egress module refuses the loopback and a private network; the
+        // user named this forge (T-239).
+        true => {
+            eprintln!(
+                "podrunner: --action-server {host} is on the loopback or a private network: git reaches it directly, with no egress grant"
+            );
+            Ok(None)
+        }
+        false => podrunner_local::fetch::Fetch::open(&host).map(Some),
+    }
+}
+
+/// The text of a failed pin, with its fix: a reference that the lock or
+/// the store does not have (T-346).
+fn with_fix(e: &podrunner_local::store::Error, mode: Mode) -> String {
+    use podrunner_local::store::Error;
+    let fix = match (e, mode) {
+        (Error::NotLocked { .. }, Mode::Frozen) => {
+            "; run with no --frozen to pin it, or serve it with --local-repository OWNER/REPO@REF=DIR"
+        }
+        (Error::NotLocked { .. } | Error::NotStored { .. }, Mode::Offline) => {
+            "; run with no --offline to fetch it, or serve it with --local-repository OWNER/REPO@REF=DIR"
+        }
+        _ => "",
+    };
+    format!("{e}{fix}")
 }
 
 /// The static values of each key of the matrix of a job: its vectors and

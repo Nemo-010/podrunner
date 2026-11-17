@@ -8,6 +8,7 @@
 mod actions;
 mod args;
 mod artifact_dir;
+mod composites;
 mod concurrency;
 mod containers;
 mod context;

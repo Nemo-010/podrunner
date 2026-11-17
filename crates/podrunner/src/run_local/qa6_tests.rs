@@ -95,3 +95,44 @@ fn the_secrets_of_the_tree_are_checked_in_a_dry_run() {
     }
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// T-346: with `--offline`, a dry run fails on a reference that a local
+/// composite action names and the lock does not pin, and names the fix.
+#[test]
+fn an_offline_dry_run_pins_the_uses_of_a_local_composite() {
+    let dir = scratch("composite");
+    let tree = dir.join("tree");
+    let action = tree.join(".github/actions/nested");
+    std::fs::create_dir_all(&action).unwrap();
+    std::fs::write(
+        action.join("action.yml"),
+        "runs:\n  using: composite\n  steps:\n    - uses: actions/setup-node@v4\n",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.join("w.yml"),
+        "on: push\njobs:\n  a:\n    runs-on: ubuntu-latest\n    steps: [{uses: ./.github/actions/nested}]\n",
+    )
+    .unwrap();
+    let (w, t, store) =
+        (dir.join("w.yml").display().to_string(), tree.display().to_string(), dir.join("store").display().to_string());
+    let out = run(&args(&[
+        &w,
+        "--runner-dir",
+        "/r",
+        "--dry-run",
+        "--no-cache",
+        "--offline",
+        "--checkout",
+        &t,
+        "--actions",
+        &store,
+    ]));
+    assert_eq!(out.code, 78, "{}{}", out.stdout, out.stderr);
+    assert!(
+        out.stderr.contains("actions/setup-node@v4") && out.stderr.contains("run with no --offline"),
+        "{}",
+        out.stderr
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}

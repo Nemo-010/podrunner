@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**347 entries: 27 open, 21 partial, 10 blocked, 289 done.**
+**347 entries: 26 open, 21 partial, 10 blocked, 290 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 1 | 58 | 69 |
-| P2 | 7 | 7 | 6 | 150 | 170 |
+| P2 | 6 | 7 | 6 | 151 | 170 |
 | P3 | 19 | 5 | 3 | 81 | 108 |
-| **All** | 27 | 21 | 10 | 289 | 347 |
+| **All** | 26 | 21 | 10 | 290 | 347 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -390,7 +390,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-343](later.md) | P3 | S | later | defect | open | `print-unit` writes values in `ExecStart` with no quotes, and takes a relative or empty `--binary` |
 | [T-344](later.md) | P3 | S | later | defect | open | `image verify` refuses the runner image of the release, and the error does not name the file it takes |
 | [T-345](later.md) | P3 | M | later | defect | open | A dry run writes the artifact and cache directories, and skips the checks of some executor paths |
-| [T-346](later.md) | P2 | M | later | defect | open | Nested `uses:` of a local composite action are not pinned; the refusal says offline mode with no `--offline` |
+| [T-346](later.md) | P2 | M | later | defect | done | Nested `uses:` of a local composite action are not pinned; the refusal says offline mode with no `--offline` |
 | [T-347](later.md) | P3 | S | later | defect | open | `--watch` and `--schedule` with a one-shot mode wait for ever; `--schedule` of a workflow with no `on.schedule` gives a bad message |
 | [T-348](later.md) | P3 | S | later | defect | open | `--validate --json` gives no JSON for a workflow that is not valid |
 | [T-349](later.md) | P3 | S | later | defect | open | A failure before the start of a job names a log in `--log-dir` that is not there |

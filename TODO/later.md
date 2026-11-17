@@ -6806,7 +6806,7 @@ A dry run makes no directory. It checks each path that the run will use, as the 
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -6823,6 +6823,10 @@ Read each local composite action (`./PATH/action.yml`) of each job, and pin its 
 ## Prove
 
 `cargo test -p podrunner`; Tests: a nested reference of a local composite is in the lock after a dry run; with `--offline` and no pin, the dry run fails; the refusal text names the cause.
+
+## Done
+
+2026-11-17: each remote `uses:` of a local composite action (`./PATH` of the checkout, else of the current directory, to 10 levels) is pinned with the direct `uses:` (`composites::local_uses`). A run whose references are each a `--local-repository` resolves offline first, then in the mode of the run for a reference that a composite names; a refusal of `--offline` or `--frozen` names the fix (`actions::with_fix`). Proven in CI on GitHub-hosted runners by `composites::tests` and `qa6_tests::an_offline_dry_run_pins_the_uses_of_a_local_composite`; the fall-back to a fetch is not run.
 
 # T-347: `--watch` and `--schedule` with a one-shot mode wait for ever; `--schedule` of a workflow with no `on.schedule` gives a bad message
 
