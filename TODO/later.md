@@ -4408,7 +4408,7 @@ The installer removes the write of the group and the others from `bin` and `shar
 **Milestone:** later
 **Priority:** P2
 **Effort:** M
-**Status:** open
+**Status:** partial
 
 ## Problem
 
@@ -4425,6 +4425,8 @@ Bump podcrates to the latest tag (`v0.59.0` or later: also the volumes of pod-en
 ## Prove
 
 `cargo todo check` with `issue_rules = "on"`; a dry run of `issue-sync.yml` with no change that the record does not give; the lanes of the user-path gate green under `podlab run`.
+
+State (2026-11-17): podcrates `v0.69.0` is pinned (each `Cargo.toml`); `pod-hostprobe` has the field `network` (the doctor sends no packet: `None`) and the kinds `Here` and `Network` (`Probe::measure`). fmt, clippy, the tests and `cargo todo check` pass here. Open: the column `Kind` and `issue_rules`, `issue-sync.yml`, the lanes under `podlab run`; the mark of an unknown need is the line of the job, not of `needs:` (T-331 F9).
 
 # T-265: A job on `--runner-dir` does not get the PATH, the proxy and the CA of the user
 

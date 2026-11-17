@@ -38,20 +38,19 @@ pub fn probe_settings() -> pod_hostprobe::Settings {
         child_flag: "--podrunner-probe-child".into(),
         child_name: "podrunner-probe".into(),
         directory_setting: None,
+        // The doctor sends no packet past the host.
+        network: None,
     }
 }
 
 /// Run the rows of [`HOST_ROWS`], each in a child of this binary.
 fn host_rows() -> Value {
-    use pod_hostprobe::probes::{Kind, find};
+    use pod_hostprobe::probes::find;
     let spawner = pod_hostprobe::child::Spawner::new(&probe_settings());
     let rows: Vec<Value> = HOST_ROWS
         .iter()
         .filter_map(|name| {
-            let o = match find(name)?.kind {
-                Kind::Clone(flags) => spawner.clone_accepted(flags),
-                Kind::Child { ns_flags, .. } => spawner.run_probe(name, ns_flags),
-            };
+            let o = find(name)?.measure(&spawner);
             Some(json!({ "probe": name, "verdict": o.verdict.word(), "errno": o.errno_name(), "reason": o.reason }))
         })
         .collect();

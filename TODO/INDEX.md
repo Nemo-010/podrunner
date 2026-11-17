@@ -36,15 +36,15 @@ acceptance, later The crate dependencies later than v1.
 
 ## Entries
 
-**347 entries: 18 open, 22 partial, 10 blocked, 297 done.**
+**347 entries: 17 open, 23 partial, 10 blocked, 297 done.**
 
 | Priority | open | partial | blocked | done | total |
 | --- | --- | --- | --- | --- | --- |
 | P0 | 0 | 0 | 0 | 0 | 0 |
 | P1 | 1 | 9 | 1 | 58 | 69 |
-| P2 | 5 | 8 | 6 | 151 | 170 |
+| P2 | 4 | 9 | 6 | 151 | 170 |
 | P3 | 12 | 5 | 3 | 88 | 108 |
-| **All** | 18 | 22 | 10 | 297 | 347 |
+| **All** | 17 | 23 | 10 | 297 | 347 |
 
 | ID | Priority | Effort | Milestone | Category | Status | Item |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -308,7 +308,7 @@ acceptance, later The crate dependencies later than v1.
 | [T-261](later.md) | P2 | S | later | defect | blocked | In a podvm unit, the persist of a temporary file gets EACCES |
 | [T-262](later.md) | P2 | S | later | defect | done | In a podvm unit, Node sometimes reads an invalid package.json |
 | [T-263](later.md) | P1 | S | later | defect | done | The installer keeps a directory that the group can write |
-| [T-264](later.md) | P2 | M | later | chore | open | Take podcrates `v0.55.0`: the sync of the issues and pod-lab |
+| [T-264](later.md) | P2 | M | later | chore | partial | Take podcrates `v0.55.0`: the sync of the issues and pod-lab |
 | [T-265](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` does not get the PATH, the proxy and the CA of the user |
 | [T-266](later.md) | P2 | S | later | defect | done | A job on `--runner-dir` writes into the home of the user |
 | [T-267](later.md) | P2 | S | later | defect | done | `--checkout .` gives no `.git`, so a step that runs `git` fails |
