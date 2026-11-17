@@ -14,6 +14,7 @@ at the tag `v0.41.0`.
 
 | Date | Area | Ruling |
 | --- | --- | --- |
+| 2026-11-17 | The release of beta.7 | "Wait on podvm, and then apply the fixes, run 2 QA agents and then you may release the next beta if everything else is resolved." The release waits for the podvm beta that gives `run -d` a PID namespace (T-318, PodUtils/podvm#458). Then podrunner pins it and closes T-318, two new adversarial QA agents run on the release files, their P1 and P2 findings are fixed, and the release request follows when the gates of `AGENTS.md` section 12 hold. |
 | 2026-11-16 | Web access | "Always prefer https://web.pkgforge.dev/llms.txt for any web/git search/fetch." Each read (the GitHub REST API, a search, a page, a raw file) goes to the services of web.pkgforge.dev first; the tool of the harness only when they fail. Writes to GitHub stay on the MCP tools (podcrates COORD-120, PodUtils/podcrates#207). |
 | 2026-11-05 | Static, C, Rust | "We use whatever is necessary, including C, zig, modern Rust, no backwards compat. Our users and clients do not care about building the tool, they care about downloading and using it. The only rule is: everything must be statically compiled." It supersedes the rules "no C" and "MSRV 1.89" of the agreed design. |
 | 2026-11-05 | Toolchain | Modern and stable Rust, "even nightly/bleeding edge if its necessary to maintain performance, security whatever we need". The `rust-version` is the stable of the day. A consumer moves its toolchain to match; podcrates does not hold back for the toolchain of a consumer. |
