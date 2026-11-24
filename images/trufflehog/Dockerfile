@@ -1,3 +1,3 @@
 # TruffleHog, which scans the history for credentials
 # (.github/workflows/secrets.yml), pinned to the digest of its index.
-FROM docker.io/trufflesecurity/trufflehog:3.99.8@sha256:674b2f187620a19df77f44cf9a7d77efcc581a5662accef2f2739cbb46ba4a3a
+FROM docker.io/trufflesecurity/trufflehog:3.100.0@sha256:8fd07ea46a3f59583c4d50f006d8cf150530141b28969c3c34cc455cb9165a6b
